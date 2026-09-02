@@ -1,0 +1,6 @@
+多任务智能体验证性运行报告（未执行完整训练）
+cruise_hold: 通过
+turn: 通过
+climb_descent: 通过
+pursuit: 通过
+evasion: 通过

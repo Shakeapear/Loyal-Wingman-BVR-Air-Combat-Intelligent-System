@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<runscript name="AP 调试">
+  <use aircraft="f104" initialize="reset_cruise"/>
+  <output name="ap_debug.csv" type="CSV" rate="10">
+    <property> simulation/sim-time-sec </property>
+    <property> fcs/ap-master-on </property>
+    <property> fcs/ap-enabled </property>
+    <property> fcs/ap-alt-hold-on </property>
+    <property> fcs/ap-theta-cmd-alt-term </property>
+    <property> fcs/ap-theta-cmd-h-term </property>
+    <property> fcs/ap-theta-cmd-rad </property>
+    <property> fcs/ap-pitch-input </property>
+    <property> fcs/ap-elevator-raw </property>
+    <property> fcs/ap-elevator-clipped </property>
+    <property> fcs/ap-elevator-cmd </property>
+    <property> fcs/elevator-pos-rad </property>
+    <property> fcs/ap-throttle-clipped </property>
+    <property> fcs/ap-throttle-cmd </property>
+    <property> fcs/ap-speed-setpoint-fps </property>
+    <property> fcs/ap-speed-error </property>
+    <property> fcs/ap-throttle-raw </property>
+    <property> velocities/vtrue-fps </property>
+    <property> attitude/theta-rad </property>
+    <property> velocities/q-rad_sec </property>
+    <property> position/h-sl-ft </property>
+  </output>
+  <run start="0.0" end="40.0" dt="0.00833333">
+    <event name="接通自动驾驶仪">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 0.5 </condition>
+      <set name="fcs/ap-master-on" value="1"/>
+      <set name="fcs/ap-alt-hold-on" value="1"/>
+      <set name="fcs/ap-alt-setpoint-ft" value="15000"/>
+      <set name="fcs/ap-speed-setpoint-fps" value="898"/>
+    </event>
+    <event name="发动机置为运行状态">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 0.1 </condition>
+      <set name="propulsion/engine[0]/set-running" value="1"/>
+      <set name="propulsion/cutoff_cmd" value="0"/>
+      <set name="propulsion/engine[0]/n2" value="90"/>
+      <set name="propulsion/engine[0]/n1" value="90"/>
+    </event>
+  </run>
+</runscript>

@@ -1,0 +1,176 @@
+== 验证任务: cruise_hold (PPO) ==
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+C:\Users\36266\.conda\envs\DC\Lib\site-packages\gymnasium\spaces\box.py:231: UserWarning: WARN: Box low's precision lowered by casting to float32, current low.dtype=float64
+  gym.logger.warn(
+C:\Users\36266\.conda\envs\DC\Lib\site-packages\gymnasium\spaces\box.py:297: UserWarning: WARN: Box high's precision lowered by casting to float32, current high.dtype=float64
+  gym.logger.warn(
+  [L1 环境冒烟] cruise_hold: 60 步随机动作, 累计奖励 20.5, 终止=False, 坠毁=False, obs=Box(-inf, inf, (12,), float32), act=Box([ 1.8e+02 -9.0e-01  3.0e+03], [2.8e+02 9.0e-01 8.0e+03], (3,), float32)
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+  [L2 模型构建] cruise_hold: algo=PPO, net_arch=[64, 64], activation=tanh, lr=0.0003
+C:\Users\36266\.conda\envs\DC\Lib\site-packages\gymnasium\spaces\box.py:231: UserWarning: WARN: Box low's precision lowered by casting to float32, current low.dtype=float64
+  gym.logger.warn(
+C:\Users\36266\.conda\envs\DC\Lib\site-packages\gymnasium\spaces\box.py:297: UserWarning: WARN: Box high's precision lowered by casting to float32, current high.dtype=float64
+  gym.logger.warn(
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+---------------------------------
+| rollout/           |          |
+|    ep_len_mean     | 120      |
+|    ep_rew_mean     | 5.58     |
+| time/              |          |
+|    fps             | 513      |
+|    iterations      | 1        |
+|    time_elapsed    | 3        |
+|    total_timesteps | 2048     |
+---------------------------------
+[ok] 模型已保存: C:\Users\36266\Desktop\大创 尝试\多任务智能体\models\cruise_hold_ppo
+  [L3 极小训练] cruise_hold: 2048 步耗时 5.3s -> cruise_hold_ppo
+== 验证任务: turn (SAC) ==
+  [L1 环境冒烟] turn: 60 步随机动作, 累计奖励 3.4, 终止=False, 坠毁=False, obs=Box(-inf, inf, (12,), float32), act=Box([ 1.8e+02 -9.0e-01  3.0e+03], [2.8e+02 9.0e-01 8.0e+03], (3,), float32)
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+  [L2 模型构建] turn: algo=SAC, net_arch=[128, 128], activation=relu, lr=0.0003
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+---------------------------------
+| rollout/           |          |
+|    ep_len_mean     | 120      |
+|    ep_rew_mean     | -7.09    |
+| time/              |          |
+|    episodes        | 4        |
+|    fps             | 69       |
+|    time_elapsed    | 6        |
+|    total_timesteps | 480      |
+| train/             |          |
+|    actor_loss      | 201      |
+|    critic_loss     | 131      |
+|    ent_coef        | 1.11     |
+|    ent_coef_loss   | -4.19    |
+|    learning_rate   | 0.0003   |
+|    n_updates       | 379      |
+---------------------------------
+---------------------------------
+| rollout/           |          |
+|    ep_len_mean     | 120      |
+|    ep_rew_mean     | -11.6    |
+| time/              |          |
+|    episodes        | 8        |
+|    fps             | 64       |
+|    time_elapsed    | 14       |
+|    total_timesteps | 960      |
+| train/             |          |
+|    actor_loss      | 310      |
+|    critic_loss     | 164      |
+|    ent_coef        | 1.27     |
+|    ent_coef_loss   | -9.56    |
+|    learning_rate   | 0.0003   |
+|    n_updates       | 859      |
+---------------------------------
+[ok] 模型已保存: C:\Users\36266\Desktop\大创 尝试\多任务智能体\models\turn_sac
+  [L3 极小训练] turn: 1024 步耗时 16.1s -> turn_sac
+== 验证任务: climb_descent (TD3) ==
+  [L1 环境冒烟] climb_descent: 60 步随机动作, 累计奖励 0.0, 终止=False, 坠毁=False, obs=Box(-inf, inf, (12,), float32), act=Box([ 1.8e+02 -9.0e-01  3.0e+03], [2.8e+02 9.0e-01 8.0e+03], (3,), float32)
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+  [L2 模型构建] climb_descent: algo=TD3, net_arch=[128, 128], activation=relu, lr=0.0003
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+---------------------------------
+| rollout/           |          |
+|    ep_len_mean     | 150      |
+|    ep_rew_mean     | 0        |
+| time/              |          |
+|    episodes        | 4        |
+|    fps             | 105      |
+|    time_elapsed    | 5        |
+|    total_timesteps | 600      |
+| train/             |          |
+|    actor_loss      | -11.1    |
+|    critic_loss     | 0.0185   |
+|    learning_rate   | 0.0003   |
+|    n_updates       | 499      |
+---------------------------------
+[ok] 模型已保存: C:\Users\36266\Desktop\大创 尝试\多任务智能体\models\climb_descent_td3
+  [L3 极小训练] climb_descent: 1024 步耗时 10.5s -> climb_descent_td3
+== 验证任务: pursuit (DQN) ==
+  [L1 环境冒烟] pursuit: 60 步随机动作, 累计奖励 -52.0, 终止=False, 坠毁=False, obs=Box(-inf, inf, (17,), float32), act=Discrete(48)
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+  [L2 模型构建] pursuit: algo=DQN, net_arch=[128, 128], activation=relu, lr=0.001
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+----------------------------------
+| rollout/            |          |
+|    ep_len_mean      | 120      |
+|    ep_rew_mean      | -28      |
+|    exploration_rate | 0.05     |
+| time/               |          |
+|    episodes         | 4        |
+|    fps              | 428      |
+|    time_elapsed     | 1        |
+|    total_timesteps  | 480      |
+| train/              |          |
+|    learning_rate    | 0.001    |
+|    loss             | 42.4     |
+|    n_updates        | 55       |
+----------------------------------
+----------------------------------
+| rollout/            |          |
+|    ep_len_mean      | 120      |
+|    ep_rew_mean      | -27.7    |
+|    exploration_rate | 0.05     |
+| time/               |          |
+|    episodes         | 8        |
+|    fps              | 358      |
+|    time_elapsed     | 2        |
+|    total_timesteps  | 960      |
+| train/              |          |
+|    learning_rate    | 0.001    |
+|    loss             | 35.1     |
+|    n_updates        | 175      |
+----------------------------------
+[ok] 模型已保存: C:\Users\36266\Desktop\大创 尝试\多任务智能体\models\pursuit_dqn
+  [L3 极小训练] pursuit: 1024 步耗时 2.9s -> pursuit_dqn
+== 验证任务: evasion (PPO) ==
+  [L1 环境冒烟] evasion: 60 步随机动作, 累计奖励 18.8, 终止=False, 坠毁=False, obs=Box(-inf, inf, (16,), float32), act=Box([ 1.8e+02 -9.0e-01  3.0e+03], [2.8e+02 9.0e-01 8.0e+03], (3,), float32)
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+  [L2 模型构建] evasion: algo=PPO, net_arch=[256, 256], activation=tanh, lr=0.0003
+Using cpu device
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+---------------------------------
+| rollout/           |          |
+|    ep_len_mean     | 120      |
+|    ep_rew_mean     | 40.7     |
+| time/              |          |
+|    fps             | 333      |
+|    iterations      | 1        |
+|    time_elapsed    | 6        |
+|    total_timesteps | 2048     |
+---------------------------------
+[ok] 模型已保存: C:\Users\36266\Desktop\大创 尝试\多任务智能体\models\evasion_ppo
+  [L3 极小训练] evasion: 1024 步耗时 7.9s -> evasion_ppo
+
+===== 验证汇总 =====
+ cruise_hold: 通过
+ turn: 通过
+ climb_descent: 通过
+ pursuit: 通过
+ evasion: 通过

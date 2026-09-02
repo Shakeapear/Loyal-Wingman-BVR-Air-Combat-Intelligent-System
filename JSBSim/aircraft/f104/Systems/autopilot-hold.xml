@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+
+<!--
+  autopilot-hold.xml — F-104 姿态/高度/速度保持自动驾驶仪（本项目自定义）
+  功能：
+    - fcs/ap-master-on = 1 时接通；= 0 时断开，输出全部为 0（不影响人工操纵）
+    - 俯仰通道：高度保持（ap-alt-hold-on=1 且 ap-alt-setpoint-ft>0 时）
+                或俯仰角保持（ap-pitch-setpoint-rad）
+    - 滚转通道：滚转角保持（ap-roll-setpoint-rad）
+    - 速度通道：真空速保持（ap-speed-setpoint-fps），经 fcs/throttle-cmd-norm 输出
+  注意：
+    - JSBSim 的 pid 组件在 trigger 非零时冻结积分器，故此处不用 trigger，
+      改用在输入端用 switch 把误差置零，断开时积分自然停住（无积分饱和）。
+-->
+
+<system name="autopilot-hold">
+
+  <property value="0"> fcs/ap-master-on </property>
+  <property value="0"> fcs/ap-alt-hold-on </property>
+  <property value="0"> fcs/ap-alt-setpoint-ft </property>
+  <property value="0"> fcs/ap-pitch-setpoint-rad </property>
+  <property value="0"> fcs/ap-roll-setpoint-rad </property>
+  <property value="0"> fcs/ap-speed-setpoint-fps </property>
+  <property value="0"> fcs/throttle-cmd-pilot </property>
+
+  <channel name="AP Enable">
+
+    <switch name="AP Master Switch">
+      <default value="0"/>
+      <test value="1">
+        fcs/ap-master-on == 1
+      </test>
+      <output>fcs/ap-enabled</output>
+    </switch>
+
+  </channel>
+
+  <channel name="Pitch Hold">
+
+    <fcs_function name="Alt Setpoint Gain">
+      <function>
+        <product>
+          <property>fcs/ap-alt-hold-on</property>
+          <property>fcs/ap-alt-setpoint-ft</property>
+          <value>0.0002</value>
+        </product>
+      </function>
+      <output>fcs/ap-theta-cmd-alt-term</output>
+    </fcs_function>
+
+    <fcs_function name="Alt Feedback Gain">
+      <function>
+        <product>
+          <property>fcs/ap-alt-hold-on</property>
+          <property>position/h-sl-ft</property>
+          <value>-0.0002</value>
+        </product>
+      </function>
+      <output>fcs/ap-theta-cmd-h-term</output>
+    </fcs_function>
+
+    <summer name="Theta Command">
+      <input>fcs/ap-pitch-setpoint-rad</input>
+      <input>fcs/ap-theta-cmd-alt-term</input>
+      <input>fcs/ap-theta-cmd-h-term</input>
+      <clipto>
+        <min> -0.1745 </min>
+        <max>  0.1745 </max>
+      </clipto>
+      <output>fcs/ap-theta-cmd-rad</output>
+    </summer>
+
+    <summer name="Pitch Error">
+      <input>fcs/ap-theta-cmd-rad</input>
+      <input>-attitude/theta-rad</input>
+      <product>
+        <property>velocities/q-rad_sec</property>
+        <value>-0.75</value>
+      </product>
+      <output>fcs/ap-pitch-input-raw</output>
+    </summer>
+
+    <switch name="AP Pitch Input Gate">
+      <default value="0"/>
+      <test value="fcs/ap-pitch-input-raw">
+        fcs/ap-enabled == 1
+      </test>
+      <output>fcs/ap-pitch-input</output>
+    </switch>
+
+    <pid name="AP Pitch PID">
+      <input>fcs/ap-pitch-input</input>
+      <kp> -3.0 </kp>
+      <ki> -0.5 </ki>
+      <kd>  0.0 </kd>
+      <output>fcs/ap-elevator-raw</output>
+    </pid>
+
+    <summer name="AP Elevator Limit">
+      <input>fcs/ap-elevator-raw</input>
+      <clipto>
+        <min> -1.0 </min>
+        <max>  1.0 </max>
+      </clipto>
+      <output>fcs/ap-elevator-clipped</output>
+    </summer>
+
+    <switch name="AP Elevator Engage">
+      <default value="0"/>
+      <test value="fcs/ap-elevator-clipped">
+        fcs/ap-enabled == 1
+      </test>
+      <output>fcs/ap-elevator-cmd</output>
+    </switch>
+
+  </channel>
+
+  <channel name="Roll Hold">
+
+    <summer name="Roll Error">
+      <input>fcs/ap-roll-setpoint-rad</input>
+      <input>-attitude/phi-rad</input>
+      <product>
+        <property>velocities/p-rad_sec</property>
+        <value>-0.5</value>
+      </product>
+      <output>fcs/ap-roll-input-raw</output>
+    </summer>
+
+    <switch name="AP Roll Input Gate">
+      <default value="0"/>
+      <test value="fcs/ap-roll-input-raw">
+        fcs/ap-enabled == 1
+      </test>
+      <output>fcs/ap-roll-input</output>
+    </switch>
+
+    <pid name="AP Roll PID">
+      <input>fcs/ap-roll-input</input>
+      <kp>  1.2 </kp>
+      <ki>  0.2 </ki>
+      <kd>  0.0 </kd>
+      <output>fcs/ap-aileron-raw</output>
+    </pid>
+
+    <summer name="AP Aileron Limit">
+      <input>fcs/ap-aileron-raw</input>
+      <clipto>
+        <min> -0.4 </min>
+        <max>  0.4 </max>
+      </clipto>
+      <output>fcs/ap-aileron-clipped</output>
+    </summer>
+
+    <switch name="AP Aileron Engage">
+      <default value="0"/>
+      <test value="fcs/ap-aileron-clipped">
+        fcs/ap-enabled == 1
+      </test>
+      <output>fcs/ap-aileron-cmd</output>
+    </switch>
+
+  </channel>
+
+  <channel name="Speed Hold">
+
+    <summer name="Speed Error">
+      <input>fcs/ap-speed-setpoint-fps</input>
+      <input>-velocities/vtrue-fps</input>
+      <output>fcs/ap-speed-error-raw</output>
+    </summer>
+
+    <switch name="AP Speed Input Gate">
+      <default value="0"/>
+      <test value="fcs/ap-speed-error-raw">
+        fcs/ap-enabled == 1
+      </test>
+      <output>fcs/ap-speed-error</output>
+    </switch>
+
+    <pid name="AP Speed PID">
+      <input>fcs/ap-speed-error</input>
+      <kp>  0.02 </kp>
+      <ki>  0.002 </ki>
+      <kd>  0.0 </kd>
+      <output>fcs/ap-throttle-raw</output>
+    </pid>
+
+    <summer name="AP Throttle Limit">
+      <input>fcs/ap-throttle-raw</input>
+      <clipto>
+        <min> 0.0 </min>
+        <max> 1.0 </max>
+      </clipto>
+      <output>fcs/ap-throttle-clipped</output>
+    </summer>
+
+    <switch name="AP Throttle Engage">
+      <default value="0"/>
+      <test value="fcs/ap-throttle-clipped">
+        fcs/ap-enabled == 1
+      </test>
+      <output>fcs/ap-throttle-cmd</output>
+    </switch>
+
+    <summer name="Throttle Mix">
+      <input>fcs/throttle-cmd-pilot</input>
+      <input>fcs/ap-throttle-cmd</input>
+      <clipto>
+        <min> 0.0 </min>
+        <max> 1.0 </max>
+      </clipto>
+      <output>fcs/throttle-cmd-norm</output>
+    </summer>
+
+  </channel>
+
+</system>

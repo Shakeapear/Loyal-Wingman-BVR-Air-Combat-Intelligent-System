@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<runscript name="F-104 训练轨迹演示（多阶段机动）">
+  <description>
+    F-104 训练轨迹采集演示：初始 15000 ft / M0.85。
+    0-30s   巡航（高度 15000 ft / 速度 750 fps）；
+    30-70s  右侧 30° 盘旋；
+    70-100s 爬升至 17500 ft；
+    100-140s 左侧 30° 盘旋；
+    140-165s 下降回 15000 ft；
+    165-180s 巡航。
+    以 10 Hz 记录状态 + 自驾仪指令（动作），供 make_trajectory.py 生成训练轨迹文件。
+  </description>
+  <use aircraft="f104" initialize="reset_cruise"/>
+  <output name="f104_training_demo_raw.csv" type="CSV" rate="10">
+    <property> simulation/sim-time-sec </property>
+    <property> position/h-sl-ft </property>
+    <property> position/h-agl-ft </property>
+    <property> position/lat-geod-deg </property>
+    <property> position/long-gc-deg </property>
+    <property> position/distance-from-start-lat-mt </property>
+    <property> position/distance-from-start-lon-mt </property>
+    <property> velocities/vtrue-fps </property>
+    <property> velocities/mach </property>
+    <property> velocities/u-fps </property>
+    <property> velocities/v-fps </property>
+    <property> velocities/w-fps </property>
+    <property> velocities/v-north-fps </property>
+    <property> velocities/v-east-fps </property>
+    <property> velocities/v-down-fps </property>
+    <property> velocities/p-rad_sec </property>
+    <property> velocities/q-rad_sec </property>
+    <property> velocities/r-rad_sec </property>
+    <property> attitude/phi-rad </property>
+    <property> attitude/theta-rad </property>
+    <property> attitude/psi-rad </property>
+    <property> aero/alpha-rad </property>
+    <property> aero/beta-rad </property>
+    <property> accelerations/Nx </property>
+    <property> accelerations/Ny </property>
+    <property> accelerations/Nz </property>
+    <property> fcs/throttle-cmd-norm </property>
+    <property> fcs/elevator-cmd-norm </property>
+    <property> fcs/aileron-cmd-norm </property>
+    <property> fcs/rudder-cmd-norm </property>
+    <property> propulsion/engine/thrust-lbs </property>
+    <property> propulsion/total-fuel-lbs </property>
+    <property> inertia/mass-slugs </property>
+    <property> atmosphere/T-R </property>
+    <property> atmosphere/rho-slugs_ft3 </property>
+    <property> fcs/ap-roll-setpoint-rad </property>
+    <property> fcs/ap-alt-setpoint-ft </property>
+    <property> fcs/ap-speed-setpoint-fps </property>
+  </output>
+  <run start="0.0" end="180.0" dt="0.00833333">
+    <event name="设置初始燃油（数据采集配置）">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 0.05 </condition>
+      <set name="propulsion/tank[0]/contents-lbs" value="3500"/>
+      <set name="propulsion/tank[1]/contents-lbs" value="600"/>
+      <set name="propulsion/tank[2]/contents-lbs" value="600"/>
+    </event>
+    <event name="发动机置为运行状态">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 0.1 </condition>
+      <set name="propulsion/engine[0]/set-running" value="1"/>
+      <set name="propulsion/cutoff_cmd" value="0"/>
+      <set name="propulsion/engine[0]/n2" value="100"/>
+      <set name="propulsion/engine[0]/n1" value="100"/>
+    </event>
+    <event name="收起起落架与减速板">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 1.0 </condition>
+      <set name="gear/gear-cmd-norm" value="0"/>
+      <set name="fcs/speedbrake-cmd-norm" value="0"/>
+      <set name="fcs/flap-cmd-norm" value="0"/>
+    </event>
+    <event name="接通自动驾驶仪（巡航阶段）">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 0.5 </condition>
+      <set name="fcs/ap-master-on" value="1"/>
+      <set name="fcs/ap-alt-hold-on" value="1"/>
+      <set name="fcs/ap-alt-setpoint-ft" value="15000"/>
+      <set name="fcs/ap-speed-setpoint-fps" value="750"/>
+    </event>
+    <event name="阶段2：右盘旋 30°">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 30.0 </condition>
+      <set name="fcs/ap-roll-setpoint-rad" value="0.5236"/>
+    </event>
+    <event name="阶段3：爬升至 17500 ft">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 70.0 </condition>
+      <set name="fcs/ap-roll-setpoint-rad" value="0"/>
+      <set name="fcs/ap-alt-setpoint-ft" value="17500"/>
+    </event>
+    <event name="阶段4：左盘旋 30°">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 100.0 </condition>
+      <set name="fcs/ap-roll-setpoint-rad" value="-0.5236"/>
+    </event>
+    <event name="阶段5：下降回 15000 ft">
+      <notify/>
+      <condition> simulation/sim-time-sec >= 140.0 </condition>
+      <set name="fcs/ap-roll-setpoint-rad" value="0"/>
+      <set name="fcs/ap-alt-setpoint-ft" value="15000"/>
+    </event>
+  </run>
+</runscript>

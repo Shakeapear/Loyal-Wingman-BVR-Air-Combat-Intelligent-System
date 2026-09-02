@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<initialize name="reset_cruise">
+  <!--
+    F-104 巡航状态初始化：高度 15000 ft，马赫 0.85，航向 0°
+    用于性能验证与飞行数据采集（本项目自定义，非 JSBSim 原始文件）
+  -->
+  <ubody unit="FT/SEC">   898.5  </ubody>
+  <vbody unit="FT/SEC">     0.0  </vbody>
+  <wbody unit="FT/SEC">     0.0  </wbody>
+  <latitude unit="DEG">    30.0  </latitude>
+  <longitude unit="DEG">  120.0  </longitude>
+  <phi unit="DEG">          0.0  </phi>
+  <theta unit="DEG">        0.0  </theta>
+  <psi unit="DEG">          0.0  </psi>
+  <altitude unit="FT">  15000.0  </altitude>
+  <gamma unit="DEG">        0.0  </gamma>
+</initialize>
