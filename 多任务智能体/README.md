@@ -20,9 +20,11 @@
 │   └── evasion_ppo.py            ← 任务5 威胁规避 → PPO
 ├── configs\task_configs.yaml     ← 配置导出（由 config.py 生成）
 ├── models\                       ← 验证性运行产出的模型
-└── validation\
-    ├── run_validation.py         ← 验证性运行（L1 冒烟 / L2 建模型 / L3 极小训练）
-    └── results\                  ← 验证报告与运行日志
+├── validation\
+│   ├── run_validation.py         ← 验证性运行（L1 冒烟 / L2 建模型 / L3 极小训练）
+│   └── results\                  ← 验证报告与运行日志
+└── visualization\                ← 步骤 2.4 可视化（2D 战术显示 + CSV/GIF 回放 + ACMI 导出，
+                                    见 visualization/README.md；demo：python -m visualization.demo）
 ```
 
 ## 任务-模型-网络对照表（节点数依据开源项目文档）

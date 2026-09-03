@@ -208,4 +208,8 @@ model.learn(total_timesteps=1_000_000)   # 阶段三的完整训练步数，另�
 - 观测/奖励全部在环境内完成归一化（有限 Box），直接接 MlpPolicy；
 - 完整训练配置（网络结构/超参）遵循项目 config.py 的分级原则，在阶段三开始时
   在 `common/config.py` 增补 BVR 条目（本任务未做完整训练）；
-- 渲染/可视化依赖步骤 2.4（本任务不涉及）。
+- 渲染/可视化（步骤 2.4，2026-09-03 交付）：`get_viz_frame()` 返回全量态势快照；
+  `render()` 支持 "human"（实时战术显示窗口）与 "rgb_array"（离屏帧），经
+  `config["render_mode"]` 启用，默认 None（训练零开销）；绘图与回放实现见
+  `visualization/` 包（实时窗口演示 `python -m visualization.demo`，
+  CSV 回放 `python -m visualization.replay <csv>`）。

@@ -31,6 +31,10 @@ BVRCombatEnv：1v1 超视距空战标准化 Gym 环境（gymnasium.Env）。
 坐标系：全部 ENU + SI（东/北/上，米、米/秒），JSBSim NED/英制经
 common.jsbsim_bridge.ned_ft_to_enu_m 转换。
 
+可视化（步骤 2.4）：get_viz_frame() 返回全量态势快照；render() 支持
+"human"（实时战术显示）与 "rgb_array"（离屏帧），经 config["render_mode"] 启用，
+默认 None（训练零开销）。绘图实现见 visualization/ 包。
+
 典型用法：
     from common.bvr_combat_env import make_bvr_env
     env = make_bvr_env()
@@ -194,6 +198,7 @@ DEFAULT_CONFIG = {
     "reward_violation": -10.0,
     "reward_fuel_out": -50.0,
     "shaping_scale": 0.02,       # 接近率塑造项系数（奖励/米/千米）
+    "render_mode": None,         # 可视化：None / "human"（实时战术显示）/ "rgb_array"（离屏帧）
 }
 
 # ---- 观测字段（28 维，SI 单位；与 OBS_LOW/OBS_HIGH 一一对应）----
@@ -254,13 +259,15 @@ OBS_HIGH = np.array([
 class BVRCombatEnv(gym.Env):
     """1v1 超视距空战环境（本机 = DRL 智能体，敌机 = JSBSim + 脚本策略）。"""
 
-    metadata = {"render_modes": []}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 1}
 
     def __init__(self, config: dict | None = None):
         super().__init__()
         self.cfg = dict(DEFAULT_CONFIG)
         if config:
             self.cfg.update(config)
+        self.render_mode = self.cfg.get("render_mode")
+        self._display = None                # 实时战术显示（render_mode="human" 时惰性创建）
         self.inner_dt = float(self.cfg["inner_dt"])
         self.frames_per_step = int(round(DECISION_DT / self.inner_dt))
         self.missile_dt = float(self.cfg["missile_dt"])
@@ -315,6 +322,9 @@ class BVRCombatEnv(gym.Env):
         self.last_info = {}
         self._enemy_heading_cmd = 0.0
         self._enemy_alt_cmd_ft = 15000.0
+        self._enemy_fired = False           # 本决策步敌方是否发射（可视化事件标志）
+        self.last_events = {"fired_own": False, "fired_enemy": False,
+                            "hit_enemy": False, "hit_own": False}
 
     # ------------------------------------------------------------------
     # Gym 接口
@@ -395,6 +405,9 @@ class BVRCombatEnv(gym.Env):
                           "in_zone": False,
                           "r_max_own": self.r_max_own, "r_min_own": self.r_min_own,
                           "r_nez_own": self.r_nez_own}
+        # 实时显示跨 episode 复用：重置轨迹与累计奖励（避免上一局残留）
+        if self._display is not None:
+            self._display.reset()
         return obs, self.last_info
 
     def step(self, action):
@@ -408,10 +421,12 @@ class BVRCombatEnv(gym.Env):
             self.ecm_on = not self.ecm_on
         if weapon[1] == 1:
             self.own_selected = 1 - self.own_selected   # 切换选中武器槽（接口预留）
+        fired_own = False
         if weapon[0] == 1:
-            self._try_fire_own()
+            fired_own = self._try_fire_own()
 
         # ---- 敌方脚本策略：追击 + 发射 ----
+        self._enemy_fired = False
         self._enemy_ai()
 
         # ---- 飞行器推进（JSBSim 内环 dt=inner_dt × frames_per_step 帧）----
@@ -426,6 +441,10 @@ class BVRCombatEnv(gym.Env):
         # ---- 导弹推进（missile_dt × missile_steps 亚步）与命中判定 ----
         hit_enemy = self._advance_own_missiles(s_enemy_pre)
         hit_own = self._advance_enemy_missiles(s_own_pre)
+        self.last_events = {"fired_own": bool(fired_own),
+                            "fired_enemy": bool(self._enemy_fired),
+                            "hit_enemy": bool(hit_enemy),
+                            "hit_own": bool(hit_own)}
 
         # ---- 雷达/RWR/MAWS 更新 ----
         s_own = self.own.state_dict()
@@ -555,6 +574,7 @@ class BVRCombatEnv(gym.Env):
                              s_enemy["v_enu_mps"], s_own["pos_enu_m"],
                              s_own["v_enu_mps"])
         self.enemy_n_left -= 1
+        self._enemy_fired = True
         self._enemy_next_fire_t = t + self.cfg["enemy_fire_interval_s"] \
             + float(self.rng.uniform(0.0, 4.0))
 
@@ -672,6 +692,114 @@ class BVRCombatEnv(gym.Env):
             1.0, 0.0,
         ], dtype=np.float32)
         return np.clip(obs, OBS_LOW, OBS_HIGH)
+
+    # ------------------------------------------------------------------
+    # 可视化（步骤 2.4 接口统一：get_viz_frame + render）
+    # ------------------------------------------------------------------
+    def get_viz_frame(self):
+        """返回当前态势的可视化快照（纯 Python 标量/list，ENU + SI，可 JSON 序列化）。
+
+        键集稳定，可在 reset 后 / step 后任意时刻调用，供 visualization 模块、
+        CSV 记录器与 render() 复用。单位：位置 m、速度 m/s、角度 rad、油量 lb。
+        reset 前调用会抛出 RuntimeError（此时 FDM 未 run_ic，快照无意义）。
+
+        返回键：
+            steps, t, own, enemy, own_missiles, enemy_missiles, dist_m,
+            radar_state, enemy_radar_state, rwr_alarm, rwr_bearing,
+            maws_alarm, maws_tta, in_zone,
+            r_max_own, r_min_own, r_nez_own, r_max_enemy, r_min_enemy,
+            reward, terminated_reason, events
+        own/enemy: pos(3), psi_rad, phi_rad, theta_rad, vtrue_mps, mach, h_sl_m,
+                   n_left；own 另含 nz_g, fuel_lbs, throttle, ecm_on。
+        own_missiles/enemy_missiles: 在飞导弹 [{pos(3), vel(3), t}]。
+        events: {fired_own, fired_enemy, hit_enemy, hit_own}（本决策步事件）。
+        """
+        if not self.last_info:
+            raise RuntimeError("get_viz_frame() 需先调用 reset()：此时 FDM 未 run_ic，"
+                               "快照无意义（距离≈0、无攻击区）")
+        s_own = self.own.state_dict()
+        s_enemy = self.enemy.state_dict()
+        own_abs = s_own["pos_enu_m"]
+        enemy_abs = self._enemy_abs_pos(s_enemy)
+        dist = float(np.linalg.norm(enemy_abs - own_abs))
+
+        def _ac(s, pos):
+            return {"pos": [float(pos[0]), float(pos[1]), float(pos[2])],
+                    "psi_rad": float(s["psi_rad"]),
+                    "phi_rad": float(s["phi_rad"]),
+                    "theta_rad": float(s["theta_rad"]),
+                    "vtrue_mps": float(s["vtrue_mps"]),
+                    "mach": float(s["mach"]),
+                    "h_sl_m": float(s["h_sl_m"])}
+
+        def _msl(pool):
+            return [{"pos": [float(v) for v in m.pos],
+                     "vel": [float(v) for v in m.vel],
+                     "t": float(m.t)} for m in pool if m.alive]
+
+        def _f(x):
+            return float(x) if x is not None else None
+
+        info = self.last_info
+        own = _ac(s_own, own_abs)
+        own.update({"nz_g": float(s_own["nz_g"]),
+                    "fuel_lbs": float(s_own["fuel_lbs"]),
+                    "throttle": float(s_own["throttle"]),
+                    "n_left": int(self.own_n_left),
+                    "ecm_on": bool(self.ecm_on)})
+        enemy = _ac(s_enemy, enemy_abs)
+        enemy.update({"n_left": int(self.enemy_n_left)})
+        return {
+            "steps": int(self.steps),
+            "t": float(self.steps * DECISION_DT),
+            "own": own,
+            "enemy": enemy,
+            "own_missiles": _msl(self.own_missiles),
+            "enemy_missiles": _msl(self.enemy_missiles),
+            "dist_m": dist,
+            "radar_state": self.radar.state("enemy"),
+            "enemy_radar_state": self.enemy_radar.state("own"),
+            "rwr_alarm": bool(info.get("rwr_alarm", False)),
+            "rwr_bearing": float(info.get("rwr_bearing", 0.0)),
+            "maws_alarm": bool(info.get("maws_alarm", False)),
+            "maws_tta": float(info.get("maws_tta", 0.0)),
+            "in_zone": bool(self._in_own_zone(dist)),
+            "r_max_own": _f(self.r_max_own), "r_min_own": _f(self.r_min_own),
+            "r_nez_own": _f(self.r_nez_own),
+            "r_max_enemy": _f(self.r_max_enemy), "r_min_enemy": _f(self.r_min_enemy),
+            "reward": float(info.get("reward", 0.0)),
+            "terminated_reason": info.get("terminated_reason"),
+            "events": dict(self.last_events),
+        }
+
+    def render(self):
+        """Gym 渲染接口（render_mode 经 config["render_mode"] 指定）。
+
+        - "human"：实时 2D 战术显示（TacticalDisplay 窗口，1 Hz 决策节奏刷新，
+          惰性创建；窗口历史轨迹由 TacticalDisplay 内部维护）；
+        - "rgb_array"：离屏渲染当前帧（Agg，无需显示设备），返回 HxWx3 uint8；
+        - None：返回 None（训练/吞吐路径零开销）。
+        """
+        if self.render_mode is None:
+            return None
+        frame = self.get_viz_frame()
+        if self.render_mode == "rgb_array":
+            from visualization.offscreen import frame_to_rgb
+            return frame_to_rgb(frame)
+        if self.render_mode == "human":
+            from visualization.tactical_display import TacticalDisplay
+            if self._display is None:
+                self._display = TacticalDisplay()
+            self._display.update(frame)
+            return None
+        raise ValueError(f"未知 render_mode: {self.render_mode!r}，"
+                         f"可选 None/'human'/'rgb_array'")
+
+    def close(self):
+        """释放可视化资源（JSBSim 实例无显式释放接口，交由 GC）。"""
+        if self._display is not None:
+            self._display.close()
+            self._display = None
 
 
 def make_bvr_env(config=None, seed=None):
