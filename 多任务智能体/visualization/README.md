@@ -49,10 +49,9 @@ TacView 免费版直接回放。已实现的增强：红蓝 `Coalition`、雷达
 爆炸、每弹 `Event=Timeout` 射击日志（Outcome:Kill/Miss，末帧在飞弹冲刷
 记 Miss）、首帧初始距离 Bookmark、`Title` 带种子。
 
-组员上手（详见 `TacView观看指引.md`）：免安装便携版在 `工具\Tacview\`
-（`Tacview64.exe` 直接运行；官网安装包在项目根 `Tacview195Setup.exe`）。
-使用中产生的任意 `.acmi` 双击/拖入即看；CSV 录制文件经
-`visualization.csv2acmi` 转成同名 `.acmi`（支持一次多文件批量转换）。
+组员上手（详见 `TacView观看指引.md`）：TacView 已正式安装到本机，任意
+`.acmi` 双击/拖入即看；CSV 录制文件经 `visualization.csv2acmi` 转成
+同名 `.acmi`（支持一次多文件批量转换）。
 
 ## 演示脚本策略说明（demo.py）
 

@@ -6,7 +6,7 @@
 |------|------|
 | 仓库 | https://github.com/Linaom1214/RL_air-combat |
 | 内容 | 基于强化学习的空战对抗决策算法（中文 README，简单 1v1 环境） |
-| 文件 | `class_env.py`（环境）、`main.py`（训练入口）、`checkpoint\`（模型目录） |
+| 文件 | `class_env.py`（环境）、`main.py`（训练入口） |
 
 ## 用途（组员入门参考）
 

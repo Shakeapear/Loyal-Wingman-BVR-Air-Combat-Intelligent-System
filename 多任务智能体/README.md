@@ -18,8 +18,7 @@
 │   ├── climb_descent_td3.py      ← 任务3 爬升/下降 → TD3
 │   ├── pursuit_dqn.py            ← 任务4 接敌追击 → DQN（离散动作）
 │   └── evasion_ppo.py            ← 任务5 威胁规避 → PPO
-├── configs\task_configs.yaml     ← 配置导出（由 config.py 生成）
-├── models\                       ← 验证性运行产出的模型
+├── models\                       ← 验证性运行产出的模型（不入库，见 .gitignore）
 ├── validation\
 │   ├── run_validation.py         ← 验证性运行（L1 冒烟 / L2 建模型 / L3 极小训练）
 │   └── results\                  ← 验证报告与运行日志

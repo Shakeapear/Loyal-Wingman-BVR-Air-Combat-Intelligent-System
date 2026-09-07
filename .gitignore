@@ -3,20 +3,27 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# 可视化演示产物（可由 python -m visualization.demo 随时再生，不入库）
+# 运行/演示产物（可由脚本随时再生，不入库）
 多任务智能体/visualization/results/
+多任务智能体/validation/results/launch_envelope_cache.npz
+
+# 验证性极小训练模型（非正式模型，不入库）
+多任务智能体/models/
+
+# JSBSim 运行输出 CSV（可重新生成；样例见 JSBSim_培训与验证资料/样例数据/）
+JSBSim/JSBout172B.csv
+JSBSim/f104_*_raw.csv
 
 # IDE
 .idea/
+
+# Kilo 个人工具配置（含本机路径，不入库）
+.kilo/
 
 # 第三方源码快照与大体积数据（均可按说明文档重新下载，仅保留说明/许可文件）
 开源项目库/**/源码/
 飞行数据集资料库/**/源码/
 飞行数据集资料库/**/数据/
 
-# 大体积公开参考文档（可公开下载）
-资料/十四五规划纲要.pdf
-
-# TacView 安装包与便携版（大体积二进制，不入库；组员从共享目录获取或官网下载）
-Tacview195Setup.exe
-工具/Tacview/
+# FFmpeg 源码包（官方下载，本机编译工具，不入库）
+ffmpeg-*.tar.xz

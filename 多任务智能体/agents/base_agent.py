@@ -13,13 +13,13 @@ agents/base_agent.py
 """
 from pathlib import Path
 
-from stable_baselines3 import A2C, DQN, PPO, SAC, TD3
+from stable_baselines3 import DQN, PPO, SAC, TD3
 
 from common.config import TASK_CONFIGS
 from common.jsbsim_env import JSBSimFlightEnv
 from common.tasks import TASKS, init_task_state
 
-ALGO_REGISTRY = {"PPO": PPO, "SAC": SAC, "TD3": TD3, "DQN": DQN, "A2C": A2C}
+ALGO_REGISTRY = {"PPO": PPO, "SAC": SAC, "TD3": TD3, "DQN": DQN}
 
 MODEL_DIR = Path(__file__).resolve().parents[1] / "models"
 
