@@ -7,10 +7,16 @@
 ```
 多任务智能体\
 ├── README.md                     ← 本文件
-├── common\
-│   ├── jsbsim_env.py             ← JSBSim 单机 Gym 环境（步骤 2.3 桥接雏形，1Hz 决策 + 自驾仪内环）
-│   ├── tasks.py                  ← 5 个任务定义与奖励函数（含虚拟目标）
-│   └── config.py                 ← 网络结构/超参（节点数以文档为准）
+├── common\                       ← 环境与战场要素（自研核心）
+│   ├── bvr_combat_env.py         ← BVR 1v1 Gym 环境（步骤 2.3，28 维观测 + Dict/Flat 动作）
+│   ├── jsbsim_bridge.py          ← JSBSim 桥接层（NED/英制 ↔ ENU/SI）
+│   ├── jsbsim_env.py             ← JSBSim 单机 Gym 环境（1 Hz 决策 + 自驾仪内环）
+│   ├── missile_model.py          ← 导弹 3DOF 模型 + 攻击区解算（步骤 2.2）
+│   ├── radar_model.py            ← 火控雷达/RWR/MAWS（步骤 2.2）
+│   ├── tasks.py                  ← 5 个技能任务定义与奖励函数（含虚拟目标）
+│   ├── config.py                 ← 网络结构/超参（节点数以文档为准）
+│   ├── README_环境.md            ← 环境使用说明（观测/动作/奖励/渲染接入）
+│   └── README_战场要素.md        ← 导弹/雷达模型说明
 ├── agents\                       ← 任务专精智能体（每任务一个文件）
 │   ├── base_agent.py             ← 基类：环境/模型/训练/推理/保存统一接口
 │   ├── cruise_hold_ppo.py        ← 任务1 巡航保持 → PPO
@@ -19,12 +25,21 @@
 │   ├── pursuit_dqn.py            ← 任务4 接敌追击 → DQN（离散动作）
 │   └── evasion_ppo.py            ← 任务5 威胁规避 → PPO
 ├── models\                       ← 验证性运行产出的模型（不入库，见 .gitignore）
-├── validation\
-│   ├── run_validation.py         ← 验证性运行（L1 冒烟 / L2 建模型 / L3 极小训练）
-│   └── results\                  ← 验证报告与运行日志
-└── visualization\                ← 步骤 2.4 可视化（2D 战术显示 + CSV/GIF 回放 + ACMI 导出，
-                                    见 visualization/README.md；demo：python -m visualization.demo）
+├── tests\                        ← 环境/导弹/雷达单元测试
+└── validation\
+    ├── run_validation.py         ← 验证性运行（L1 冒烟 / L2 建模型 / L3 极小训练）
+    └── results\                  ← 验证报告与运行日志
 ```
+
+## 本库边界（可视化不在此列）
+
+`多任务智能体/` 只包含智能体训练与运行相关代码。**可视化是独立的项目级工具**，
+在 `可视化工具/`（定位：训练自我调整 + 成果展示），不属于本库：
+
+- 本库仅提供数据接口：`BVRCombatEnv.get_viz_frame()`（全量态势帧字典）与
+  `BVRCombatEnv.render("human"/"rgb_array")`（Gym 渲染，首次调用时惰性接入该工具）；
+- 训练默认 `render_mode=None`，不触发任何可视化代码，零开销；
+- 用法、回放与 TacView 3D 导出见 `可视化工具/README.md`。
 
 ## 任务-模型-网络对照表（节点数依据开源项目文档）
 

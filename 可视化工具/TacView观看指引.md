@@ -27,8 +27,8 @@ TacView 已正式安装到本机（官网下载），`.acmi` 文件自动关联�
 （输出在 CSV 同目录，随后按 2a 打开）：
 
 ```powershell
-# 在 多任务智能体/ 目录下，DC 环境
-python -m visualization.csv2acmi visualization/results/demo_ep_seed8.csv
+# 在 可视化工具/ 目录下，DC 环境
+python -m visualization.csv2acmi results/demo_ep_seed8.csv
 python -m visualization.csv2acmi a.csv b.csv c.csv      # 批量：一次多个
 ```
 
@@ -37,10 +37,11 @@ python -m visualization.csv2acmi a.csv b.csv c.csv      # 批量：一次多个
 
 ### 2c. 代码里直接导出（写训练/评测脚本时）
 ```python
+# 在 可视化工具/ 目录下运行；frames 来自 get_viz_frame() 逐帧列表、
+# EpisodeRecorder.frames，或 EpisodeRecorder.load_csv(录制文件)
 from visualization.acmi import export_acmi
 export_acmi(frames, "run_042.acmi", title="PPO eval ep042")
 ```
-`frames` 来自 `get_viz_frame()` 逐帧列表或 `EpisodeRecorder.frames`。
 
 ## 3. 界面看什么
 
@@ -81,5 +82,5 @@ export_acmi(frames, "run_042.acmi", title="PPO eval ep042")
 - **转换器报错"没有帧数据"** → 确认传入的是 EpisodeRecorder 保存的
   CSV（表头含 `own_missiles_json` 等列）。
 
-演示截图可用 `python -m visualization.demo` 重新生成（产物在
-`visualization/results/`）。
+演示截图可用 `python -m visualization.demo`（在 可视化工具/ 目录下）重新生成
+（产物在 `results/`）。

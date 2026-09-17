@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-visualization/offscreen.py（步骤 2.4 离屏渲染）
+可视化工具/visualization/offscreen.py（离屏渲染）
 ================================================================
 离屏（Agg canvas，无需显示设备）渲染路径：
 - frame_to_rgb(frame)      : 单帧 → HxWx3 uint8（env.render("rgb_array") 用）

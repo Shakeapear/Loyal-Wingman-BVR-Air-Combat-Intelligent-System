@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-visualization/acmi.py（步骤 2.4 可选增强：TacView ACMI 回放导出）
+可视化工具/visualization/acmi.py（TacView ACMI 2.2 回放导出）
 ================================================================
 把 get_viz_frame() 帧序列导出为 ACMI 2.2 文本（TacView 公开格式，
 规范见 https://www.tacview.net/documentation/acmi/en/ ），

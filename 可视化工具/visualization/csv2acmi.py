@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-visualization/csv2acmi.py（任意录制文件 → TacView ACMI 转换器）
+可视化工具/visualization/csv2acmi.py（任意录制文件 → TacView ACMI 转换器）
 ================================================================
 把 EpisodeRecorder 保存的 CSV 录制文件转换为 ACMI 2.2 文本，
 输出 .acmi 到原 CSV 同目录，双击即可用 TacView 3D 回放。
+离线可用：无需环境与智能体库在场（帧格式自包含）。
 
 适用于训练/评测中积累的任意多份录制文件的批量可视化：
 转换后每个 .acmi 都可独立双击打开（可多开 TacView 实例对比）。
 
-用法（DC 环境，在 多任务智能体/ 目录下）：
-    python -m visualization.csv2acmi visualization/results/demo_ep_seed8.csv
+用法（DC 环境，在 可视化工具/ 目录下）：
+    python -m visualization.csv2acmi results/demo_ep_seed8.csv
     python -m visualization.csv2acmi a.csv b.csv c.csv          # 多个文件
     python -m visualization.csv2acmi x.csv -o out/x.acmi        # 指定输出
     python -m visualization.csv2acmi x.csv --lat0 30 --lon0 120 # 地理原点
@@ -17,10 +18,7 @@ visualization/csv2acmi.py（任意录制文件 → TacView ACMI 转换器）
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from visualization.acmi import export_acmi
 from visualization.recorder import EpisodeRecorder

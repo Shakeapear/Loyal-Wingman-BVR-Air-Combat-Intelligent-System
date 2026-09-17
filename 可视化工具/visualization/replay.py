@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-visualization/replay.py（步骤 2.4 交付物 D2.4-1：回放脚本）
+可视化工具/visualization/replay.py（回放 CLI：任意录制 CSV → GIF/MP4/ACMI）
 ================================================================
 把 EpisodeRecorder 保存的 CSV 回放渲染为 GIF/MP4，可选同时导出 ACMI。
+离线可用：只需录制 CSV，无需环境与智能体库在场（帧格式自包含）。
 
-用法（DC 环境，在 多任务智能体/ 目录下）：
-    python -m visualization.replay visualization/results/demo_ep.csv
+用法（DC 环境，在 可视化工具/ 目录下）：
+    python -m visualization.replay results/demo_ep.csv
     python -m visualization.replay xxx.csv --out out.mp4 --fps 12
     python -m visualization.replay xxx.csv --acmi xxx.acmi
 """
 from __future__ import annotations
 
 import argparse
-import sys
 import time
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from visualization.acmi import export_acmi
 from visualization.offscreen import render_episode

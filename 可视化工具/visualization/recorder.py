@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-visualization/recorder.py（步骤 2.4 回放数据层）
+可视化工具/visualization/recorder.py（回放数据层）
 ================================================================
 EpisodeRecorder：逐决策步捕获 BVRCombatEnv.get_viz_frame() 快照，
 保存/加载 CSV（每步一行；导弹列表与事件以 JSON 字符串列存储，
@@ -8,6 +8,8 @@ EpisodeRecorder：逐决策步捕获 BVRCombatEnv.get_viz_frame() 快照，
 
 CSV 列见 CSV_FIELDS；加载后重建的帧字典与 get_viz_frame() 键集一致，
 可直接喂给 offscreen.render_episode / acmi.export_acmi。
+录制文件自包含绘制所需全部信息（含攻击区扇形扫描角），
+离线回放 / ACMI 转换均不需要智能体库在场。
 """
 from __future__ import annotations
 
@@ -28,6 +30,7 @@ CSV_FIELDS = [
     "dist_m", "radar_state", "enemy_radar_state",
     "rwr_alarm", "rwr_bearing_deg", "maws_alarm", "maws_tta_s", "in_zone",
     "r_max_own_m", "r_min_own_m", "r_nez_own_m", "r_max_enemy_m", "r_min_enemy_m",
+    "radar_az_limit_deg",
     "reward", "terminated_reason", "events_json",
     "own_missiles_json", "enemy_missiles_json",
 ]
@@ -109,6 +112,7 @@ def _frame_to_row(frm):
         "r_nez_own_m": _num(frm.get("r_nez_own")),
         "r_max_enemy_m": _num(frm.get("r_max_enemy")),
         "r_min_enemy_m": _num(frm.get("r_min_enemy")),
+        "radar_az_limit_deg": _num(frm.get("radar_az_limit_deg")),
         "reward": _num(frm.get("reward", 0.0)),
         "terminated_reason": frm.get("terminated_reason") or "",
         "events_json": json.dumps(frm.get("events", {}), ensure_ascii=False),
@@ -165,6 +169,7 @@ def _row_to_frame(row):
         "r_nez_own": _f_none(row, "r_nez_own_m"),
         "r_max_enemy": _f_none(row, "r_max_enemy_m"),
         "r_min_enemy": _f_none(row, "r_min_enemy_m"),
+        "radar_az_limit_deg": _f_none(row, "radar_az_limit_deg"),
         "reward": _f(row, "reward"),
         "terminated_reason": row.get("terminated_reason") or None,
         "events": json.loads(row.get("events_json") or "{}"),

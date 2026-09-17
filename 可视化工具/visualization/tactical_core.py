@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-visualization/tactical_core.py（步骤 2.4 绘图内核，后端无关）
+可视化工具/visualization/tactical_core.py（绘图内核，后端无关）
 ================================================================
 2D 战术显示的共用绘制逻辑：俯视态势图（双方位置/历史轨迹/导弹/攻击区
 半透明扇形/告警）+ 态势面板。不 import pyplot，实时（TkAgg）与离屏
 （FigureCanvasAgg）两条路径共用同一套绘制，保证所见一致。
 
-输入帧格式：common.bvr_combat_env.BVRCombatEnv.get_viz_frame() 的返回字典
-（ENU + SI；本模块内部换算为 km 显示）。坐标约定：x=东、y=北，
-航向 psi 0=正北、顺时针为正（JSBSim 约定）。
+输入帧格式：多任务智能体/common/bvr_combat_env.py 的
+BVRCombatEnv.get_viz_frame() 帧字典（ENU + SI；本模块内部换算为 km 显示），
+或 EpisodeRecorder.load_csv() 加载的同构帧。帧自包含绘制所需全部信息
+（含攻击区扇形扫描角 radar_az_limit_deg），本模块不依赖智能体库。
+坐标约定：x=东、y=北，航向 psi 0=正北、顺时针为正（JSBSim 约定）。
 """
 from __future__ import annotations
 
@@ -26,9 +28,9 @@ C_ZONE = "#1f77b4"       # 本机攻击区
 C_NEZ = "#ff7f0e"        # 不可逃逸区
 C_ALARM = "#cc0000"
 
-from common.radar_model import FireControlRadar   # 扫描角与雷达模型单一来源（防漂移）
-
-RADAR_AZ_LIMIT_DEG = FireControlRadar.AZ_LIMIT   # 火控雷达方位扫描范围（扇形即攻击区视场）
+# 攻击区扇形半角默认值：仅当帧未携带 radar_az_limit_deg（旧录制文件）时使用；
+# 新帧由 get_viz_frame() 携带该值，绘图不再 import 智能体库的雷达模型。
+RADAR_AZ_LIMIT_DEG = 60.0
 
 _TERMINATED_CN = {
     "enemy_hit": "命中敌机 —— 胜", "own_hit": "本机被命中",
@@ -84,13 +86,13 @@ class TrailHistory:
 # ----------------------------------------------------------------------
 # 俯视态势图
 # ----------------------------------------------------------------------
-def _envelope_wedge(ax, e_km, n_km, r_m, psi_rad, color, alpha, zorder=2):
-    """以机头为中心 ±60° 的攻击区/扫描扇形（半透明）。"""
+def _envelope_wedge(ax, e_km, n_km, r_m, psi_rad, color, alpha, az_limit_deg, zorder=2):
+    """以机头为中心 ±az_limit_deg 的攻击区/扫描扇形（半透明）。"""
     if r_m is None or r_m <= 0.0:
         return
     nose_deg = 90.0 - np.rad2deg(psi_rad)   # 航向（0=北顺时针）→ matplotlib 角（自+x逆时针）
     ax.add_patch(Wedge((e_km, n_km), r_m / 1e3,
-                       nose_deg - RADAR_AZ_LIMIT_DEG, nose_deg + RADAR_AZ_LIMIT_DEG,
+                       nose_deg - az_limit_deg, nose_deg + az_limit_deg,
                        facecolor=color, alpha=alpha, edgecolor=color, lw=0.8, zorder=zorder))
 
 
@@ -112,12 +114,13 @@ def draw_map(ax, frm, hist=None):
     oe, on = own["pos"][0] / 1e3, own["pos"][1] / 1e3
     ee, en = ene["pos"][0] / 1e3, ene["pos"][1] / 1e3
     psi_o, psi_e = own["psi_rad"], ene["psi_rad"]
+    az_limit = float(frm.get("radar_az_limit_deg") or RADAR_AZ_LIMIT_DEG)
     ax.clear()
 
     # ---- 攻击区/不可逃逸区（半透明扇形，本机 R_max/R_nez/R_min + 敌方 R_max）----
-    _envelope_wedge(ax, oe, on, frm.get("r_max_own"), psi_o, C_ZONE, 0.10)
-    _envelope_wedge(ax, oe, on, frm.get("r_nez_own"), psi_o, C_NEZ, 0.18)
-    _envelope_wedge(ax, ee, en, frm.get("r_max_enemy"), psi_e, C_ENEMY, 0.07)
+    _envelope_wedge(ax, oe, on, frm.get("r_max_own"), psi_o, C_ZONE, 0.10, az_limit)
+    _envelope_wedge(ax, oe, on, frm.get("r_nez_own"), psi_o, C_NEZ, 0.18, az_limit)
+    _envelope_wedge(ax, ee, en, frm.get("r_max_enemy"), psi_e, C_ENEMY, 0.07, az_limit)
     if frm.get("r_min_own"):
         ax.add_patch(Circle((oe, on), frm["r_min_own"] / 1e3, fill=False, ls=":",
                             color=C_ZONE, lw=1.0, alpha=0.8, zorder=2))

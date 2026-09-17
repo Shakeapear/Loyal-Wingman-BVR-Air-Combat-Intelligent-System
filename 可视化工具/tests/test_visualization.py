@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-tests/test_visualization.py（步骤 2.4 单元测试：可视化接口与回放链路）
+可视化工具/tests/test_visualization.py（单元测试：数据接口、渲染与回放链路）
 ======================================================================
 覆盖：get_viz_frame 快照模式（键集/类型/几何一致性）、事件标志、
 render("rgb_array") 离屏帧、EpisodeRecorder CSV 往返、render_episode GIF、
 ACMI 导出文件头。离屏用例全部走 Agg canvas，无需显示设备。
-运行（DC 环境）：python -m pytest 多任务智能体/tests/test_visualization.py -v
+依赖智能体库环境（common.bvr_combat_env）产出帧，故同时加入两处路径。
+运行（DC 环境，在 可视化工具/ 目录下）：python -m pytest tests/test_visualization.py -v
 """
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[1]))                   # 可视化工具/：visualization 包
+sys.path.append(str(Path(__file__).resolve().parents[2] / "多任务智能体"))  # 数据源：common 包
 
 import numpy as np
 import pytest
@@ -28,7 +30,7 @@ NOOP = {"flight": np.array([0.55, 0.0, 0.0, 0.0], dtype=np.float32),
 VIZ_KEYS = {"steps", "t", "own", "enemy", "own_missiles", "enemy_missiles",
             "dist_m", "radar_state", "enemy_radar_state", "rwr_alarm", "rwr_bearing",
             "maws_alarm", "maws_tta", "in_zone", "r_max_own", "r_min_own",
-            "r_nez_own", "r_max_enemy", "r_min_enemy", "reward",
+            "r_nez_own", "r_max_enemy", "r_min_enemy", "radar_az_limit_deg", "reward",
             "terminated_reason", "events"}
 
 

@@ -31,9 +31,11 @@ BVRCombatEnv：1v1 超视距空战标准化 Gym 环境（gymnasium.Env）。
 坐标系：全部 ENU + SI（东/北/上，米、米/秒），JSBSim NED/英制经
 common.jsbsim_bridge.ned_ft_to_enu_m 转换。
 
-可视化（步骤 2.4）：get_viz_frame() 返回全量态势快照；render() 支持
-"human"（实时战术显示）与 "rgb_array"（离屏帧），经 config["render_mode"] 启用，
-默认 None（训练零开销）。绘图实现见 visualization/ 包。
+可视化（步骤 2.4 交付物 D2.4-1）：可视化本体是项目级工具，独立在 `可视化工具/`
+（定位：训练自我调整 + 成果展示；不含任何智能体逻辑），本环境只提供数据接口：
+get_viz_frame() 返回全量态势快照；render() 支持 "human"（实时战术显示）与
+"rgb_array"（离屏帧），经 config["render_mode"] 启用，默认 None（训练零开销），
+首次调用时惰性接入该工具（见 可视化工具/README.md）。
 
 典型用法：
     from common.bvr_combat_env import make_bvr_env
@@ -46,6 +48,9 @@ common.jsbsim_bridge.ned_ft_to_enu_m 转换。
     vec = SubprocVecEnv([make_bvr_env for _ in range(4)])
 """
 from __future__ import annotations
+
+import sys
+from pathlib import Path
 
 import numpy as np
 import gymnasium as gym
@@ -64,6 +69,19 @@ INNER_DT_DEFAULT = 1.0 / 60.0         # 空战环境 JSBSim 内环步长 s（60 
 _GV = np.array([0.0, 0.0, -G0])
 _GZ = np.array([0.0, 0.0, G0])
 _ZUP = np.array([0.0, 0.0, 1.0])
+
+_VIZ_TOOL_DIR = Path(__file__).resolve().parents[2] / "可视化工具"
+
+
+def _ensure_viz_tool_on_path():
+    """把项目级 可视化工具/ 目录加入 sys.path（render() 惰性导入 visualization 包用）。
+
+    可视化工具与本库分离（见 可视化工具/README.md）：本库只提供 get_viz_frame()
+    数据接口，渲染实现由该工具提供；训练路径（render_mode=None）不触发此调用。
+    """
+    path = str(_VIZ_TOOL_DIR)
+    if path not in sys.path:
+        sys.path.append(path)
 
 
 def _missile_batch_step(missiles, target_pos, target_vel, dt):
@@ -699,7 +717,7 @@ class BVRCombatEnv(gym.Env):
     def get_viz_frame(self):
         """返回当前态势的可视化快照（纯 Python 标量/list，ENU + SI，可 JSON 序列化）。
 
-        键集稳定，可在 reset 后 / step 后任意时刻调用，供 visualization 模块、
+        键集稳定，可在 reset 后 / step 后任意时刻调用，供可视化工具（可视化工具/）、
         CSV 记录器与 render() 复用。单位：位置 m、速度 m/s、角度 rad、油量 lb。
         reset 前调用会抛出 RuntimeError（此时 FDM 未 run_ic，快照无意义）。
 
@@ -708,10 +726,13 @@ class BVRCombatEnv(gym.Env):
             radar_state, enemy_radar_state, rwr_alarm, rwr_bearing,
             maws_alarm, maws_tta, in_zone,
             r_max_own, r_min_own, r_nez_own, r_max_enemy, r_min_enemy,
+            radar_az_limit_deg,
             reward, terminated_reason, events
         own/enemy: pos(3), psi_rad, phi_rad, theta_rad, vtrue_mps, mach, h_sl_m,
                    n_left；own 另含 nz_g, fuel_lbs, throttle, ecm_on。
         own_missiles/enemy_missiles: 在飞导弹 [{pos(3), vel(3), t}]。
+        radar_az_limit_deg: 火控雷达方位扫描半角（攻击区扇形绘制用；取自
+                   FireControlRadar.AZ_LIMIT，随帧自包含，工具侧无需 import 本库）。
         events: {fired_own, fired_enemy, hit_enemy, hit_own}（本决策步事件）。
         """
         if not self.last_info:
@@ -767,6 +788,7 @@ class BVRCombatEnv(gym.Env):
             "r_max_own": _f(self.r_max_own), "r_min_own": _f(self.r_min_own),
             "r_nez_own": _f(self.r_nez_own),
             "r_max_enemy": _f(self.r_max_enemy), "r_min_enemy": _f(self.r_min_enemy),
+            "radar_az_limit_deg": float(FireControlRadar.AZ_LIMIT),
             "reward": float(info.get("reward", 0.0)),
             "terminated_reason": info.get("terminated_reason"),
             "events": dict(self.last_events),
@@ -779,9 +801,13 @@ class BVRCombatEnv(gym.Env):
           惰性创建；窗口历史轨迹由 TacticalDisplay 内部维护）；
         - "rgb_array"：离屏渲染当前帧（Agg，无需显示设备），返回 HxWx3 uint8；
         - None：返回 None（训练/吞吐路径零开销）。
+
+        绘制实现属于项目级工具 可视化工具/（与本库分离，见其 README.md）；
+        首次调用时把该工具加入 sys.path 后惰性导入。
         """
         if self.render_mode is None:
             return None
+        _ensure_viz_tool_on_path()
         frame = self.get_viz_frame()
         if self.render_mode == "rgb_array":
             from visualization.offscreen import frame_to_rgb

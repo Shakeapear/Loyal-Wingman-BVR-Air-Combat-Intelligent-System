@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-visualization/tactical_display.py（步骤 2.4 实时战术显示）
+可视化工具/visualization/tactical_display.py（实时战术显示）
 ================================================================
 TacticalDisplay：实时 2D 战术显示窗口（TkAgg，plt.ion 交互模式），
 左俯视态势图 + 右态势面板，1 Hz 决策节奏刷新；历史轨迹由内部

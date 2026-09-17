@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-visualization/demo.py（步骤 2.4 演示脚本）
+可视化工具/visualization/demo.py（演示脚本：成果展示与工具自检）
 ================================================================
 BVR 空战可视化演示：脚本策略（接敌→攻击区边缘发射→RWR 开 ECM→MAWS 规避）
 驱动 BVRCombatEnv，实时战术显示 + CSV 录制 + 离线 GIF 渲染 + 可选 ACMI。
+用于成果展示（组会/汇报/验收）与本工具的自检；脚本策略非训练产物。
 
-用法（DC 环境，在 多任务智能体/ 目录下）：
+用法（DC 环境，在 可视化工具/ 目录下）：
     python -m visualization.demo                        # 实时窗口 + 录制 CSV/GIF
     python -m visualization.demo --seed 7 --steps 240
     python -m visualization.demo --no-live              # 无窗口（仅离线录制渲染）
@@ -21,7 +22,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+# 本工具唯一跨库依赖：脚本策略要驱动智能体库的 BVRCombatEnv（见 可视化工具/README.md）
+sys.path.append(str(Path(__file__).resolve().parents[2] / "多任务智能体"))
 
 import numpy as np
 
@@ -30,7 +32,8 @@ from visualization.acmi import export_acmi
 from visualization.offscreen import render_episode
 from visualization.recorder import EpisodeRecorder
 
-RESULTS = Path(__file__).resolve().parent / "results"
+# 产物目录：可视化工具/results/（与包代码分离，脚本自动创建）
+RESULTS = Path(__file__).resolve().parents[1] / "results"
 
 # 地理原点（须与 common/bvr_combat_env.py reset() 的 lat0/lon0 一致；
 # 经 EpisodeRecorder.meta 传给 ACMI 导出，消除多处重复硬编码）
@@ -105,7 +108,7 @@ class ScriptedDemoPolicy:
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description="BVR 空战可视化演示（步骤 2.4）")
+    p = argparse.ArgumentParser(description="BVR 空战可视化演示（可视化工具，步骤 2.4 交付物）")
     p.add_argument("--seed", type=int, default=3)
     p.add_argument("--steps", type=int, default=240)
     p.add_argument("--no-live", action="store_true", help="不开实时窗口（离线模式）")
