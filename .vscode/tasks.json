@@ -1,0 +1,79 @@
+{
+  // 组会现场演示任务：Ctrl+Shift+P → Tasks: Run Task → 选择"演示 N ..."
+  // 每个任务使用独立终端面板；Python 为 DC 环境全路径（本机固定路径）
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "演示1 · 稳定性冒烟（5 episode）",
+      "type": "shell",
+      "command": "& \"C:\\Users\\36266\\.conda\\envs\\DC\\python.exe\" -X utf8 validation/run_stability_1000ep.py --episodes 5",
+      "options": { "cwd": "${workspaceFolder}\\多任务智能体" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    },
+    {
+      "label": "演示2 · 行为树生成闭环（mock，约1分钟）",
+      "type": "shell",
+      "command": "& \"C:\\Users\\36266\\.conda\\envs\\DC\\python.exe\" -X utf8 llm_bt_generator.py --provider mock --rounds 3",
+      "options": { "cwd": "${workspaceFolder}\\引导策略行为树" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    },
+    {
+      "label": "演示2s · 行为树生成闭环（快速版 --fast）",
+      "type": "shell",
+      "command": "& \"C:\\Users\\36266\\.conda\\envs\\DC\\python.exe\" -X utf8 llm_bt_generator.py --provider mock --rounds 3 --fast",
+      "options": { "cwd": "${workspaceFolder}\\引导策略行为树" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    },
+    {
+      "label": "演示3 · 接入仿真并录制（seed 9, tag=demo）",
+      "type": "shell",
+      "command": "& \"C:\\Users\\36266\\.conda\\envs\\DC\\python.exe\" -X utf8 run_tree_sim.py --seed 9 --tag demo",
+      "options": { "cwd": "${workspaceFolder}\\引导策略行为树" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    },
+    {
+      "label": "演示4 · TacView 回放（打开演示数据）",
+      "type": "shell",
+      "command": "Start-Process -FilePath \".\\outputs\\sim\\bt_ep_demo.acmi\"",
+      "options": { "cwd": "${workspaceFolder}\\引导策略行为树" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    },
+    {
+      "label": "演示5 · 可视化工具（GIF/CSV/ACMI）",
+      "type": "shell",
+      "command": "& \"C:\\Users\\36266\\.conda\\envs\\DC\\python.exe\" -X utf8 -m visualization.demo --seed 8 --no-live --acmi",
+      "options": { "cwd": "${workspaceFolder}\\可视化工具" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    },
+    {
+      "label": "演示6a · 测试：多任务智能体（44项）",
+      "type": "shell",
+      "command": "& \"C:\\Users\\36266\\.conda\\envs\\DC\\python.exe\" -m pytest tests -q",
+      "options": { "cwd": "${workspaceFolder}\\多任务智能体" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    },
+    {
+      "label": "演示6b · 测试：可视化工具（20项）",
+      "type": "shell",
+      "command": "& \"C:\\Users\\36266\\.conda\\envs\\DC\\python.exe\" -m pytest tests/test_visualization.py -q",
+      "options": { "cwd": "${workspaceFolder}\\可视化工具" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    },
+    {
+      "label": "演示6c · 测试：行为树框架（19项）",
+      "type": "shell",
+      "command": "& \"C:\\Users\\36266\\.conda\\envs\\DC\\python.exe\" -m pytest tests/test_llm_bt.py -q",
+      "options": { "cwd": "${workspaceFolder}\\引导策略行为树" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "demo" },
+      "problemMatcher": []
+    }
+  ]
+}

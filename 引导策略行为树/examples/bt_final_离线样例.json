@@ -1,0 +1,277 @@
+{
+  "bt_id": "bt_v2",
+  "mission": "离线确定性生成（mock coder）",
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "Selector",
+      "label": "BVR_Mission"
+    },
+    {
+      "id": "n2",
+      "type": "Sequence",
+      "label": "Human_Command_Response"
+    },
+    {
+      "id": "n3",
+      "type": "Condition",
+      "name": "has_human_command"
+    },
+    {
+      "id": "n4",
+      "type": "Action",
+      "name": "navigate_to_waypoint",
+      "args": {
+        "altitude_m": 8000,
+        "speed_mps": 250,
+        "heading_deg": 0
+      }
+    },
+    {
+      "id": "n5",
+      "type": "Sequence",
+      "label": "Self_Defense"
+    },
+    {
+      "id": "n6",
+      "type": "Condition",
+      "name": "is_missile_incoming"
+    },
+    {
+      "id": "n7",
+      "type": "Action",
+      "name": "evade_missile",
+      "args": {
+        "maneuver_type": "break_turn"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "Sequence",
+      "label": "Fuel_Return"
+    },
+    {
+      "id": "n9",
+      "type": "Condition",
+      "name": "is_fuel_low"
+    },
+    {
+      "id": "n10",
+      "type": "Action",
+      "name": "return_to_base"
+    },
+    {
+      "id": "n11",
+      "type": "Sequence",
+      "label": "BVR_Engagement"
+    },
+    {
+      "id": "n12",
+      "type": "Selector",
+      "label": "Detection"
+    },
+    {
+      "id": "n13",
+      "type": "Sequence",
+      "label": "Track_Target"
+    },
+    {
+      "id": "n14",
+      "type": "Condition",
+      "name": "has_target_detected"
+    },
+    {
+      "id": "n15",
+      "type": "Action",
+      "name": "lock_target"
+    },
+    {
+      "id": "n16",
+      "type": "Action",
+      "name": "search_target",
+      "args": {
+        "radar_mode": "auto"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "Selector",
+      "label": "Engage_or_Track"
+    },
+    {
+      "id": "n18",
+      "type": "Sequence",
+      "label": "Launch"
+    },
+    {
+      "id": "n19",
+      "type": "Condition",
+      "name": "is_in_launch_zone"
+    },
+    {
+      "id": "n20",
+      "type": "Sequence",
+      "label": "Fire_Control"
+    },
+    {
+      "id": "n21",
+      "type": "Condition",
+      "name": "has_weapon_remaining"
+    },
+    {
+      "id": "n22",
+      "type": "Action",
+      "name": "fire_missile"
+    },
+    {
+      "id": "n23",
+      "type": "Action",
+      "name": "lock_target"
+    },
+    {
+      "id": "n24",
+      "type": "Sequence",
+      "label": "Default_Patrol"
+    },
+    {
+      "id": "n25",
+      "type": "Action",
+      "name": "search_target",
+      "args": {
+        "radar_mode": "auto"
+      }
+    },
+    {
+      "id": "n26",
+      "type": "Action",
+      "name": "maintain_formation"
+    }
+  ],
+  "edges": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "order": 0
+    },
+    {
+      "from": "n2",
+      "to": "n3",
+      "order": 0
+    },
+    {
+      "from": "n2",
+      "to": "n4",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n5",
+      "order": 1
+    },
+    {
+      "from": "n5",
+      "to": "n6",
+      "order": 0
+    },
+    {
+      "from": "n5",
+      "to": "n7",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n8",
+      "order": 2
+    },
+    {
+      "from": "n8",
+      "to": "n9",
+      "order": 0
+    },
+    {
+      "from": "n8",
+      "to": "n10",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n11",
+      "order": 3
+    },
+    {
+      "from": "n11",
+      "to": "n12",
+      "order": 0
+    },
+    {
+      "from": "n12",
+      "to": "n13",
+      "order": 0
+    },
+    {
+      "from": "n13",
+      "to": "n14",
+      "order": 0
+    },
+    {
+      "from": "n13",
+      "to": "n15",
+      "order": 1
+    },
+    {
+      "from": "n12",
+      "to": "n16",
+      "order": 1
+    },
+    {
+      "from": "n11",
+      "to": "n17",
+      "order": 1
+    },
+    {
+      "from": "n17",
+      "to": "n18",
+      "order": 0
+    },
+    {
+      "from": "n18",
+      "to": "n19",
+      "order": 0
+    },
+    {
+      "from": "n18",
+      "to": "n20",
+      "order": 1
+    },
+    {
+      "from": "n20",
+      "to": "n21",
+      "order": 0
+    },
+    {
+      "from": "n20",
+      "to": "n22",
+      "order": 1
+    },
+    {
+      "from": "n17",
+      "to": "n23",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n24",
+      "order": 4
+    },
+    {
+      "from": "n24",
+      "to": "n25",
+      "order": 0
+    },
+    {
+      "from": "n24",
+      "to": "n26",
+      "order": 1
+    }
+  ]
+}

@@ -6,6 +6,8 @@ __pycache__/
 # 运行/演示产物（可由脚本随时再生，不入库）
 可视化工具/results/
 多任务智能体/validation/results/launch_envelope_cache.npz
+多任务智能体/validation/results/stability_progress.json
+引导策略行为树/outputs/
 
 # 验证性极小训练模型（非正式模型，不入库）
 多任务智能体/models/

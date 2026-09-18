@@ -1,0 +1,26 @@
+Selector [BVR_Mission]
+├── Sequence [Human_Command_Response]
+│   ├── has_human_command
+│   └── navigate_to_waypoint(altitude_m=8000, speed_mps=250, heading_deg=0)
+├── Sequence [Self_Defense]
+│   ├── is_missile_incoming
+│   └── evade_missile(maneuver_type=break_turn)
+├── Sequence [Fuel_Return]
+│   ├── is_fuel_low
+│   └── return_to_base
+├── Sequence [BVR_Engagement]
+│   ├── Selector [Detection]
+│   │   ├── Sequence [Track_Target]
+│   │   │   ├── has_target_detected
+│   │   │   └── lock_target
+│   │   └── search_target(radar_mode=auto)
+│   └── Selector [Engage_or_Track]
+│       ├── Sequence [Launch]
+│       │   ├── is_in_launch_zone
+│       │   └── Sequence [Fire_Control]
+│       │       ├── has_weapon_remaining
+│       │       └── fire_missile
+│       └── lock_target
+└── Sequence [Default_Patrol]
+    ├── search_target(radar_mode=auto)
+    └── maintain_formation

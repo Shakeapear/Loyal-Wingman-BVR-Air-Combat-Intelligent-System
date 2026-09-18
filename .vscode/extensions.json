@@ -1,0 +1,8 @@
+{
+  // 打开工作区时 VS Code 会提示安装：Mermaid 用于渲染会议文档/README 中的流程图
+  "recommendations": [
+    "bierner.markdown-mermaid",
+    "mechatroner.rainbow-csv",
+    "ms-python.python"
+  ]
+}
