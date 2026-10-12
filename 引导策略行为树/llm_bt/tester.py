@@ -16,11 +16,7 @@
 """
 from __future__ import annotations
 
-import json
-import math
 import operator
-import sys
-from pathlib import Path
 
 import numpy as np
 
@@ -30,12 +26,9 @@ from .mock_llm import DEFAULT_TEST_SEEDS
 from .prompts import SYSTEM_TESTER, render_tester_prompt
 from .schema import OODA_ALL, ooda_coverage, tree_node_names
 
-# 数据源：智能体库环境（引导策略行为树 → 多任务智能体/common，单向依赖）
-_AGENT_LIB = Path(__file__).resolve().parents[2] / "多任务智能体"
-if str(_AGENT_LIB) not in sys.path:
-    sys.path.append(str(_AGENT_LIB))
-
-from common.bvr_combat_env import BVRCombatEnv   # noqa: E402
+# 数据源：智能体库环境（路径引导由 llm_bt/__init__.py 统一完成）
+from common.bvr_combat_env import BVRCombatEnv
+from common.contracts import VERSIONS
 
 OPS = {"==": operator.eq, "!=": operator.ne, ">=": operator.ge,
        "<=": operator.le, ">": operator.gt, "<": operator.lt}
@@ -109,11 +102,16 @@ def generate_test_cases(llm, tree_json: dict):
         return default_test_cases(), raw + f"\n[解析回退] {type(e).__name__}: {e}"
 
 
-def _is_safety_violation(obs, cfg) -> bool:
+def is_safety_violation(obs, cfg) -> bool:
+    """安全包线违规判定（公共契约：run_tree_sim 与 Tester 共用）。"""
     nz_g, mach, h_m, v_mps = float(obs[8]), float(obs[2]), float(obs[0]), float(obs[1])
     return (nz_g > cfg["safety_nz_max_g"] or nz_g < cfg["safety_nz_min_g"]
             or mach > cfg["safety_mach_max"] or h_m > cfg["safety_alt_max_m"]
             or v_mps < cfg["safety_vmin_mps"])
+
+
+# 历史私有名兼容（v1 迁移期）
+_is_safety_violation = is_safety_violation
 
 
 def run_case(tree_json: dict, case: dict, max_steps: int = 240,
@@ -147,7 +145,7 @@ def run_case(tree_json: dict, case: dict, max_steps: int = 240,
                 in_zone_steps += 1
             own_fired = int(info.get("own_fired", own_fired))
             enemy_fired = int(info.get("enemy_fired", enemy_fired))
-            if _is_safety_violation(obs, env.cfg):
+            if is_safety_violation(obs, env.cfg):
                 safety += 1
             if term or trunc:
                 reason = info.get("terminated_reason")
@@ -194,6 +192,7 @@ def run_test_cases(tree_json: dict, cases: list, max_steps: int = 240,
     static_cov, static_missing = ooda_coverage(tree_json)
     hit = [n for n in OODA_ALL if n in executed]
     return {
+        "schema_versions": dict(VERSIONS),
         "cases": results,
         "pass_rate": n_pass / len(results) if results else 0.0,
         "n_pass": n_pass, "n_cases": len(results),

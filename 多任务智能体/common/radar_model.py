@@ -38,10 +38,12 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from common.constants import wrap_deg180
+
 
 def wrap_pm180(deg):
-    """角度归一化到 [-180, 180) deg。"""
-    return float((np.asarray(deg, dtype=float) + 180.0) % 360.0 - 180.0)
+    """角度归一化到 [-180, 180) deg（委托 common.constants.wrap_deg180，单一实现）。"""
+    return float(wrap_deg180(deg))
 
 
 def _rel_frame(pos, own_pos, heading_rad):
@@ -79,9 +81,10 @@ class FireControlRadar:
     TRACK = "TRACK"    # 稳定跟踪
     LOST = "LOST"      # 丢失（保留记忆，可重捕获）
 
-    def __init__(self, r_max_ref=80e3, rcs_ref=5.0, az_limit=60.0, el_limit=60.0,
-                 max_tracks=10, track_range_factor=1.1, reacquire_scans=3,
-                 p_detect=1.0, seed=None):
+    def __init__(self, r_max_ref=R_MAX_REF, rcs_ref=RCS_REF, az_limit=AZ_LIMIT,
+                 el_limit=EL_LIMIT, max_tracks=MAX_TRACKS,
+                 track_range_factor=TRACK_RANGE_FACTOR,
+                 reacquire_scans=REACQUIRE_SCANS, p_detect=P_DETECT, seed=None):
         self.r_max_ref = r_max_ref
         self.rcs_ref = rcs_ref
         self.az_limit = az_limit
@@ -199,7 +202,8 @@ class RWR:
     SENSITIVITY_RANGE = 250e3   # 灵敏度距离 m（典型 RWR 对机载火控雷达作用距离）
     BEARING_QUANT_DEG = 15.0    # 方位量化间隔 deg
 
-    def __init__(self, sensitivity_range=250e3, bearing_quant_deg=15.0):
+    def __init__(self, sensitivity_range=SENSITIVITY_RANGE,
+                 bearing_quant_deg=BEARING_QUANT_DEG):
         self.sensitivity_range = sensitivity_range
         self.bearing_quant_deg = bearing_quant_deg
 
@@ -239,7 +243,7 @@ class MAWS:
     DETECT_RANGE = 8e3      # 探测距离 m（紫外告警典型 3~10 km 取中值）
     MIN_CLOSING = 50.0      # 最小径向接近率 m/s
 
-    def __init__(self, detect_range=8e3, min_closing=50.0):
+    def __init__(self, detect_range=DETECT_RANGE, min_closing=MIN_CLOSING):
         self.detect_range = detect_range
         self.min_closing = min_closing
 

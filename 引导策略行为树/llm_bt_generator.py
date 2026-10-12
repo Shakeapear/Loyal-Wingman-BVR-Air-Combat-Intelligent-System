@@ -38,14 +38,18 @@ _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path:
     sys.path.append(str(_HERE))
 
-from llm_bt.llm_client import LLMClient, LLMConfigError, extract_json
+from llm_bt.llm_client import LLMClient, extract_json
 from llm_bt.prompts import SYSTEM_CODER, render_coder_prompt
-from llm_bt.schema import CONVERGENCE, ooda_coverage
+from llm_bt.schema import CONVERGENCE, SCHEMA_VERSION, ooda_coverage
 from llm_bt.tester import generate_test_cases, run_test_cases
 from llm_bt.tree_io import text_tree, tree_to_dot, tree_to_xml
 from llm_bt.validator_bridge import validate_tree_static
 
+from common.contracts import VERSIONS, unique_dir
+from common.errors import ProjectError, exit_code_for
+
 OUTPUTS_DIR = _HERE / "outputs"
+CONTRACT_VERSIONS = {**VERSIONS, "bt_schema": SCHEMA_VERSION}
 DEFAULT_MISSION = (
     "超视距空战拦截：雷达搜索并锁定目标，进入攻击区后发射中距弹（双发间隔≥4 s），"
     "导弹来袭时优先规避，燃油不足时返航，全程满足安全包线约束")
@@ -85,14 +89,15 @@ def run_iteration(mission: str = DEFAULT_MISSION, provider: str = "auto",
                   compute_envelope: bool = True, out_dir=None, verbose: bool = True):
     """执行 Coder-Executor-Tester 迭代，返回 {run_dir, history, final_tree, ...}。"""
     llm = LLMClient(provider=provider, model=model)
-    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = Path(out_dir or OUTPUTS_DIR) / run_id
+    run_dir = unique_dir(Path(out_dir or OUTPUTS_DIR),
+                         datetime.now().strftime("%Y%m%d_%H%M%S"))
     run_dir.mkdir(parents=True, exist_ok=True)
     log_md = [
         "# 迭代收敛日志（D2.5-3）", "",
         f"- 时间：{datetime.now():%Y-%m-%d %H:%M:%S}",
         f"- provider：{llm.provider}（model={llm.model or '离线 mock'}）",
         f"- 任务：{mission}",
+        f"- 契约版本：{CONTRACT_VERSIONS}",
         f"- 收敛判据：通过率≥{CONVERGENCE['pass_rate']:.0%}，"
         f"OODA 覆盖≥{CONVERGENCE['ooda_coverage']:.0%}，"
         f"安全违规≤{CONVERGENCE['safety_violations']}", ""]
@@ -108,11 +113,17 @@ def run_iteration(mission: str = DEFAULT_MISSION, provider: str = "auto",
         tree, static_errors, static_warnings = None, [], []
         try:
             tree = extract_json(raw_coder)
+        except Exception as e:      # LLM 输出无法解析为 JSON（与静态校验错误区分）
+            static_errors = [f"JSON 解析失败（LLM 输出不可解析）: {type(e).__name__}: {e}"]
+        if tree is not None:
             tree["bt_id"] = f"bt_v{r}"
             tree.setdefault("mission", mission)
-            static_errors, static_warnings = validate_tree_static(tree)
-        except Exception as e:
-            static_errors = [f"JSON 解析失败: {type(e).__name__}: {e}"]
+            try:
+                static_errors, static_warnings = validate_tree_static(tree)
+            except ProjectError as e:
+                static_errors = [f"静态校验无法执行: {e}"]
+            except Exception as e:
+                static_errors = [f"静态校验异常: {type(e).__name__}: {e}"]
 
         if static_errors:
             history.append({"round": r, "status": "static_failed",
@@ -151,6 +162,7 @@ def run_iteration(mission: str = DEFAULT_MISSION, provider: str = "auto",
                             "result": c["result"]} for c in summary["cases"]]
         report["converged"] = converged
         report["elapsed_s"] = round(time.time() - t0, 1)
+        report["schema_versions"] = dict(CONTRACT_VERSIONS)
         _write(run_dir / f"test_report_v{r}.json",
                json.dumps(report, ensure_ascii=False, indent=2))
 
@@ -198,7 +210,8 @@ def main(argv=None):
     p.add_argument("--max-steps", type=int, default=240, help="单用例最大决策步（1 Hz）")
     p.add_argument("--fast", action="store_true",
                    help="不复算攻击区（compute_envelope=False），用于冒烟/快速验证")
-    p.add_argument("--out", default=None, help="输出根目录（默认 outputs/）")
+    p.add_argument("--out-dir", "--out", dest="out", default=None,
+                   help="输出根目录（默认 outputs/；--out 为兼容别名）")
     p.add_argument("--quiet", action="store_true", help="不打印每轮进度")
     args = p.parse_args(argv)
 
@@ -208,9 +221,9 @@ def main(argv=None):
             rounds=args.rounds, max_steps=args.max_steps,
             compute_envelope=not args.fast, out_dir=args.out,
             verbose=not args.quiet)
-    except LLMConfigError as e:
-        print(f"[配置错误] {e}", file=sys.stderr)
-        return 2
+    except ProjectError as e:
+        print(f"[错误] {e}", file=sys.stderr)
+        return exit_code_for(e)
     hist = result["history"]
     status = hist[-1]["status"] if hist else "无轮次"
     if result["final_tree"] is None:

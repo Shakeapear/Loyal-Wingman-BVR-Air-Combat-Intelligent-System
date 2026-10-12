@@ -32,6 +32,8 @@ from functools import partial
 import numpy as np
 import py_trees
 
+from common.constants import wrap_deg180
+
 from .schema import ACTIONS, CONDITIONS, node_name, root_and_children
 
 # ---- 观测索引（对齐 OBS_FIELDS_BVR，共 28 维）----
@@ -80,7 +82,8 @@ class Blackboard:
 
 
 def _wrap180(deg: float) -> float:
-    return (deg + 180.0) % 360.0 - 180.0
+    """角度归一化到 [-180, 180)（委托 common.constants.wrap_deg180）。"""
+    return float(wrap_deg180(deg))
 
 
 # ----------------------------------------------------------------------
@@ -188,7 +191,7 @@ def _act_evade(bb: Blackboard, args: dict):
         if bb.read(IDX_TGT_DETECTED) > 0.5:
             # 背向目标偏转（目标在右 → 左转脱离）
             bb._evade_sign = -1.0 if bb.read(IDX_TGT_BRG) >= 0.0 else 1.0
-    tta = float(bb.info.get("maws_tta", 99.0))
+    tta = float(bb.info.get("maws_tta_s", 99.0))
     bank = 65.0 if tta < 1.5 else 55.0
     phi_cmd = bank * bb._evade_sign
     phi_deg = math.degrees(bb.read(IDX_PHI))

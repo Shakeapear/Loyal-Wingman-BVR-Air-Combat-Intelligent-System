@@ -22,6 +22,8 @@ from pathlib import Path
 from .schema import VALIDATOR_CATALOG, validate_tree_json
 from .tree_io import tree_to_xml
 
+from common.errors import DEP_MISSING, ConfigError
+
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 BT_VALIDATOR_PATH = (_REPO_ROOT / "开源项目库" / "03_行为树与LLM" / "BTGenBot"
                      / "Python重写_bt_validator" / "bt_validator.py")
@@ -30,9 +32,9 @@ BT_VALIDATOR_PATH = (_REPO_ROOT / "开源项目库" / "03_行为树与LLM" / "BT
 def load_bt_validator():
     """按文件路径加载 BTGenBot bt_validator（纯 Python 重写）。"""
     if not BT_VALIDATOR_PATH.is_file():
-        raise FileNotFoundError(
-            f"未找到 bt_validator（{BT_VALIDATOR_PATH}）；"
-            f"见 开源项目库/03_行为树与LLM/BTGenBot/Python重写_bt_validator/README.md")
+        raise ConfigError(DEP_MISSING, "未找到 bt_validator 依赖",
+                          detail=f"{BT_VALIDATOR_PATH}；见 开源项目库/03_行为树与LLM/"
+                                 f"BTGenBot/Python重写_bt_validator/README.md")
     spec = importlib.util.spec_from_file_location("btgenbot_bt_validator", BT_VALIDATOR_PATH)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

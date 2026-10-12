@@ -28,9 +28,9 @@ NOOP = {"flight": np.array([0.55, 0.0, 0.0, 0.0], dtype=np.float32),
         "weapon": np.array([0, 0, 0])}
 
 VIZ_KEYS = {"steps", "t", "own", "enemy", "own_missiles", "enemy_missiles",
-            "dist_m", "radar_state", "enemy_radar_state", "rwr_alarm", "rwr_bearing",
-            "maws_alarm", "maws_tta", "in_zone", "r_max_own", "r_min_own",
-            "r_nez_own", "r_max_enemy", "r_min_enemy", "radar_az_limit_deg", "reward",
+            "dist_m", "radar_state", "enemy_radar_state", "rwr_alarm", "rwr_bearing_rad",
+            "maws_alarm", "maws_tta_s", "in_zone", "r_max_own_m", "r_min_own_m",
+            "r_nez_own_m", "r_max_enemy_m", "r_min_enemy_m", "radar_az_limit_deg", "reward",
             "terminated_reason", "events"}
 
 
@@ -148,6 +148,54 @@ class TestRecorder:
         path = rec.save_csv(tmp_path / "ep.csv")
         header = path.read_text(encoding="utf-8-sig").splitlines()[0]
         assert "own_missiles_json" in header and "events_json" in header
+
+
+class TestRecorderContract:
+    """接口规范 §5 数据读取校验：load_csv 的列/版本契约。"""
+
+    def test_load_csv_rejects_missing_columns(self, tmp_path):
+        from common.errors import DataFormatError
+        bad = tmp_path / "bad.csv"
+        bad.write_text("steps,t\n0,0.0\n", encoding="utf-8")
+        with pytest.raises(DataFormatError) as ei:
+            EpisodeRecorder.load_csv(bad)
+        assert ei.value.code == "DATA_BAD_COLUMN"
+
+    def test_load_csv_rejects_unknown_version(self, tmp_path):
+        from common.contracts import CSV_REQUIRED_COLUMNS
+        from common.errors import DataFormatError
+        cols = ["csv_version", *CSV_REQUIRED_COLUMNS]
+        path = tmp_path / "v2.csv"
+        path.write_text(",".join(cols) + "\n" +
+                        ",".join(["csv_v2", *["0"] * (len(cols) - 1)]) + "\n",
+                        encoding="utf-8")
+        with pytest.raises(DataFormatError) as ei:
+            EpisodeRecorder.load_csv(path)
+        assert ei.value.code == "DATA_BAD_VERSION"
+
+    def test_load_csv_accepts_legacy_without_version(self, tmp_path):
+        """旧文件（无 csv_version 列）按 v1 兼容读取。"""
+        import csv as _csv
+
+        e = BVRCombatEnv(config={"compute_envelope": False})
+        try:
+            e.reset(seed=5)
+            rec = EpisodeRecorder()
+            rec.capture_env(e)
+            csv_path = rec.save_csv(tmp_path / "ep.csv")
+        finally:
+            e.close()
+        with open(csv_path, "r", newline="", encoding="utf-8-sig") as f:
+            reader = _csv.DictReader(f)
+            fields = [c for c in reader.fieldnames if c != "csv_version"]
+            rows = list(reader)
+        legacy = tmp_path / "legacy.csv"
+        with open(legacy, "w", newline="", encoding="utf-8-sig") as f:
+            writer = _csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+            writer.writeheader()
+            writer.writerows(rows)
+        frames = EpisodeRecorder.load_csv(legacy)
+        assert len(frames) == 1 and frames[0]["steps"] == 0
 
 
 class TestOffscreen:

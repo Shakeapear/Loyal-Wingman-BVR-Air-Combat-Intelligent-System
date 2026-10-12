@@ -42,12 +42,11 @@ import numpy as np
 # ----------------------------------------------------------------------------
 # 常量与模型参数（来源见 README_战场要素.md §参数来源表）
 # ----------------------------------------------------------------------------
-G0 = 9.80665  # 重力加速度 m/s²
+# 常量统一来源 common/constants（历史重复定义已收敛；下列名称保留以兼容旧调用方）
+from common.constants import (G0, H_TROP_M as H_TROP, L_ISA as L, RHO0, RHO_TROP,
+                              R_AIR, T0)
 
-# 国际标准大气（ISA，用于空气密度，公式见 README）
-RHO0, T0, L, G_ISA, R_AIR = 1.225, 288.15, -0.0065, 9.80665, 287.05
-H_TROP = 11000.0  # 对流层顶 m
-RHO_TROP = 0.3639175  # 11 km 处密度 kg/m³（由 ISA 计算）
+G_ISA = G0  # ISA 重力加速度（与 G0 同值，保留历史名）
 
 # AIM-120C / PL-12 量级的中距弹参数（常量字典，供 Missile 与 launch_envelope 共用）
 MISSILE_PARAMS: dict = {

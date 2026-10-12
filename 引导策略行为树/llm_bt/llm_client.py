@@ -24,6 +24,9 @@ import urllib.request
 
 from . import mock_llm
 
+from common.errors import (CFG_INVALID, LLM_AUTH_MISSING, LLM_HTTP_ERROR,
+                           ConfigError, ExternalServiceError)
+
 PROVIDERS = {
     "deepseek": {
         "base_url": "https://api.deepseek.com",
@@ -40,8 +43,8 @@ PROVIDERS = {
 }
 
 
-class LLMConfigError(RuntimeError):
-    """LLM 配置缺失（如 API Key 未设置）。"""
+class LLMConfigError(ConfigError):
+    """LLM 配置错误（兼容旧类名；错误码见 common.errors）。"""
 
 
 def resolve_provider(provider: str) -> str:
@@ -57,7 +60,8 @@ class LLMClient:
                  temperature: float = 0.2, max_retries: int = 2):
         self.provider = resolve_provider(provider)
         if self.provider not in (*PROVIDERS, "mock"):
-            raise LLMConfigError(f"未知 provider: {provider!r}（可选 auto/deepseek/openai/mock）")
+            raise LLMConfigError(CFG_INVALID, f"未知 provider: {provider!r}",
+                                 detail="可选 auto/deepseek/openai/mock")
         spec = PROVIDERS.get(self.provider, {})
         self.model = model or spec.get("model")
         self.timeout = float(timeout)
@@ -68,8 +72,8 @@ class LLMClient:
             self.api_key = api_key or os.environ.get(spec["key_env"])
             if not self.api_key:
                 raise LLMConfigError(
-                    f"provider={self.provider} 需要 API Key：请设置环境变量 "
-                    f"{spec['key_env']}（或使用 --provider mock 离线运行）")
+                    LLM_AUTH_MISSING, f"provider={self.provider} 需要 API Key",
+                    detail=f"请设置环境变量 {spec['key_env']}（或使用 --provider mock 离线运行）")
 
     @property
     def is_mock(self) -> bool:
@@ -103,7 +107,9 @@ class LLMClient:
                 last_err = e
                 if attempt < self.max_retries:
                     time.sleep(2.0 * (attempt + 1))
-        raise RuntimeError(f"LLM 调用失败（provider={self.provider}, url={url}）: {last_err}")
+        raise ExternalServiceError(LLM_HTTP_ERROR,
+                                   f"LLM 调用失败（provider={self.provider}）",
+                                   detail=f"url={url}; {last_err}")
 
 
 def extract_json(text: str):

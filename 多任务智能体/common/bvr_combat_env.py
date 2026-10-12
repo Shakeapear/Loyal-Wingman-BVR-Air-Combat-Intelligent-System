@@ -56,8 +56,10 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 
-from common.jsbsim_bridge import JSBSimGymBridge, wrap_pi
-from common.missile_model import Missile, launch_envelope, air_density, G0, MISSILE_PARAMS
+from common.constants import G0, GEO_LAT0_DEG, GEO_LON0_DEG, METERS_PER_DEG, wrap_pi
+from common.errors import CFG_INVALID, ENV_NOT_RESET, ConfigError, ExecutionError
+from common.jsbsim_bridge import JSBSimGymBridge
+from common.missile_model import Missile, launch_envelope, air_density
 from common.radar_model import FireControlRadar, RWR, MAWS
 
 DECISION_DT = 1.0                     # 决策周期 s（1 Hz）
@@ -68,7 +70,6 @@ INNER_DT_DEFAULT = 1.0 / 60.0         # 空战环境 JSBSim 内环步长 s（60 
 
 _GV = np.array([0.0, 0.0, -G0])
 _GZ = np.array([0.0, 0.0, G0])
-_ZUP = np.array([0.0, 0.0, 1.0])
 
 _VIZ_TOOL_DIR = Path(__file__).resolve().parents[2] / "可视化工具"
 
@@ -361,7 +362,7 @@ class BVRCombatEnv(gym.Env):
         enemy_h_ft = float(self.rng.uniform(8000.0, 20000.0))
         enemy_mach = float(self.rng.uniform(0.7, 0.9))
         enemy_heading_jitter = float(self.rng.uniform(-30.0, 30.0))
-        lat0, lon0 = 30.0, 120.0
+        lat0, lon0 = GEO_LAT0_DEG, GEO_LON0_DEG
 
         self.own.reset(seed=None, h_ft=own_h_ft, mach=own_mach,
                        heading_deg=own_heading_deg, lat0_deg=lat0, lon0_deg=lon0,
@@ -370,8 +371,8 @@ class BVRCombatEnv(gym.Env):
         bearing_abs_rad = wrap_pi(np.deg2rad(own_heading_deg + bearing_off_deg))
         east_m = dist * np.sin(bearing_abs_rad)
         north_m = dist * np.cos(bearing_abs_rad)
-        lat_e = lat0 + north_m / 111320.0
-        lon_e = lon0 + east_m / (111320.0 * np.cos(np.deg2rad(lat0)))
+        lat_e = lat0 + north_m / METERS_PER_DEG
+        lon_e = lon0 + east_m / (METERS_PER_DEG * np.cos(np.deg2rad(lat0)))
         enemy_heading_deg = wrap_pi(np.deg2rad(own_heading_deg + bearing_off_deg) + np.pi
                                     + np.deg2rad(enemy_heading_jitter)) * 180.0 / np.pi
         self.enemy.reset(seed=None, h_ft=enemy_h_ft, mach=enemy_mach,
@@ -415,14 +416,16 @@ class BVRCombatEnv(gym.Env):
                           "terminated_reason": None,
                           "h_sl_m": s_own["h_sl_m"], "vtrue_mps": s_own["vtrue_mps"],
                           "mach": s_own["mach"], "fuel_lbs": s_own["fuel_lbs"],
-                          "own_missiles": self.own_n_left, "enemy_missiles": self.enemy_n_left,
+                          "own_missiles_left": self.own_n_left,
+                          "enemy_missiles_left": self.enemy_n_left,
                           "own_fired": 0, "enemy_fired": 0,
                           "radar_state": None, "enemy_radar_state": None,
-                          "rwr_alarm": False, "rwr_bearing": 0.0,
-                          "maws_alarm": False, "maws_tta": 0.0, "ecm_on": False,
+                          "rwr_alarm": False, "rwr_bearing_rad": 0.0,
+                          "maws_alarm": False, "maws_tta_s": 0.0, "ecm_on": False,
                           "in_zone": False,
-                          "r_max_own": self.r_max_own, "r_min_own": self.r_min_own,
-                          "r_nez_own": self.r_nez_own}
+                          "r_max_own_m": self.r_max_own, "r_min_own_m": self.r_min_own,
+                          "r_nez_own_m": self.r_nez_own,
+                          "r_max_enemy_m": self.r_max_enemy, "r_min_enemy_m": self.r_min_enemy}
         # 实时显示跨 episode 复用：重置轨迹与累计奖励（避免上一局残留）
         if self._display is not None:
             self._display.reset()
@@ -535,20 +538,22 @@ class BVRCombatEnv(gym.Env):
             "terminated_reason": reason,
             "h_sl_m": s_own["h_sl_m"], "vtrue_mps": s_own["vtrue_mps"],
             "mach": s_own["mach"], "fuel_lbs": s_own["fuel_lbs"],
-            "own_missiles": self.own_n_left, "enemy_missiles": self.enemy_n_left,
+            "own_missiles_left": self.own_n_left,
+            "enemy_missiles_left": self.enemy_n_left,
             "own_fired": self.cfg["n_missiles"] - self.own_n_left,
             "enemy_fired": self.cfg["n_missiles"] - self.enemy_n_left,
             "radar_state": self.radar.state("enemy"),
             "enemy_radar_state": self.enemy_radar.state("own"),
             "rwr_alarm": rwr_info["alarm"],
-            "rwr_bearing": (np.deg2rad(rwr_info["threats"][0]["bearing_deg"])
-                            if rwr_info["threats"] else 0.0),
+            "rwr_bearing_rad": (np.deg2rad(rwr_info["threats"][0]["bearing_deg"])
+                                if rwr_info["threats"] else 0.0),
             "maws_alarm": maws_info["alarm"],
-            "maws_tta": maws_info["warnings"][0]["tta"] if maws_info["warnings"] else 0.0,
+            "maws_tta_s": maws_info["warnings"][0]["tta"] if maws_info["warnings"] else 0.0,
             "ecm_on": self.ecm_on,
             "in_zone": self._in_own_zone(dist),
-            "r_max_own": self.r_max_own, "r_min_own": self.r_min_own,
-            "r_nez_own": self.r_nez_own,
+            "r_max_own_m": self.r_max_own, "r_min_own_m": self.r_min_own,
+            "r_nez_own_m": self.r_nez_own,
+            "r_max_enemy_m": self.r_max_enemy, "r_min_enemy_m": self.r_min_enemy,
         }
         return obs, float(reward), terminated, truncated, self.last_info
 
@@ -691,9 +696,9 @@ class BVRCombatEnv(gym.Env):
         dist = float(np.linalg.norm(rel))
         detected = self.radar.state("enemy") == FireControlRadar.TRACK
         rwr_alarm = self.last_info.get("rwr_alarm", False) if self.steps > 0 else False
-        rwr_bearing = self.last_info.get("rwr_bearing", 0.0) if self.steps > 0 else 0.0
+        rwr_bearing = self.last_info.get("rwr_bearing_rad", 0.0) if self.steps > 0 else 0.0
         maws_alarm = self.last_info.get("maws_alarm", False) if self.steps > 0 else False
-        maws_tta = self.last_info.get("maws_tta", 0.0) if self.steps > 0 else 0.0
+        maws_tta = self.last_info.get("maws_tta_s", 0.0) if self.steps > 0 else 0.0
         tgt = (rel[0], rel[1], rel[2], dist,
                wrap_pi(np.arctan2(rel[0], rel[1]) - s_own["psi_rad"]),
                s_enemy["vtrue_mps"], s_enemy["psi_rad"]) if detected else (0.0,) * 7
@@ -718,26 +723,27 @@ class BVRCombatEnv(gym.Env):
         """返回当前态势的可视化快照（纯 Python 标量/list，ENU + SI，可 JSON 序列化）。
 
         键集稳定，可在 reset 后 / step 后任意时刻调用，供可视化工具（可视化工具/）、
-        CSV 记录器与 render() 复用。单位：位置 m、速度 m/s、角度 rad、油量 lb。
-        reset 前调用会抛出 RuntimeError（此时 FDM 未 run_ic，快照无意义）。
+        CSV 记录器与 render() 复用。字段命名见 common/contracts.FRAME_KEYS_V1
+        （规则：`<概念>_<单位>`；位置 m、速度 m/s、角度 rad、油量 lb、时间 s）。
+        reset 前调用会抛出 ExecutionError（code=ENV_NOT_RESET，RuntimeError 子类）。
 
         返回键：
             steps, t, own, enemy, own_missiles, enemy_missiles, dist_m,
-            radar_state, enemy_radar_state, rwr_alarm, rwr_bearing,
-            maws_alarm, maws_tta, in_zone,
-            r_max_own, r_min_own, r_nez_own, r_max_enemy, r_min_enemy,
-            radar_az_limit_deg,
-            reward, terminated_reason, events
+            radar_state, enemy_radar_state, rwr_alarm, rwr_bearing_rad,
+            maws_alarm, maws_tta_s, in_zone,
+            r_max_own_m, r_min_own_m, r_nez_own_m, r_max_enemy_m, r_min_enemy_m,
+            radar_az_limit_deg, reward, terminated_reason, events
         own/enemy: pos(3), psi_rad, phi_rad, theta_rad, vtrue_mps, mach, h_sl_m,
                    n_left；own 另含 nz_g, fuel_lbs, throttle, ecm_on。
-        own_missiles/enemy_missiles: 在飞导弹 [{pos(3), vel(3), t}]。
+        own_missiles/enemy_missiles: 在飞导弹 [{pos(3), vel(3), t}]（与 info 中的
+                   own_missiles_left/enemy_missiles_left 剩余弹数是两个概念）。
         radar_az_limit_deg: 火控雷达方位扫描半角（攻击区扇形绘制用；取自
                    FireControlRadar.AZ_LIMIT，随帧自包含，工具侧无需 import 本库）。
         events: {fired_own, fired_enemy, hit_enemy, hit_own}（本决策步事件）。
         """
         if not self.last_info:
-            raise RuntimeError("get_viz_frame() 需先调用 reset()：此时 FDM 未 run_ic，"
-                               "快照无意义（距离≈0、无攻击区）")
+            raise ExecutionError(ENV_NOT_RESET, "get_viz_frame() 需先调用 reset()",
+                                 detail="reset 前 FDM 未 run_ic，快照无意义（距离≈0、无攻击区）")
         s_own = self.own.state_dict()
         s_enemy = self.enemy.state_dict()
         own_abs = s_own["pos_enu_m"]
@@ -781,13 +787,13 @@ class BVRCombatEnv(gym.Env):
             "radar_state": self.radar.state("enemy"),
             "enemy_radar_state": self.enemy_radar.state("own"),
             "rwr_alarm": bool(info.get("rwr_alarm", False)),
-            "rwr_bearing": float(info.get("rwr_bearing", 0.0)),
+            "rwr_bearing_rad": float(info.get("rwr_bearing_rad", 0.0)),
             "maws_alarm": bool(info.get("maws_alarm", False)),
-            "maws_tta": float(info.get("maws_tta", 0.0)),
+            "maws_tta_s": float(info.get("maws_tta_s", 0.0)),
             "in_zone": bool(self._in_own_zone(dist)),
-            "r_max_own": _f(self.r_max_own), "r_min_own": _f(self.r_min_own),
-            "r_nez_own": _f(self.r_nez_own),
-            "r_max_enemy": _f(self.r_max_enemy), "r_min_enemy": _f(self.r_min_enemy),
+            "r_max_own_m": _f(self.r_max_own), "r_min_own_m": _f(self.r_min_own),
+            "r_nez_own_m": _f(self.r_nez_own),
+            "r_max_enemy_m": _f(self.r_max_enemy), "r_min_enemy_m": _f(self.r_min_enemy),
             "radar_az_limit_deg": float(FireControlRadar.AZ_LIMIT),
             "reward": float(info.get("reward", 0.0)),
             "terminated_reason": info.get("terminated_reason"),
@@ -818,8 +824,8 @@ class BVRCombatEnv(gym.Env):
                 self._display = TacticalDisplay()
             self._display.update(frame)
             return None
-        raise ValueError(f"未知 render_mode: {self.render_mode!r}，"
-                         f"可选 None/'human'/'rgb_array'")
+        raise ConfigError(CFG_INVALID, f"未知 render_mode: {self.render_mode!r}",
+                          detail="可选 None/'human'/'rgb_array'")
 
     def close(self):
         """释放可视化资源（JSBSim 实例无显式释放接口，交由 GC）。"""

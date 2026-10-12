@@ -32,14 +32,17 @@ import math
 from datetime import datetime, timezone
 from pathlib import Path
 
+from common.constants import GEO_LAT0_DEG, GEO_LON0_DEG, METERS_PER_DEG
+from common.contracts import FRAME_VERSION
+
 OWN_ID = 0x100
 ENEMY_ID = 0x200
 _MSL_MATCH_M = 4000.0   # 跨帧导弹关联阈值（导弹 1 s 约飞 600~900 m，取 4 km 裕度）
 
 
 def _enu_to_lonlat(e_m, n_m, lat0_deg, lon0_deg):
-    lat = lat0_deg + n_m / 111320.0
-    lon = lon0_deg + e_m / (111320.0 * math.cos(math.radians(lat0_deg)))
+    lat = lat0_deg + n_m / METERS_PER_DEG
+    lon = lon0_deg + e_m / (METERS_PER_DEG * math.cos(math.radians(lat0_deg)))
     return lon, lat
 
 
@@ -94,8 +97,8 @@ class _MissileTracker:
         return ids
 
 
-def export_acmi(frames, path, lat0_deg=30.0, lon0_deg=120.0, title="BVR 1v1"):
-    """导出帧序列为 ACMI 2.2 文本文件。"""
+def export_acmi(frames, path, lat0_deg=GEO_LAT0_DEG, lon0_deg=GEO_LON0_DEG, title="BVR 1v1"):
+    """导出帧序列为 ACMI 2.2 文本文件（DataSource 行附帧契约版本）。"""
     frames = list(frames)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,7 +109,7 @@ def export_acmi(frames, path, lat0_deg=30.0, lon0_deg=120.0, title="BVR 1v1"):
         f"0,ReferenceTime={now:%Y-%m-%dT%H:%M:%SZ}",
         f"0,ReferenceLongitude={lon0_deg}",
         f"0,ReferenceLatitude={lat0_deg}",
-        "0,DataSource=JSBSim BVRCombatEnv",
+        f"0,DataSource=JSBSim BVRCombatEnv ({FRAME_VERSION})",
         "0,DataRecorder=Loyal-Wingman visualization.acmi",
         f"0,Title={title}",
     ]

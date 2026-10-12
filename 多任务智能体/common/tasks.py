@@ -84,7 +84,8 @@ def evasion_reward(env):
     env._last_evasion_dist = dist
     r = 0.3 * (dist - prev) / 100.0            # 拉开距离奖励
     r += 0.2 * min(dist / 4000.0, 1.0)         # 保持距离
-    r -= 0.5 * env._get("accelerations/Nz") > 4.0  # 剧烈机动轻微惩罚
+    if abs(env._get("accelerations/Nz")) > 4.0:   # 剧烈机动轻微惩罚
+        r -= 0.5
     return r + _penalty_done(env)
 
 

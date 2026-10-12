@@ -36,11 +36,13 @@ import numpy as np
 
 import jsbsim
 
+from common.constants import (F104_FUEL_CAPACITY_LBS, FPS2MPS, FT2M, G0,
+                              METERS_PER_DEG, wrap_pi as _wrap_pi)
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 JSB_ROOT = PROJECT_ROOT / "JSBSim"
 
 SIM_DT = 1.0 / 120.0          # JSBSim 内环积分步长（秒）
-G0 = 9.80665
 
 
 def ned_ft_to_enu_m(pos_e_m, pos_n_m, h_ft, v_e_fps, v_n_fps, v_d_fps):
@@ -49,21 +51,21 @@ def ned_ft_to_enu_m(pos_e_m, pos_n_m, h_ft, v_e_fps, v_n_fps, v_d_fps):
     输入：东向距离 m、北向距离 m、海拔 ft、速度三分量 [东, 北, 下] fps。
     输出：(pos, vel)，pos=[东, 北, 上] m，vel=[东, 北, 上] m/s。
     """
-    pos = np.array([pos_e_m, pos_n_m, h_ft * 0.3048], dtype=float)
-    vel = np.array([v_e_fps, v_n_fps, -v_d_fps], dtype=float) * 0.3048
+    pos = np.array([pos_e_m, pos_n_m, h_ft * FT2M], dtype=float)
+    vel = np.array([v_e_fps, v_n_fps, -v_d_fps], dtype=float) * FPS2MPS
     return pos, vel
 
 
 def wrap_pi(a):
-    """角度归一化到 [-π, π)。"""
-    return float((np.asarray(a, dtype=float) + np.pi) % (2.0 * np.pi) - np.pi)
+    """角度归一化到 [-π, π)（委托 common.constants.wrap_pi，单一实现）。"""
+    return _wrap_pi(a)
 
 
 def _sound_speed_fps(h_ft):
     """ISA 声速 ft/s（用于马赫数 → 真空速换算）。"""
-    h_m = h_ft * 0.3048
+    h_m = h_ft * FT2M
     t_k = 288.15 - 0.0065 * h_m
-    return np.sqrt(1.4 * 287.05 * max(t_k, 150.0)) * 3.28084
+    return float(np.sqrt(1.4 * 287.05 * max(t_k, 150.0)) / FT2M)
 
 
 class JSBSimGymBridge:
@@ -156,6 +158,7 @@ class JSBSimGymBridge:
         self._set("propulsion/tank[0]/contents-lbs", 3500)
         self._set("propulsion/tank[1]/contents-lbs", 600)
         self._set("propulsion/tank[2]/contents-lbs", 600)
+        # 合计 = common.constants.F104_FUEL_CAPACITY_LBS（4700 lb）
         self._set("propulsion/engine[0]/set-running", 1)
         self._set("propulsion/cutoff_cmd", 0)
         self._set("propulsion/engine[0]/n2", 100)
@@ -207,21 +210,21 @@ class JSBSimGymBridge:
         # 不能用；经纬度与速度分量才是带符号的）
         lat = f["position/lat-gc-deg"]
         lon = f["position/long-gc-deg"]
-        north_m = (lat - self._origin_lat) * 111320.0
-        east_m = (lon - self._origin_lon) * 111320.0 * np.cos(np.deg2rad(self._origin_lat))
+        north_m = (lat - self._origin_lat) * METERS_PER_DEG
+        east_m = (lon - self._origin_lon) * METERS_PER_DEG * np.cos(np.deg2rad(self._origin_lat))
         pos_e_m, pos_n_m = float(east_m), float(north_m)
-        h_sl_m = f["position/h-sl-ft"] * 0.3048
-        v_e = f["velocities/v-east-fps"] * 0.3048
-        v_n = f["velocities/v-north-fps"] * 0.3048
-        v_d = -f["velocities/v-down-fps"] * 0.3048
+        h_sl_m = f["position/h-sl-ft"] * FT2M
+        v_e = f["velocities/v-east-fps"] * FPS2MPS
+        v_n = f["velocities/v-north-fps"] * FPS2MPS
+        v_d = -f["velocities/v-down-fps"] * FPS2MPS
         return {
             "pos_e_m": float(pos_e_m),
             "pos_n_m": float(pos_n_m),
             "h_sl_m": float(h_sl_m),
-            "h_agl_m": float(f["position/h-agl-ft"] * 0.3048),
+            "h_agl_m": float(f["position/h-agl-ft"] * FT2M),
             "pos_enu_m": np.array([pos_e_m, pos_n_m, h_sl_m]),
             "v_enu_mps": np.array([v_e, v_n, v_d]),
-            "vtrue_mps": float(f["velocities/vtrue-fps"] * 0.3048),
+            "vtrue_mps": float(f["velocities/vtrue-fps"] * FPS2MPS),
             "mach": float(f["velocities/mach"]),
             "vd_mps": float(v_d),
             "phi_rad": float(f["attitude/phi-rad"]),
@@ -232,7 +235,7 @@ class JSBSimGymBridge:
             "nz_g": float(f["accelerations/Nz"]),
             "throttle": float(f["fcs/throttle-cmd-norm"]),
             "fuel_lbs": float(f["propulsion/total-fuel-lbs"]),
-            "fuel_frac": float(f["propulsion/total-fuel-lbs"]) / 4700.0,
+            "fuel_frac": float(f["propulsion/total-fuel-lbs"]) / F104_FUEL_CAPACITY_LBS,
         }
 
     # ---------- 底层属性访问 ----------

@@ -17,7 +17,17 @@
 帧来源：多任务智能体/common/bvr_combat_env.py 的 BVRCombatEnv.get_viz_frame()；
 环境侧经 config["render_mode"] = "human" / "rgb_array" 启用 env.render()
 （惰性接入本包）。命令均在 可视化工具/ 目录下运行，详见 可视化工具/README.md。
+
+包级路径引导（接口规范：sys.path 操作集中一处，不再散落各文件）：
+本包依赖项目级契约模块 `common.contracts` / `common.errors`（位于 多任务智能体/）。
 """
+import sys as _sys
+from pathlib import Path as _Path
+
+_AGENT_LIB = _Path(__file__).resolve().parents[2] / "多任务智能体"
+if _AGENT_LIB.is_dir() and str(_AGENT_LIB) not in _sys.path:
+    _sys.path.append(str(_AGENT_LIB))
+
 from .recorder import EpisodeRecorder
 from .tactical_core import TrailHistory, apply_chinese_font, draw_tactical_frame
 

@@ -6,10 +6,12 @@ EpisodeRecorder：逐决策步捕获 BVRCombatEnv.get_viz_frame() 快照，
 保存/加载 CSV（每步一行；导弹列表与事件以 JSON 字符串列存储，
 与 trajectory_v1 采集规范风格对齐，SI 单位，角度列为 deg）。
 
-CSV 列见 CSV_FIELDS；加载后重建的帧字典与 get_viz_frame() 键集一致，
+CSV 列见 CSV_FIELDS（首列为 csv_version 版本标识）；加载后重建的帧字典与
+get_viz_frame() 键集一致（字段名遵循 common/contracts.FRAME_KEYS_V1：
+`<概念>_<单位>`；角度列 CSV 为 deg、帧为 rad，属显式单位转换层），
 可直接喂给 offscreen.render_episode / acmi.export_acmi。
 录制文件自包含绘制所需全部信息（含攻击区扇形扫描角），
-离线回放 / ACMI 转换均不需要智能体库在场。
+离线回放 / ACMI 转换均不需要智能体库进程在场。
 """
 from __future__ import annotations
 
@@ -20,7 +22,13 @@ from pathlib import Path
 
 import numpy as np
 
+from common.constants import GEO_LAT0_DEG, GEO_LON0_DEG
+from common.contracts import (CSV_REQUIRED_COLUMNS, CSV_VERSION,
+                              CSV_VERSION_COLUMN)
+from common.errors import DATA_BAD_COLUMN, DATA_BAD_VERSION, DataFormatError
+
 CSV_FIELDS = [
+    "csv_version",
     "steps", "t",
     "own_e_m", "own_n_m", "own_h_m", "own_psi_deg", "own_phi_deg", "own_theta_deg",
     "own_v_mps", "own_mach", "own_nz_g", "own_fuel_lbs", "own_throttle",
@@ -41,8 +49,8 @@ class EpisodeRecorder:
 
     def __init__(self, meta=None):
         self.frames = []
-        # 地理原点（ACMI 导出需要；与环境 reset 的 lat0/lon0 一致）
-        self.meta = dict(meta or {"lat0_deg": 30.0, "lon0_deg": 120.0})
+        # 地理原点（ACMI 导出需要；默认取 common/constants 的规范原点，与环境 reset 一致）
+        self.meta = dict(meta or {"lat0_deg": GEO_LAT0_DEG, "lon0_deg": GEO_LON0_DEG})
 
     def capture(self, frame):
         """追加一帧（get_viz_frame 快照；深拷贝防止外部引用被后续 step 修改）。"""
@@ -67,13 +75,29 @@ class EpisodeRecorder:
         return path
 
     @staticmethod
-    def load_csv(path):
-        """加载 CSV，返回帧字典列表（键集与 get_viz_frame() 一致）。"""
+    def load_csv(path, validate=True):
+        """加载 CSV，返回帧字典列表（契约：common/contracts.CSV_REQUIRED_COLUMNS）。
+
+        validate=True 时校验必需列与 csv_version：列缺失→DataFormatError
+        （code=DATA_BAD_COLUMN）；版本非 csv_v1 → DataFormatError
+        （code=DATA_BAD_VERSION）。旧文件无 csv_version 列按 v1 兼容读取。
+        """
         frames = []
         with open(path, "r", newline="", encoding="utf-8-sig") as f:
-            for row in csv.DictReader(f):
-                frames.append(_row_to_frame(row))
-        return frames
+            reader = csv.DictReader(f)
+            header = set(reader.fieldnames or [])
+            rows = list(reader)
+        missing = [c for c in CSV_REQUIRED_COLUMNS if c not in header]
+        versions = {(r.get(CSV_VERSION_COLUMN) or "").strip() for r in rows} - {""}
+        bad = sorted(v for v in versions if v != CSV_VERSION)
+        if validate and missing:
+            raise DataFormatError(DATA_BAD_COLUMN, "CSV 缺少必需列",
+                                  detail={"path": str(path), "missing": missing})
+        if validate and bad:
+            raise DataFormatError(DATA_BAD_VERSION, "CSV 版本不受支持",
+                                  detail={"path": str(path), "found": bad,
+                                          "expected": CSV_VERSION})
+        return [_row_to_frame(row) for row in rows]
 
 
 def _num(x):
@@ -83,6 +107,7 @@ def _num(x):
 def _frame_to_row(frm):
     own, ene = frm["own"], frm["enemy"]
     return {
+        "csv_version": CSV_VERSION,
         "steps": frm["steps"], "t": _num(frm["t"]),
         "own_e_m": _num(own["pos"][0]), "own_n_m": _num(own["pos"][1]),
         "own_h_m": _num(own["pos"][2]),
@@ -104,14 +129,14 @@ def _frame_to_row(frm):
         "radar_state": frm.get("radar_state") or "",
         "enemy_radar_state": frm.get("enemy_radar_state") or "",
         "rwr_alarm": int(bool(frm.get("rwr_alarm", False))),
-        "rwr_bearing_deg": _num(np.rad2deg(frm.get("rwr_bearing", 0.0))),
+        "rwr_bearing_deg": _num(np.rad2deg(frm.get("rwr_bearing_rad", 0.0))),
         "maws_alarm": int(bool(frm.get("maws_alarm", False))),
-        "maws_tta_s": _num(frm.get("maws_tta", 0.0)),
+        "maws_tta_s": _num(frm.get("maws_tta_s", 0.0)),
         "in_zone": int(bool(frm.get("in_zone", False))),
-        "r_max_own_m": _num(frm.get("r_max_own")), "r_min_own_m": _num(frm.get("r_min_own")),
-        "r_nez_own_m": _num(frm.get("r_nez_own")),
-        "r_max_enemy_m": _num(frm.get("r_max_enemy")),
-        "r_min_enemy_m": _num(frm.get("r_min_enemy")),
+        "r_max_own_m": _num(frm.get("r_max_own_m")), "r_min_own_m": _num(frm.get("r_min_own_m")),
+        "r_nez_own_m": _num(frm.get("r_nez_own_m")),
+        "r_max_enemy_m": _num(frm.get("r_max_enemy_m")),
+        "r_min_enemy_m": _num(frm.get("r_min_enemy_m")),
         "radar_az_limit_deg": _num(frm.get("radar_az_limit_deg")),
         "reward": _num(frm.get("reward", 0.0)),
         "terminated_reason": frm.get("terminated_reason") or "",
@@ -161,14 +186,14 @@ def _row_to_frame(row):
         "radar_state": row.get("radar_state") or None,
         "enemy_radar_state": row.get("enemy_radar_state") or None,
         "rwr_alarm": bool(int(_f(row, "rwr_alarm"))),
-        "rwr_bearing": np.deg2rad(_f(row, "rwr_bearing_deg")),
+        "rwr_bearing_rad": np.deg2rad(_f(row, "rwr_bearing_deg")),
         "maws_alarm": bool(int(_f(row, "maws_alarm"))),
-        "maws_tta": _f(row, "maws_tta_s"),
+        "maws_tta_s": _f(row, "maws_tta_s"),
         "in_zone": bool(int(_f(row, "in_zone"))),
-        "r_max_own": _f_none(row, "r_max_own_m"), "r_min_own": _f_none(row, "r_min_own_m"),
-        "r_nez_own": _f_none(row, "r_nez_own_m"),
-        "r_max_enemy": _f_none(row, "r_max_enemy_m"),
-        "r_min_enemy": _f_none(row, "r_min_enemy_m"),
+        "r_max_own_m": _f_none(row, "r_max_own_m"), "r_min_own_m": _f_none(row, "r_min_own_m"),
+        "r_nez_own_m": _f_none(row, "r_nez_own_m"),
+        "r_max_enemy_m": _f_none(row, "r_max_enemy_m"),
+        "r_min_enemy_m": _f_none(row, "r_min_enemy_m"),
         "radar_az_limit_deg": _f_none(row, "radar_az_limit_deg"),
         "reward": _f(row, "reward"),
         "terminated_reason": row.get("terminated_reason") or None,

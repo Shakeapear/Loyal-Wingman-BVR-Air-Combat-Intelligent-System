@@ -20,16 +20,19 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from common.constants import GEO_LAT0_DEG, GEO_LON0_DEG
+from common.errors import DATA_MISSING_FIELD, DataFormatError
 from visualization.acmi import export_acmi
 from visualization.recorder import EpisodeRecorder
 
 
-def convert(csv_path, out_path=None, lat0_deg=30.0, lon0_deg=120.0, title=None):
+def convert(csv_path, out_path=None, lat0_deg=GEO_LAT0_DEG, lon0_deg=GEO_LON0_DEG, title=None):
     """单个 CSV → ACMI，返回输出路径。"""
     csv_path = Path(csv_path)
     frames = EpisodeRecorder.load_csv(csv_path)
     if not frames:
-        raise ValueError(f"{csv_path} 中没有帧数据")
+        raise DataFormatError(DATA_MISSING_FIELD, f"{csv_path} 中没有帧数据",
+                              detail="至少需要 1 帧（reset 后捕获）")
     out_path = Path(out_path) if out_path else csv_path.with_suffix(".acmi")
     return export_acmi(frames, out_path, lat0_deg=lat0_deg, lon0_deg=lon0_deg,
                        title=title or csv_path.stem)
@@ -40,8 +43,8 @@ def main(argv=None):
     p.add_argument("csv", nargs="+", help="一个或多个 EpisodeRecorder CSV 文件")
     p.add_argument("-o", "--out", default=None,
                    help="输出路径（仅单文件时可用；默认同名 .acmi）")
-    p.add_argument("--lat0", type=float, default=30.0, help="地理原点纬度（默认 30）")
-    p.add_argument("--lon0", type=float, default=120.0, help="地理原点经度（默认 120）")
+    p.add_argument("--lat0", type=float, default=GEO_LAT0_DEG, help="地理原点纬度（默认 30）")
+    p.add_argument("--lon0", type=float, default=GEO_LON0_DEG, help="地理原点经度（默认 120）")
     p.add_argument("--title", default=None, help="ACMI 标题（默认取 CSV 文件名）")
     args = p.parse_args(argv)
     if args.out and len(args.csv) > 1:

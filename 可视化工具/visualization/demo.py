@@ -17,7 +17,6 @@ BVR 空战可视化演示：脚本策略（接敌→攻击区边缘发射→RWR 
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 import time
 from pathlib import Path
@@ -28,16 +27,14 @@ sys.path.append(str(Path(__file__).resolve().parents[2] / "多任务智能体"))
 import numpy as np
 
 from common.bvr_combat_env import BVRCombatEnv
+from common.constants import GEO_LAT0_DEG as LAT0_DEG, GEO_LON0_DEG as LON0_DEG
+from common.contracts import ensure_within, sanitize_tag
 from visualization.acmi import export_acmi
 from visualization.offscreen import render_episode
 from visualization.recorder import EpisodeRecorder
 
 # 产物目录：可视化工具/results/（与包代码分离，脚本自动创建）
 RESULTS = Path(__file__).resolve().parents[1] / "results"
-
-# 地理原点（须与 common/bvr_combat_env.py reset() 的 lat0/lon0 一致；
-# 经 EpisodeRecorder.meta 传给 ACMI 导出，消除多处重复硬编码）
-LAT0_DEG, LON0_DEG = 30.0, 120.0
 
 
 class ScriptedDemoPolicy:
@@ -72,7 +69,7 @@ class ScriptedDemoPolicy:
         bearing = float(obs[18])                    # 目标相对方位 rad（未探测到为 0）
         in_zone = bool(info.get("in_zone", False))
         maws = bool(info.get("maws_alarm", False))
-        maws_tta = float(info.get("maws_tta", 99.0))
+        maws_tta = float(info.get("maws_tta_s", 99.0))
         step = int(info.get("steps", 0))
         # ---- 滚转：方位 → 坡度指令 → 副翼（phi 内环阻尼）----
         if maws and maws_tta < 1.5:
@@ -119,8 +116,8 @@ def main(argv=None):
     args = p.parse_args(argv)
 
     RESULTS.mkdir(parents=True, exist_ok=True)
-    # --tag 清洗：仅字母数字下划线连字符（防止 ../ 目录遍历与路径注入）
-    tag = re.sub(r"[^\w\-]", "_", args.tag) if args.tag else f"seed{args.seed}"
+    # --tag 清洗：仅字母/数字/._-（common.contracts.sanitize_tag，防路径穿越与注入）
+    tag = sanitize_tag(args.tag, fallback=f"seed{args.seed}")
     live = not args.no_live
 
     env = BVRCombatEnv(config={"compute_envelope": True})   # 演示需要真实攻击区扇形
@@ -153,15 +150,18 @@ def main(argv=None):
         env._display.hold(3.0)
     env.close()
 
-    csv_path = recorder.save_csv(RESULTS / f"demo_ep_{tag}.csv")
+    csv_path = ensure_within(RESULTS / f"demo_ep_{tag}.csv", RESULTS)
+    recorder.save_csv(csv_path)
     print(f"[CSV] {len(recorder)} 帧 → {csv_path}", flush=True)
     if not args.no_gif:
         t1 = time.time()
-        gif = render_episode(recorder.frames, RESULTS / f"demo_ep_{tag}.gif",
+        gif = render_episode(recorder.frames,
+                             ensure_within(RESULTS / f"demo_ep_{tag}.gif", RESULTS),
                              fps=args.fps, progress=True)
         print(f"[GIF] → {gif}（渲染 {time.time() - t1:.0f} s）", flush=True)
     if args.acmi:
-        acmi = export_acmi(recorder.frames, RESULTS / f"demo_ep_{tag}.acmi",
+        acmi = export_acmi(recorder.frames,
+                           ensure_within(RESULTS / f"demo_ep_{tag}.acmi", RESULTS),
                            lat0_deg=recorder.meta["lat0_deg"],
                            lon0_deg=recorder.meta["lon0_deg"],
                            title=f"BVR 1v1 (seed {args.seed})")

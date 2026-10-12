@@ -118,11 +118,11 @@ def draw_map(ax, frm, hist=None):
     ax.clear()
 
     # ---- 攻击区/不可逃逸区（半透明扇形，本机 R_max/R_nez/R_min + 敌方 R_max）----
-    _envelope_wedge(ax, oe, on, frm.get("r_max_own"), psi_o, C_ZONE, 0.10, az_limit)
-    _envelope_wedge(ax, oe, on, frm.get("r_nez_own"), psi_o, C_NEZ, 0.18, az_limit)
-    _envelope_wedge(ax, ee, en, frm.get("r_max_enemy"), psi_e, C_ENEMY, 0.07, az_limit)
-    if frm.get("r_min_own"):
-        ax.add_patch(Circle((oe, on), frm["r_min_own"] / 1e3, fill=False, ls=":",
+    _envelope_wedge(ax, oe, on, frm.get("r_max_own_m"), psi_o, C_ZONE, 0.10, az_limit)
+    _envelope_wedge(ax, oe, on, frm.get("r_nez_own_m"), psi_o, C_NEZ, 0.18, az_limit)
+    _envelope_wedge(ax, ee, en, frm.get("r_max_enemy_m"), psi_e, C_ENEMY, 0.07, az_limit)
+    if frm.get("r_min_own_m"):
+        ax.add_patch(Circle((oe, on), frm["r_min_own_m"] / 1e3, fill=False, ls=":",
                             color=C_ZONE, lw=1.0, alpha=0.8, zorder=2))
 
     # ---- 历史轨迹与导弹尾迹 ----
@@ -162,7 +162,7 @@ def draw_map(ax, frm, hist=None):
     # ---- 告警叠加 ----
     if frm.get("rwr_alarm"):
         # RWR 锁定告警：相对方位（相对本机机头）→ 绝对方位扇形
-        bd = 90.0 - np.rad2deg(psi_o + frm.get("rwr_bearing", 0.0))
+        bd = 90.0 - np.rad2deg(psi_o + frm.get("rwr_bearing_rad", 0.0))
         ax.add_patch(Wedge((oe, on), 4.0, bd - 7.5, bd + 7.5,
                            facecolor=C_ALARM, alpha=0.55, zorder=4))
         ax.annotate("RWR 锁定!", (oe, on), textcoords="offset points",
@@ -174,12 +174,12 @@ def draw_map(ax, frm, hist=None):
                                 + (m["pos"][1] - own["pos"][1]) ** 2)
         me, mn = msl["pos"][0] / 1e3, msl["pos"][1] / 1e3
         ax.plot([oe, me], [on, mn], ls="--", lw=1.6, color=C_ALARM, zorder=6)
-        ax.annotate(f"MAWS TTA {frm.get('maws_tta', 0.0):.1f}s",
+        ax.annotate(f"MAWS TTA {frm.get('maws_tta_s', 0.0):.1f}s",
                     ((oe + me) / 2, (on + mn) / 2), textcoords="offset points",
                     xytext=(4, 6), fontsize=9, color=C_ALARM, fontweight="bold")
 
     # ---- 视野（覆盖双方 + 攻击区余量）----
-    rmax_km = (frm.get("r_max_own") or 0.0) / 1e3
+    rmax_km = (frm.get("r_max_own_m") or 0.0) / 1e3
     half = max(abs(oe - ee), abs(on - en)) / 2.0 + max(rmax_km * 0.85, 15.0)
     ce, cn = (oe + ee) / 2.0, (on + en) / 2.0
     ax.set_xlim(ce - half, ce + half)
@@ -232,16 +232,16 @@ def draw_panel(ax, frm, cum_reward=0.0):
         (f"距离 {frm['dist_m'] / 1e3:5.1f} km   相对方位 {brg:+.0f}°   敌导弹 {ene['n_left']}/2", "black", False),
         (f"敌雷达 {frm.get('enemy_radar_state') or '—'}", "black", False),
         ("── 告警 ──────────────────", "black", True),
-        (("RWR 锁定告警！方位 " + f"{np.rad2deg(frm.get('rwr_bearing', 0.0)):+.0f}°")
+        (("RWR 锁定告警！方位 " + f"{np.rad2deg(frm.get('rwr_bearing_rad', 0.0)):+.0f}°")
          if frm.get("rwr_alarm") else "RWR 无告警",
          C_ALARM if frm.get("rwr_alarm") else "gray", frm.get("rwr_alarm", False)),
-        ((f"MAWS 导弹来袭！TTA {frm.get('maws_tta', 0.0):.1f} s")
+        ((f"MAWS 导弹来袭！TTA {frm.get('maws_tta_s', 0.0):.1f} s")
          if frm.get("maws_alarm") else "MAWS 无告警",
          C_ALARM if frm.get("maws_alarm") else "gray", frm.get("maws_alarm", False)),
         ("── 攻击区（本机）──────────", "black", True),
-        (f"R_max {_km(frm.get('r_max_own'))} km   R_nez {_km(frm.get('r_nez_own'))} km   "
-         f"R_min {_km(frm.get('r_min_own'))} km", "black", False),
-        (f"R_max（敌） {_km(frm.get('r_max_enemy'))} km", "black", False),
+        (f"R_max {_km(frm.get('r_max_own_m'))} km   R_nez {_km(frm.get('r_nez_own_m'))} km   "
+         f"R_min {_km(frm.get('r_min_own_m'))} km", "black", False),
+        (f"R_max（敌） {_km(frm.get('r_max_enemy_m'))} km", "black", False),
         ("── 事件 ──────────────────", "black", True),
         (_events_text(ev), C_ALARM if any(ev.values()) else "gray", any(ev.values())),
         (f"终止: {_TERMINATED_CN.get(frm['terminated_reason'], frm['terminated_reason'])}"

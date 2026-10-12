@@ -47,14 +47,17 @@ for _p in (_HERE, _REPO_ROOT / "多任务智能体", _REPO_ROOT / "可视化工�
 import numpy as np
 
 from common.bvr_combat_env import BVRCombatEnv                      # noqa: E402
+from common.constants import GEO_LAT0_DEG, GEO_LON0_DEG             # noqa: E402
+from common.contracts import (EpisodeResult,                        # noqa: E402
+                              ensure_within, sanitize_tag)
+from common.errors import (BT_SCHEMA_INVALID, ProjectError, ValidationError,  # noqa: E402
+                           exit_code_for)
 from llm_bt.executor import Blackboard, build_tree, tick_once       # noqa: E402
 from llm_bt.schema import validate_tree_json                        # noqa: E402
-from llm_bt.tester import _is_safety_violation                      # noqa: E402
+from llm_bt.tester import is_safety_violation                       # noqa: E402
 from llm_bt.tree_io import text_tree                                # noqa: E402
 from visualization.acmi import export_acmi                          # noqa: E402
 from visualization.recorder import EpisodeRecorder                  # noqa: E402
-
-LAT0_DEG, LON0_DEG = 30.0, 120.0     # 与 common/bvr_combat_env.reset() 地理原点一致
 
 
 def default_tree_path() -> Path | None:
@@ -70,7 +73,8 @@ def load_tree(path: Path) -> dict:
     tree = json.loads(Path(path).read_text(encoding="utf-8"))
     errors = validate_tree_json(tree)
     if errors:
-        raise ValueError(f"行为树 JSON 校验失败（{path}）：" + "；".join(errors))
+        raise ValidationError(BT_SCHEMA_INVALID, "行为树 JSON 校验失败",
+                              detail={"path": str(path), "errors": errors})
     return tree
 
 
@@ -80,7 +84,7 @@ def run_episode(tree: dict, seed: int, max_steps: int = 240,
     env = BVRCombatEnv(config={"compute_envelope": bool(compute_envelope)})
     bb = Blackboard(env)
     root = build_tree(tree, bb)
-    rec = EpisodeRecorder(meta={"lat0_deg": LAT0_DEG, "lon0_deg": LON0_DEG})
+    rec = EpisodeRecorder(meta={"lat0_deg": GEO_LAT0_DEG, "lon0_deg": GEO_LON0_DEG})
     obs, info = env.reset(seed=int(seed))
     rec.capture_env(env)                 # t=0 初始态势（TacView 首帧）
 
@@ -105,7 +109,7 @@ def run_episode(tree: dict, seed: int, max_steps: int = 240,
                 in_zone_steps += 1
             own_fired = int(info.get("own_fired", own_fired))
             enemy_fired = int(info.get("enemy_fired", enemy_fired))
-            if _is_safety_violation(obs, env.cfg):
+            if is_safety_violation(obs, env.cfg):
                 safety += 1
             if term or trunc:
                 reason = info.get("terminated_reason")
@@ -123,21 +127,26 @@ def run_episode(tree: dict, seed: int, max_steps: int = 240,
     return rec, summary
 
 
-def _run_one(tree: dict, seed: int, args, out_dir: Path) -> dict:
+def _run_one(tree: dict, seed: int, args, out_dir: Path, multi: bool = False) -> dict:
     rec, summary = run_episode(tree, seed, max_steps=args.max_steps,
                                compute_envelope=not args.fast)
-    tag = args.tag or f"seed{seed}"
-    csv_path = rec.save_csv(out_dir / f"bt_ep_{tag}.csv")
+    tag = sanitize_tag(args.tag, fallback="") if args.tag else ""
+    tag = f"{tag}_seed{seed}" if (tag and multi) else (tag or f"seed{seed}")
+    csv_path = ensure_within(out_dir / f"bt_ep_{tag}.csv", out_dir)
+    rec.save_csv(csv_path)
     acmi_path = None
     if not args.no_acmi:
         acmi_path = export_acmi(
-            rec.frames, out_dir / f"bt_ep_{tag}.acmi",
-            lat0_deg=LAT0_DEG, lon0_deg=LON0_DEG,
+            rec.frames, ensure_within(out_dir / f"bt_ep_{tag}.acmi", out_dir),
+            lat0_deg=GEO_LAT0_DEG, lon0_deg=GEO_LON0_DEG,
             title=f"BT {tree.get('bt_id', 'bt')} 1v1 (seed {seed})")
-    summary_path = out_dir / f"bt_ep_{tag}.summary.json"
-    summary_path.write_text(json.dumps(
-        {**summary, "tree": str(args.tree_resolved), "csv": str(csv_path),
-         "acmi": str(acmi_path)}, ensure_ascii=False, indent=2), encoding="utf-8")
+    record = EpisodeResult(**summary, tree_id=str(tree.get("bt_id", "")), tag=tag,
+                           csv=str(csv_path),
+                           acmi=str(acmi_path) if acmi_path else None).to_dict()
+    record["tree"] = str(args.tree_resolved)
+    summary_path = ensure_within(out_dir / f"bt_ep_{tag}.summary.json", out_dir)
+    summary_path.write_text(json.dumps(record, ensure_ascii=False, indent=2),
+                            encoding="utf-8")
     summary.update({"csv": str(csv_path), "acmi": str(acmi_path),
                     "summary": str(summary_path)})
     return summary
@@ -162,11 +171,20 @@ def main(argv=None):
               file=sys.stderr)
         return 2
     args.tree_resolved = tree_path
-    tree = load_tree(tree_path)
+    try:
+        tree = load_tree(tree_path)
+    except ProjectError as e:
+        print(f"[错误] {e}", file=sys.stderr)
+        return exit_code_for(e)
 
     out_dir = Path(args.out_dir) if args.out_dir else _HERE / "outputs" / "sim"
     out_dir.mkdir(parents=True, exist_ok=True)
-    seeds = ([int(s) for s in args.seeds.split(",")] if args.seeds else [args.seed])
+    try:
+        seeds = ([int(s) for s in args.seeds.split(",")] if args.seeds else [args.seed])
+    except ValueError:
+        print(f"[错误] --seeds 需为逗号分隔整数，实际 {args.seeds!r}", file=sys.stderr)
+        return 2
+    multi = len(seeds) > 1
 
     if not args.quiet:
         print(f"[树] {tree_path}")
@@ -176,7 +194,11 @@ def main(argv=None):
 
     summaries = []
     for seed in seeds:
-        summary = _run_one(tree, seed, args, out_dir)
+        try:
+            summary = _run_one(tree, seed, args, out_dir, multi=multi)
+        except ProjectError as e:
+            print(f"[错误] seed={seed}: {e}", file=sys.stderr)
+            return exit_code_for(e)
         summaries.append(summary)
         print(f"[seed {seed}] 步数={summary['steps']:<3d} 结局={summary['terminated_reason'] or '未终止'} "
               f"违规={summary['safety_violations']} 逻辑错误={summary['logic_errors']} "

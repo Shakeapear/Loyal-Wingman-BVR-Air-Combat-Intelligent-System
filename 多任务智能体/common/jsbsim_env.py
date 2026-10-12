@@ -25,6 +25,7 @@ JSBSim 单机飞行 Gym 环境（项目步骤 2.3 JSBSimGymBridge 的任务技�
 import gymnasium as gym
 import numpy as np
 
+from common.constants import FT2M
 from common.jsbsim_bridge import JSBSimGymBridge, SIM_DT
 
 DECISION_HZ = 1.0             # 决策频率（Hz）
@@ -173,7 +174,11 @@ class JSBSimFlightEnv(gym.Env):
             self.target.__init__(**kw)
         from common.tasks import init_task_state
         init_task_state(self)
-        return self._observe(), {}
+        obs = self._observe()
+        # info 契约：reset 与 step 键集一致（common/contracts.JSBSIM_INFO_KEYS）
+        info = {"steps": 0, "h_sl_m": float(obs[0]), "vtrue_mps": float(obs[1]),
+                "reward": 0.0, "crash": False}
+        return obs, info
 
     def step(self, action):
         self._apply_action(action)
@@ -186,7 +191,6 @@ class JSBSimFlightEnv(gym.Env):
         terminated = self._terminated()
         truncated = self.steps >= self.max_steps
         info = {"steps": self.steps,
-                "h_sl_m": obs[0], "vtrue_mps": obs[1], "reward": float(reward)}
-        if terminated:
-            info["crash"] = self._get("position/h-agl-ft") * 0.3048 < 30.0
+                "h_sl_m": obs[0], "vtrue_mps": obs[1], "reward": float(reward),
+                "crash": bool(self._get("position/h-agl-ft") * FT2M < 30.0)}
         return obs, float(reward), terminated, truncated, info

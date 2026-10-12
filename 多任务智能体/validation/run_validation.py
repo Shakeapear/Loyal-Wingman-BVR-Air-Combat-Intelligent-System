@@ -34,6 +34,7 @@ def check_env_smoke(task_id, n_steps=60):
     env = agent.build_env()
     obs, _ = agent.reset_env()
     total_reward, crashed = 0.0, False
+    terminated = truncated = False
     for _ in range(n_steps):
         action = env.action_space.sample()
         obs, reward, terminated, truncated, info = env.step(action)
