@@ -98,6 +98,8 @@ class MissionMixin:
         cfg = dict(MISSION_ENV_CONFIG[self.mission])
         if config:
             cfg.update(config)
+        # 任务级训练/部署/行为树默认使用本机 AP 辅助模式；显式 raw_fcs 可覆盖。
+        cfg.setdefault("control_mode", "assisted")
         super().__init__(config=cfg)
 
     def _build_obs(self):

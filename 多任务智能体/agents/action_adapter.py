@@ -6,7 +6,8 @@ ActionV1 ↔ 现有环境的纯逻辑适配层（设计文档 §3.5）。
 
 - to_env_action：ActionV1 → BVRCombatEnv(Dict) 动作，用于行为树/部署主通道；
 - to_flat_action：ActionV1 → FlatActionBVRCombatEnv(Box(7))，用于训练通道；
-- to_ap_command：ActionV1 → JSBSimFlightEnv(Box(3)) 自驾仪设定点，技能级兼容通道；
+- to_ap_command：ActionV1 → JSBSimFlightEnv(Box(3)) / 本机 AP 设定点；
+- to_assisted_setpoints：assisted 模式连续 4 维 → AP 设定值（与 BVRCombatEnv 同源）；
 - coerce_action_v1：PolicyOutput / Dict / 序列统一收敛为 ActionV1。
 
 本模块不创建环境、不依赖 SB3，便于单元测试与行为树复用。
@@ -17,15 +18,12 @@ import numpy as np
 
 from agents.policy_interface import (ACTION_V1_DIM, PolicyOutput, clip_action_v1,
                                      validate_action_v1)
+from common.control_mode import assisted_setpoints
 from common.errors import ARG_INVALID, ValidationError
 
 COMMAND_V1_VERSION = "command_v1"
 COMMAND_V1_LOW = np.array([180.0, -0.90, 3000.0], dtype=np.float32)
 COMMAND_V1_HIGH = np.array([280.0, 0.90, 8000.0], dtype=np.float32)
-
-# 设计文档 §3.5：throttle → 速度指令 PI；pitch → 高度指令环
-SPEED_KP_MPS = 200.0
-ALT_PER_PITCH_M = 50.0
 
 
 def coerce_action_v1(action) -> np.ndarray:
@@ -66,28 +64,30 @@ def from_env_action(action) -> np.ndarray:
     return coerce_action_v1(action)
 
 
-def to_ap_command(action, obs=None) -> np.ndarray:
-    """ActionV1 → 技能级 3 维自驾仪设定点 [v_cmd_mps, roll_cmd_rad, alt_cmd_m]。
+def to_assisted_setpoints(action, current_alt_m: float, cfg: dict | None = None) -> dict:
+    """assisted 模式连续 4 维 → AP 设定值（与 BVRCombatEnv 使用同一函数）。"""
+    return assisted_setpoints(coerce_action_v1(action), current_alt_m, cfg)
 
-    这是兼容通道（command_v1），仅用于旧技能模型/冷启动；训练不用。
-    - roll 直通并按 AP 环境动作界裁剪；
-    - throttle 映射为速度指令：v + 200*(throttle-0.55)，裁剪 180~280 m/s；
-    - pitch 映射为高度指令：alt + 50*pitch（对应 executor 的垂速→高度环逆映射）；
-    - yaw 忽略（F-104 AP 通道无偏航设定点）。
+
+def to_ap_command(action, obs=None) -> np.ndarray:
+    """ActionV1 → 3 维 AP 设定点 [v_cmd_mps, roll_cmd_rad, alt_cmd_m]。
+
+    这是 command_v1/assisted 共用映射，固定速度映射（不再使用当前速度反馈）：
+    - throttle → 180 + 100*throttle m/s；
+    - roll → 0.90*roll rad；
+    - pitch → clip(当前高度 + 50*pitch, 3000, 8000) m；
+    - yaw 忽略（F-104 AP 无偏航设定点，由滚转协调转弯）。
     """
     a7 = coerce_action_v1(action)
-    alt_m, v_mps = 4572.0, 230.0
+    alt_m = 4572.0
     if obs is not None:
         obs_arr = np.asarray(obs, dtype=float).reshape(-1)
-        if obs_arr.size >= 2:
-            alt_m, v_mps = float(obs_arr[0]), float(obs_arr[1])
-
-    v_cmd = float(np.clip(v_mps + SPEED_KP_MPS * (float(a7[0]) - 0.55),
-                          COMMAND_V1_LOW[0], COMMAND_V1_HIGH[0]))
-    roll_cmd = float(np.clip(float(a7[1]) * 0.90, COMMAND_V1_LOW[1], COMMAND_V1_HIGH[1]))
-    alt_cmd = float(np.clip(alt_m + ALT_PER_PITCH_M * float(a7[2]),
-                            COMMAND_V1_LOW[2], COMMAND_V1_HIGH[2]))
-    return np.array([v_cmd, roll_cmd, alt_cmd], dtype=np.float32)
+        if obs_arr.size >= 1:
+            alt_m = float(obs_arr[0])
+    sp = assisted_setpoints(a7, alt_m)
+    cmd = np.array([sp["speed_mps"], sp["roll_rad"], sp["alt_m"]],
+                   dtype=np.float32)
+    return np.clip(cmd, COMMAND_V1_LOW, COMMAND_V1_HIGH).astype(np.float32)
 
 
 # 语义化别名：技能级兼容通道的显式入口

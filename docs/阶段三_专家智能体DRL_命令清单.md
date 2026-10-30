@@ -24,7 +24,7 @@ git status --short
 & $PY -m pytest "多任务智能体\tests\test_expert_agents.py" -v
 ```
 
-预期：22 passed（冷启动约 15 s，复跑约 7 s）。
+预期：24 passed（冷启动约 15 s，复跑约 11 s）。
 
 ## 2. 4 个任务级智能体：512 步小规模训练 + 保存加载
 
@@ -82,7 +82,30 @@ docs\assets\stage3_expert_demo\
 & $PY -m pytest "可视化工具\tests" -q
 ```
 
-预期：78 + 19 + 23 = **120 passed**，0 failed。
+预期：80 + 19 + 23 = **122 passed**，0 failed。
+
+## 4.1 稳定飞行基线（assisted，240 步）
+
+```powershell
+# 4 任务 × seeds 7/17/27 × safe/model；隔离敌方发射；额外跑正常战斗配置（仅记录）
+& $PY -X utf8 "多任务智能体\validation\run_stability_baseline.py" --combat
+```
+
+预期：**24/24 通过，0 次 `own_crash`**，全部 240 步 `timeout`，约 11 s。产物：
+
+```text
+多任务智能体\validation\results\stage3_stability\
+├── stability_summary.json
+├── stability_report.txt
+├── combat_summary.json
+└── <task>_<policy>_seed<seed>.csv
+```
+
+raw_fcs 对照诊断（预期 45 步 `own_crash`，用于证明根因）：
+
+```powershell
+& $PY -X utf8 "多任务智能体\validation\run_stability_baseline.py" --tasks strike --seeds 42 --policies safe --control-mode raw_fcs --out-dir "多任务智能体\validation\results\stage3_diagnosis"
+```
 
 ## 5. 技能级回归抽查（cruise_hold）
 
@@ -128,6 +151,7 @@ $PY = "C:\Users\36266\.conda\envs\DC\python.exe"
 & $PY -m pytest "多任务智能体\tests\test_expert_agents.py" -q
 & $PY -X utf8 "多任务智能体\validation\run_expert_validation.py" --timesteps 512 --eval-steps 64
 & $PY -X utf8 "多任务智能体\validation\run_expert_bt_demo.py" --tasks strike,patrol,defense,ew --steps 12
+& $PY -X utf8 "多任务智能体\validation\run_stability_baseline.py" --combat
 & $PY -m pytest "多任务智能体\tests" -q
 & $PY -m pytest "引导策略行为树\tests" -q
 & $PY -m pytest "可视化工具\tests" -q
@@ -140,6 +164,7 @@ git status --short
 |---|---|
 | `ModuleNotFoundError: agents` | 确认在仓库根目录执行；脚本已自行把 `多任务智能体/` 加入 `sys.path` |
 | 模型不存在 | 先执行第 2 步；或演示加 `--no-load-models` |
-| 训练/评估中 `own_crash` | 512 步极小训练策略未收敛，属预期；不是接口错误 |
+| 训练/评估中 `own_crash` | 任务级默认 `control_mode=assisted`，240 步基线已 24/24 通过；若显式 `raw_fcs` 则无配平会坠地，属对照预期 |
+| 稳定飞行脚本全部 `FAIL` | 确认未误用 `--control-mode raw_fcs`；assisted 产物见 `validation/results/stage3_stability/` |
 | `Box low's precision lowered` 警告 | 既有技能级 `JSBSimFlightEnv` 边界 dtype 提示，不影响测试 |
 | 需要 GPU | 本底座默认 CPU；不依赖 GPU，显存/驱动不满足也可复现 |

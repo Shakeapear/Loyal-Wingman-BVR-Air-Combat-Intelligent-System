@@ -9,7 +9,7 @@
     "event": "mission_end",
     "task_id": "strike",
     "steps": 12,
-    "total_reward": 60.10600341328886,
+    "total_reward": 60.10526475710718,
     "terminated_reason": null
   },
   {
@@ -22,7 +22,7 @@
     "event": "mission_end",
     "task_id": "patrol",
     "steps": 12,
-    "total_reward": 0.09533509177591624,
+    "total_reward": 0.09951826419394566,
     "terminated_reason": null
   },
   {
@@ -35,7 +35,7 @@
     "event": "mission_end",
     "task_id": "defense",
     "steps": 12,
-    "total_reward": 18.544923948887146,
+    "total_reward": 18.544440040985002,
     "terminated_reason": null
   },
   {
@@ -48,7 +48,7 @@
     "event": "mission_end",
     "task_id": "ew",
     "steps": 12,
-    "total_reward": 60.34467531459566,
+    "total_reward": 60.34372098218825,
     "terminated_reason": null
   }
 ]

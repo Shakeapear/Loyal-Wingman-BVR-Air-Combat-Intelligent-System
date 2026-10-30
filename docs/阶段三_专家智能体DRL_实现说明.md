@@ -31,6 +31,8 @@
 | 任务级 | `defense` 战术防御 | **新增（中期检查版）** | 28 维 BVR `Box` | `ActionV1 (7,)` | 同上 |
 | 任务级 | `ew` 电子压制 | **新增（中期检查版）** | 28 维 BVR `Box` | `ActionV1 (7,)` | 同上 |
 
+> 任务级 4 个智能体默认 `control_mode=assisted`（本机 AP 内环），`raw_fcs` 保留兼容/对照；两种模式均输出同一 7 维 ActionV1，形状/范围/边沿位不变。
+>
 > `patrol/defense/ew` 本轮为**单机近似**：复用 1v1 `BVRCombatEnv` 的观测/物理/雷达/导弹链路，仅叠加任务标签与任务奖励塑形；多机航线、HVA、多方向来袭等按计划书 3.3 后续扩展，未在本轮声称完成。
 
 ---
@@ -59,8 +61,8 @@ flowchart TB
 
 两条动作通道：
 
-1. **主通道（任务级）**：`ActionV1` 7 维控制向量，训练用 `FlatTaskMissionEnv`（`Box(7)`），部署用 `TaskMissionEnv`（`Dict{flight,weapon}`）；
-2. **兼容通道（技能级）**：`command_v1` 3 维自驾仪设定点 `[v_cmd_mps, roll_cmd_rad, alt_cmd_m]`，由 `to_ap_command`/`command_v1` 从 ActionV1 近似生成，仅用于旧模型/冷启动，不新增学习者。
+1. **主通道（任务级）**：`ActionV1` 7 维控制向量，训练用 `FlatTaskMissionEnv`（`Box(7)`），部署用 `TaskMissionEnv`（`Dict{flight,weapon}`）；默认 `control_mode=assisted`（本机 AP 内环），`raw_fcs` 保留原人工舵面兼容/对照；
+2. **兼容通道（技能级）**：`command_v1` 3 维 AP 设定点 `[v_cmd_mps, roll_cmd_rad, alt_cmd_m]`，由 `to_ap_command`/`command_v1` 从 ActionV1 生成，仅用于旧模型/冷启动，不新增学习者。
 
 ---
 
@@ -82,7 +84,25 @@ flowchart TB
 
 - 数据形态：`np.ndarray, shape=(7,), dtype=float32`；
 - `clip_action_v1`：裁剪连续维、武器维按 `>0.5` 二值化；
-- `action_spec(task_id)`：JSON 可序列化声明（版本/维度/范围/边沿维/单位/掩码规则），随模型保存为 `*.spec.json`。
+- `action_spec(task_id, control_mode)`：JSON 可序列化声明（版本/维度/范围/边沿维/单位/掩码规则/**control_mode 与映射**），随模型保存为 `*.spec.json`。
+
+### 4.1.1 control_mode（稳定飞行基线）
+
+文件：`多任务智能体/common/control_mode.py`（唯一映射来源）
+
+| 模式 | 本机通道 | 连续 4 维语义 | 用途 |
+|---|---|---|---|
+| `raw_fcs` | `step_manual` 直接驱动 F-104 人工舵面 | throttle/roll/pitch/yaw 原义 | 兼容/对照；原 `BVRCombatEnv` 默认值 |
+| `assisted` | `step_ap` 接通 JSBSim AP | throttle→速度设定、roll→滚转设定、pitch→高度设定、yaw 忽略 | 任务级训练/部署/行为树默认 |
+
+Assisted 映射（`action_spec` 与 `*.spec.json` 同步写入）：
+
+- `throttle`：`v_cmd = 180 + 100·throttle` m/s（0→180，0.55→235，1→280）；
+- `roll`：`roll_cmd = 0.90·roll` rad；
+- `pitch`：`alt_cmd = clip(episode 参考高度 + 500·pitch, 3000, 8000)` m；参考高度在 `reset` 时固定，pitch=0 即保持初始高度；
+- `yaw`：显式忽略（由 AP 滚转/协调转弯承担）。
+
+**ActionV1 契约不变**：仍为 `(7,) float32`，连续维范围 `[0,1]/[-1,1]`，武器维 `{0,1}` 边沿触发。`raw_fcs`/`assisted` 只改变连续 4 维的下游解释，不改变维度、范围或掩码。训练、`TaskMissionEnv` 部署与行为树 `to_env_action` 共用同一映射。
 
 ### 4.2 ActionMaskV1
 
@@ -166,6 +186,7 @@ out = agent.get_action(obs, info=info)
 - 网络：`[128, 128]`，tanh；
 - `n_steps=256`、`batch_size=64`、`n_epochs=4`、`lr=3e-4`、`γ=0.99`、`λ=0.95`、`clip=0.2`、`ent_coef=0.01`；
 - 观测：策略内部固定尺度层 `2(x-lo)/(hi-lo)-1`，外部 `get_action` 仍接收原始 28 维观测；
+- 控制：任务级默认 `control_mode=assisted`（本机 AP 速度/滚转/高度保持），可显式覆盖为 `raw_fcs`；
 - 完整训练目标步数 `1e7` 仅登记在配置中，本轮**未执行**；验收只跑 512 步/智能体。
 
 ### 6.4 保存/加载
@@ -181,7 +202,7 @@ out = agent.get_action(obs, info=info)
 文件：`多任务智能体/agents/bt_expert.py`
 
 - `MissionIs`：按黑板 `mission` 与任务名/中文别名匹配；
-- `ExpertAgentControl`：创建注册表中的任务级智能体，循环调用 `get_action`，用 `to_env_action` 转 Dict 动作下发；
+- `ExpertAgentControl`：创建注册表中的任务级智能体，循环调用 `get_action`，用 `to_env_action` 转 Dict 动作下发；智能体默认 `control_mode=assisted`，行为树与训练/部署共用同一 AP 映射；
 - `build_expert_tree`：构建 Selector → 各任务 Sequence（`memory=False`，便于任务切换时重新判定）；
 - `run_missions`：按任务名顺序驱动树，记录每步 ActionV1/奖励/态势；
 - 现有 `引导策略行为树/llm_bt` schema **未改动**；本轮新增独立 py_trees 调度通道，后续可把叶节点并入其动作目录。
@@ -202,10 +223,10 @@ results = run_missions(root, bb, ["超视距打击", "空域巡逻"])
 
 - `to_env_action(a7)`：ActionV1 → `Dict{flight(4), weapon(3)}`；
 - `to_flat_action(a7)`：ActionV1 → `Box(7)`；
-- `to_ap_command(a7, obs)` / `command_v1`：ActionV1 → 3 维 AP 设定点：
-  - `roll` 直通并裁剪 ±0.90；
-  - `throttle → v + 200·(throttle-0.55)`，裁剪 180~280 m/s；
-  - `pitch → alt + 50·pitch`（垂速/高度环逆映射近似），裁剪 3000~8000 m；
+- `to_ap_command(a7, obs)` / `command_v1`：ActionV1 → 3 维 AP 设定点（与 assisted 同一映射）：
+  - `roll → 0.90·roll`，裁剪 ±0.90 rad；
+  - `throttle → 180 + 100·throttle`，裁剪 180~280 m/s（固定映射，不再用当前速度反馈）；
+  - `pitch → clip(alt_ref + 500·pitch, 3000, 8000)`（无 ref 时用 obs 当前高度）；
   - `yaw` 忽略；
 - 技能级智能体仍按原 `predict` 调用，至少验证 `cruise_hold` 可实例化/推理，未接入行为树主通道。
 
@@ -221,6 +242,7 @@ results = run_missions(root, bb, ["超视距打击", "空域巡逻"])
 6. **无性能达标声明**：512 步训练只验证“可训练、损失有限、接口正确”，不验证命中率/拦截率/HVA 存活率/EW 探测概率。
 7. **模型未入库**：`models/` 被 `.gitignore` 排除；演示使用验证脚本产出的极小模型或随机初始化模型。
 8. **演示时长极短**：行为树演示每任务 12 步，仅证明调度/接口闭环，不代表战术效果。
+9. **assisted 为稳定飞行基线而非战术自动驾驶**：AP 内环固定高度参考，pitch 仅 ±500 m 偏移；复杂机动/能量管理仍需后续策略与调参。`raw_fcs` 无配平/俯仰保持，240 步会坠地，仅作兼容/对照。
 
 ---
 
@@ -239,9 +261,14 @@ results = run_missions(root, bb, ["超视距打击", "空域巡逻"])
     ├── patrol_agent.py
     ├── defense_agent.py
     └── ew_agent.py
+多任务智能体/common/
+└── control_mode.py             raw_fcs/assisted 映射唯一来源
 多任务智能体/validation/
 ├── run_expert_validation.py   4 智能体小规模训练/保存加载验证
-└── run_expert_bt_demo.py      行为树最小演示（4 任务）
+├── run_expert_bt_demo.py      行为树最小演示（4 任务）
+├── run_stability_baseline.py  240 步 assisted 稳定飞行基线
+└── results/stage3_stability/  稳定飞行 JSON/CSV/报告
 多任务智能体/tests/test_expert_agents.py
 docs/阶段三_专家智能体DRL_*.md
+docs/阶段三_稳定飞行基线_实现与测试报告.md
 ```

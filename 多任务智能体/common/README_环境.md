@@ -60,6 +60,14 @@ common/
 故提供 `FlatActionBVRCombatEnv`（动作展平为 Box(7)，后 3 维按 `>0` 阈值化为 0/1），
 物理/奖励/终止与观测完全不变，供 PPO/SAC 等训练接入（见 §8）。
 
+**control_mode（阶段三稳定飞行基线）**：`BVRCombatEnv(config={"control_mode": ...})`
+支持 `raw_fcs`（默认，上述人工舵面通道）与 `assisted`（本机接通 JSBSim AP，
+`flight` 前 4 维解释为速度/滚转/高度设定值，yaw 忽略）。任务级 `MissionMixin`
+默认 `assisted`；两种模式都不改变上述 Dict/Box(7) 动作的形状/范围/边沿位。
+映射唯一来源 `common/control_mode.py`，动作声明见 `agents/policy_interface.action_spec`。
+`assisted` 240 步隔离飞行基线 24/24 无 `own_crash`，详见
+`docs/阶段三_稳定飞行基线_实现与测试报告.md`。
+
 ### 3.2 观测空间（计划书 2.3：本机+目标+威胁+任务标签）
 
 有限 `Box(28)`（env_checker 友好，`OBS_LOW/OBS_HIGH` 见源码），字段顺序：

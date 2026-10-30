@@ -1,0 +1,39 @@
+阶段三稳定飞行基线报告（assisted，敌方发射隔离）
+生成时间: 2026-10-30T08:50:27
+tasks=['strike', 'patrol', 'defense', 'ew'] seeds=[7, 17, 27] policies=['safe', 'model'] steps=240
+
+task | policy | seed | steps | h_min_m | v_range_mps | max|theta| | max|phi| | reason | own_crash | pass
+---|---|---|---|---|---|---|---|---|---|---
+strike | safe | 7 | 240 | 4587.9 | 215.1~271.0 | 0.087 | 0.000 | timeout | False | True
+strike | safe | 17 | 240 | 5360.0 | 222.9~235.9 | 0.106 | 0.000 | timeout | False | True
+strike | safe | 27 | 240 | 4837.6 | 226.1~236.0 | 0.095 | 0.000 | timeout | False | True
+strike | model | 7 | 240 | 4298.7 | 127.3~271.0 | 0.216 | 0.081 | timeout | False | True
+strike | model | 17 | 240 | 5276.1 | 166.0~225.9 | 0.163 | 0.092 | timeout | False | True
+strike | model | 27 | 240 | 4717.5 | 153.9~236.0 | 0.178 | 0.085 | timeout | False | True
+patrol | safe | 7 | 240 | 4587.9 | 215.1~271.0 | 0.087 | 0.000 | timeout | False | True
+patrol | safe | 17 | 240 | 5360.0 | 222.9~235.9 | 0.106 | 0.000 | timeout | False | True
+patrol | safe | 27 | 240 | 4837.6 | 226.1~236.0 | 0.095 | 0.000 | timeout | False | True
+patrol | model | 7 | 240 | 4271.2 | 124.4~271.0 | 0.209 | 0.101 | timeout | False | True
+patrol | model | 17 | 240 | 5266.4 | 159.5~225.9 | 0.175 | 0.118 | timeout | False | True
+patrol | model | 27 | 240 | 4712.4 | 149.9~236.0 | 0.185 | 0.126 | timeout | False | True
+defense | safe | 7 | 240 | 4587.9 | 215.1~271.0 | 0.087 | 0.000 | timeout | False | True
+defense | safe | 17 | 240 | 5360.0 | 222.9~235.9 | 0.106 | 0.000 | timeout | False | True
+defense | safe | 27 | 240 | 4837.6 | 226.1~236.0 | 0.095 | 0.000 | timeout | False | True
+defense | model | 7 | 240 | 3987.5 | 113.7~271.0 | 0.228 | 0.127 | timeout | False | True
+defense | model | 17 | 240 | 5197.4 | 146.0~225.9 | 0.189 | 0.148 | timeout | False | True
+defense | model | 27 | 240 | 4639.9 | 137.7~236.0 | 0.194 | 0.143 | timeout | False | True
+ew | safe | 7 | 240 | 4587.9 | 215.1~271.0 | 0.087 | 0.000 | timeout | False | True
+ew | safe | 17 | 240 | 5360.0 | 222.9~235.9 | 0.106 | 0.000 | timeout | False | True
+ew | safe | 27 | 240 | 4837.6 | 226.1~236.0 | 0.095 | 0.000 | timeout | False | True
+ew | model | 7 | 240 | 4006.9 | 114.0~271.0 | 0.232 | 0.089 | timeout | False | True
+ew | model | 17 | 240 | 5202.9 | 146.8~225.9 | 0.189 | 0.067 | timeout | False | True
+ew | model | 27 | 240 | 4641.3 | 137.7~236.0 | 0.194 | 0.084 | timeout | False | True
+
+汇总: 24/24 通过，总耗时 10.92s
+JSON: C:\Users\36266\Desktop\大创 开发\多任务智能体\validation\results\stage3_stability\stability_summary.json
+
+正常战斗配置（仅记录）:
+strike seed=7 steps=54 reason=own_hit own_crash=False
+patrol seed=7 steps=54 reason=own_hit own_crash=False
+defense seed=7 steps=54 reason=own_hit own_crash=False
+ew seed=7 steps=54 reason=own_hit own_crash=False

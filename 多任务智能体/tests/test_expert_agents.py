@@ -34,6 +34,9 @@ from agents.policy_interface import (ACTION_V1_DIM, ACTION_V1_HIGH, ACTION_V1_LO
                                      command_v1_spec, compute_action_mask)
 from agents.task_agents import (TASK_AGENTS, FlatTaskMissionEnv, MISSION_IDS,
                                 MISSION_LABELS, TaskMissionEnv)
+from common.bvr_combat_env import BVRCombatEnv
+from common.control_mode import assisted_setpoints, validate_control_mode
+from common.errors import ConfigError
 
 TASKS = list(TASK_AGENTS)
 
@@ -52,8 +55,12 @@ def test_action_spec_and_command_spec():
         assert spec["low"] == ACTION_V1_LOW.tolist()
         assert spec["high"] == ACTION_V1_HIGH.tolist()
         assert spec["edge_dims"] == [4, 5, 6]
+        assert spec["control_mode"] == "assisted"
+        assert set(spec["control_modes"]) == {"raw_fcs", "assisted"}
+        assert set(spec["assisted_mapping"]) == {"throttle", "roll", "pitch", "yaw"}
     cmd = command_v1_spec()
     assert cmd["version"] == "command_v1" and cmd["dim"] == 3
+    assert cmd["control_mode"] == "assisted"
 
 
 def test_action_adapter_threshold_and_bounds():
@@ -81,13 +88,62 @@ def test_to_ap_command_ranges_and_sign():
     assert 180.0 <= cmd[0] <= 280.0
     assert -0.90 <= cmd[1] <= 0.90
     assert 3000.0 <= cmd[2] <= 8000.0
-    assert np.isclose(cmd[0], 230.0)
+    assert np.isclose(cmd[0], 235.0)
     assert np.isclose(cmd[1], 0.45)
-    assert np.isclose(cmd[2], 5050.0)
+    assert np.isclose(cmd[2], 5500.0)
     assert np.allclose(command_v1(a7, obs), cmd)
     full = to_ap_command(np.array([1, 1, 1, 1, 1, 1, 1], np.float32), obs)
     idle = to_ap_command(np.array([0, -1, -1, -1, 0, 0, 0], np.float32), obs)
     assert np.isclose(full[0], 280.0) and np.isclose(idle[0], 180.0)
+
+
+def test_control_mode_mapping_and_validation():
+    assert validate_control_mode("assisted") == "assisted"
+    with pytest.raises(ConfigError):
+        validate_control_mode("bad_mode")
+    sp = assisted_setpoints(np.array([0.55, 0.5, 0.2, 0.9, 0, 0, 0], np.float32),
+                            current_alt_m=5000.0)
+    assert np.isclose(sp["speed_mps"], 235.0)
+    assert np.isclose(sp["roll_rad"], 0.45)
+    assert np.isclose(sp["alt_m"], 5100.0)
+    sp_ref = assisted_setpoints(np.array([0.55, 0.0, 0.2, 0.0, 0, 0, 0], np.float32),
+                                current_alt_m=5000.0, alt_ref_m=4000.0)
+    assert np.isclose(sp_ref["alt_m"], 4100.0)
+
+
+def test_bvr_control_mode_switch_and_240_step_stability():
+    raw = BVRCombatEnv(config={"compute_envelope": False, "max_steps": 2,
+                               "n_missiles": 0, "control_mode": "raw_fcs"})
+    try:
+        obs, info = raw.reset(seed=42)
+        assert raw.control_mode == "raw_fcs"
+        obs, reward, term, trunc, info = raw.step(
+            {"flight": np.array([0.5, 0, 0, 0], np.float32),
+             "weapon": np.array([0, 0, 0])})
+        assert obs.shape == (28,) and np.isfinite(reward)
+    finally:
+        raw.close()
+
+    assisted = BVRCombatEnv(config={"compute_envelope": False, "max_steps": 240,
+                                    "n_missiles": 0, "enemy_fire_interval_s": 1e9,
+                                    "control_mode": "assisted"})
+    try:
+        obs, info = assisted.reset(seed=42)
+        assert assisted.control_mode == "assisted"
+        assert assisted._assisted_alt_ref_m is not None
+        reason = None
+        steps = 0
+        for steps in range(1, 241):
+            obs, reward, term, trunc, info = assisted.step(
+                {"flight": np.array([0.55, 0, 0, 0], np.float32),
+                 "weapon": np.array([0, 0, 0])})
+            assert np.isfinite(reward) and obs.shape == (28,)
+            if term or trunc:
+                reason = info.get("terminated_reason")
+                break
+        assert steps == 240 and reason == "timeout"
+    finally:
+        assisted.close()
 
 
 def test_compute_action_mask_matches_fire_conditions():
@@ -147,6 +203,7 @@ def test_flat_mission_env_label_and_step(mission):
                              config={"max_steps": 2, "compute_envelope": False})
     try:
         obs, info = env.reset(seed=42)
+        assert env.control_mode == "assisted"
         assert obs.shape == (28,) and obs.dtype == np.float32
         assert (obs[26], obs[27]) == MISSION_LABELS[mission]
         assert np.allclose(env.action_space.low, ACTION_V1_LOW)
@@ -186,6 +243,7 @@ def test_task_agent_instantiate_and_action_interface(task_id):
     try:
         assert isinstance(agent, PolicyProtocol)
         assert agent.action_spec()["task_id"] == task_id
+        assert agent.action_spec()["control_mode"] == "assisted"
         obs, info = agent.build_env().reset(seed=42)
         out = agent.get_action(obs, info=info, deterministic=True)
         assert out.action.shape == (7,) and out.action.dtype == np.float32

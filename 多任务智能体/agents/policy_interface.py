@@ -24,6 +24,7 @@ from typing import Any, Protocol, TypeAlias, runtime_checkable
 
 import numpy as np
 
+from common.control_mode import ASSISTED_MAPPING, CONTROL_MODES, DEFAULT_CONTROL_MODE
 from common.errors import ARG_INVALID, ValidationError
 
 ACTION_V1_VERSION = "action_v1"
@@ -89,7 +90,7 @@ class PolicyProtocol(Protocol):
                    guide_action=None, guide_steps=0) -> PolicyOutput: ...
 
 
-def action_spec(task_id: str) -> dict:
+def action_spec(task_id: str, control_mode: str = DEFAULT_CONTROL_MODE) -> dict:
     """ActionV1 的机器可读声明（随模型归档，接口规范 §4）。"""
     return {
         "version": ACTION_V1_VERSION,
@@ -102,6 +103,13 @@ def action_spec(task_id: str) -> dict:
         "edge_dims": list(ACTION_V1_EDGE_DIMS),
         "frame": "ENU/SI",
         "decision_hz": 1.0,
+        "control_mode": str(control_mode),
+        "control_modes": list(CONTROL_MODES),
+        "continuous_semantics": {
+            "raw_fcs": "throttle/roll/pitch/yaw 直接驱动 F-104 人工舵面通道",
+            "assisted": "throttle/roll/pitch 解释为 AP 速度/滚转/高度设定值，yaw 忽略",
+        },
+        "assisted_mapping": dict(ASSISTED_MAPPING),
         "mask": {
             "version": "action_mask_v1",
             "dim": ACTION_V1_DIM,
@@ -113,7 +121,7 @@ def action_spec(task_id: str) -> dict:
 
 
 def command_v1_spec() -> dict:
-    """技能级兼容通道声明（3 维自驾仪设定点，非阶段三训练主线）。"""
+    """技能级兼容通道声明（3 维 AP 设定点，非阶段三训练主线）。"""
     return {
         "version": "command_v1",
         "dim": 3,
@@ -121,6 +129,8 @@ def command_v1_spec() -> dict:
         "low": [180.0, -0.90, 3000.0],
         "high": [280.0, 0.90, 8000.0],
         "decision_hz": 1.0,
+        "control_mode": "assisted",
+        "mapping": dict(ASSISTED_MAPPING),
     }
 
 

@@ -1,14 +1,14 @@
 阶段三任务级专家智能体 DRL 底座验证报告（小规模训练，非完整训练）
-生成时间: 2026-10-30T08:28:06
+生成时间: 2026-10-30T08:45:05
 Python: 3.12.13 | seed=42 | timesteps/agent=512 | eval_steps=64
 环境: {'max_steps': 64, 'compute_envelope': False}
 
 task_id | 结果 | 训练步数 | 耗时s | 损失有限 | 奖励有限 | 动作形状 | dtype | 范围 | 保存加载一致
 ---|---|---|---|---|---|---|---|---|---
-strike | 通过 | 512 | 1.54 | True | True | [39, 7] | float32 | True | True
-patrol | 通过 | 512 | 1.564 | True | True | [37, 7] | float32 | True | True
-defense | 通过 | 512 | 1.506 | True | True | [39, 7] | float32 | True | True
-ew | 通过 | 512 | 1.53 | True | True | [36, 7] | float32 | True | True
+strike | 通过 | 512 | 1.288 | True | True | [64, 7] | float32 | True | True
+patrol | 通过 | 512 | 1.364 | True | True | [64, 7] | float32 | True | True
+defense | 通过 | 512 | 1.464 | True | True | [64, 7] | float32 | True | True
+ew | 通过 | 512 | 1.498 | True | True | [64, 7] | float32 | True | True
 
-汇总: 4/4 通过，总耗时 9.231s
+汇总: 4/4 通过，总耗时 8.861s
 JSON: C:\Users\36266\Desktop\大创 开发\多任务智能体\validation\results\stage3\stage3_expert_validation.json

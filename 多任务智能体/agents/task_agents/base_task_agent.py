@@ -68,6 +68,7 @@ class TaskDRLExpertAgent:
         self.mission = validate_mission(self.mission or self.task_id)
         self.task_id = self.mission
         self.env_config = dict(env_config or {})
+        self.control_mode = str(self.env_config.get("control_mode", "assisted"))
         self.train_config = dict(DEFAULT_TRAIN_CONFIG)
         if train_config:
             self.train_config.update(train_config)
@@ -151,7 +152,7 @@ class TaskDRLExpertAgent:
     # 统一推理协议
     # ------------------------------------------------------------------
     def action_spec(self) -> dict:
-        spec = action_spec(self.task_id)
+        spec = action_spec(self.task_id, self.control_mode)
         spec.update({
             "mission": self.mission,
             "mission_name_zh": MISSION_NAMES_ZH[self.mission],

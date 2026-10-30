@@ -1,6 +1,6 @@
 # 阶段三专家智能体 DRL 底座验收清单
 
-> 日期：2026-10-30｜对应任务书验收标准｜结论：**本轮最低交付全部达成；完整 JSRL/多机/性能指标明确列为后续项。**
+> 日期：2026-10-30｜对应任务书验收标准｜结论：**本轮最低交付全部达成；assisted 240 步稳定飞行 24/24 通过；完整 JSRL/多机/性能指标明确列为后续项。**
 
 ## 1. 逐项验收
 
@@ -22,7 +22,7 @@
   - 4 个类均以 `env_config/train_config/seed/model_path` 构造；构造本身不启动 JSBSim（惰性建环境）；
   - 证据：`test_task_agent_instantiate_and_action_interface`（参数化 4 任务）。
 - [x] **小规模训练无异常**
-  - 每个任务 512 步 PPO，4/4 通过；脚本总耗时 9.231 s；
+  - 每个任务 512 步 PPO，4/4 通过；脚本总耗时 8.861 s；
   - 证据：`validation/results/stage3/stage3_expert_validation.txt`。
 - [x] **奖励/损失为有限值**
   - 4 个智能体 `all_finite=True`，评估奖励有限；
@@ -42,7 +42,7 @@
   - 真实演示用 `BVRCombatEnv` 依次运行 4 任务，全部 `SUCCESS`；
   - 证据：`test_bt_selects_all_four_task_agents_by_name`、`docs/assets/stage3_expert_demo/demo_summary.json`。
 - [x] **演示至少 2 个不同智能体完成最小闭环**
-  - 实际演示 4 个：`strike/patrol/defense/ew`，每任务 12 步，累计奖励分别为 60.106 / 0.095 / 18.545 / 60.345；
+  - 实际演示 4 个：`strike/patrol/defense/ew`，每任务 12 步，累计奖励分别为 60.105 / 0.100 / 18.544 / 60.344；
   - 证据：`docs/assets/stage3_expert_demo/`（CSV/JSON/PNG）。
 - [x] **至少 1 个技能智能体通过兼容适配器可调用**
   - `cruise_hold` 可实例化/推理，输出 3 维 AP 指令；`to_ap_command`/`command_v1` 可转换 ActionV1 → 3 维；
@@ -51,12 +51,30 @@
 ### 1.4 测试与回归
 
 - [x] **相关 pytest 全部通过**
-  - 新增 22 项通过；多任务 78 项、行为树 19 项、可视化 23 项，合计 **120 passed / 0 failed**；
+  - 新增 24 项通过；多任务 80 项、行为树 19 项、可视化 23 项，合计 **122 passed / 0 failed**；
   - 证据：测试报告 §5。
 - [x] **新增测试覆盖接口、适配层、注册表、各智能体**
-  - 证据：`tests/test_expert_agents.py`（接口、适配、掩码、注册表、4 智能体、BT、技能兼容）。
+  - 证据：`tests/test_expert_agents.py`（接口、适配、掩码、control_mode、注册表、4 智能体、BT、技能兼容）。
 
-### 1.5 范围约束
+### 1.5 稳定飞行基线（本轮新增硬验收）
+
+- [x] **ActionV1 形状/范围/边沿位不变**
+  - 仍为 `(7,) float32`，low/high 与 edge_dims `[4,5,6]` 未改；`raw_fcs`/`assisted` 只改变连续 4 维下游解释；
+  - 证据：`test_action_spec_and_command_spec`、`agents/policy_interface.py`。
+- [x] **本机 AP 内环可配置（`control_mode=assisted`）**
+  - `BVRCombatEnv` 支持 `raw_fcs/assisted`；`MissionMixin` 默认 assisted；训练/部署/行为树共用同一映射；
+  - 证据：`common/control_mode.py`、`common/bvr_combat_env.py`、`mission_env.py`、`test_bvr_control_mode_switch_and_240_step_stability`。
+- [x] **4/4 任务 240 步隔离飞行无 `own_crash`**
+  - 4 任务 × 3 seeds（7/17/27）× safe/model = **24/24 通过**，全部 240 步 `timeout`；
+  - 证据：`validation/results/stage3_stability/stability_report.txt`、`docs/阶段三_稳定飞行基线_实现与测试报告.md`。
+- [x] **raw_fcs 仍可用（对照）**
+  - `BVRCombatEnv` 默认 `raw_fcs`；strike/seed42 复现 45 步 `own_crash`，证明根因与修复有效；
+  - 证据：`validation/results/stage3_diagnosis/`。
+- [x] **`action_spec` 写明 control_mode 与映射**
+  - 新增 `control_mode/control_modes/assisted_mapping/continuous_semantics`；`*.spec.json` 随模型保存；
+  - 证据：`action_spec()` 单测、验证脚本保存的 spec。
+
+### 1.6 范围约束
 
 - [x] **未启动完整训练**
   - 仅 512 步/智能体（验证）与 32 步（pytest），未执行 1e6/1e7 步。
@@ -67,7 +85,7 @@
 - [x] **未实现完整 `jsrl_trainer.py`/课程衰减**
   - 仅 `guide_action/guide_steps` 透传占位，并在文档中标注。
 - [x] **未破坏现有接口与 CLI**
-  - `接口规范.md` v1.0 的 Dict 动作/帧/info/错误码未改；`agents/__init__.py` 仅新增导出；120 项测试通过。
+  - `接口规范.md` v1.0 的 Dict 动作/帧/info/错误码未改；仅补充 `control_mode` 兼容说明；`agents/__init__.py` 仅新增导出；122 项测试通过。
 - [x] **未提交 API Key**
   - 本轮未调用任何付费 LLM API；无密钥写入。
 
@@ -75,12 +93,14 @@
 
 ## 2. 交付物核对
 
-- [x] 工作区代码改动（未 commit/push）
+- [x] 工作区代码改动（两个本地 commit，未 push）
 - [x] `docs/阶段三_专家智能体DRL_实现说明.md`
 - [x] `docs/阶段三_专家智能体DRL_测试报告.md`
 - [x] `docs/阶段三_专家智能体DRL_验收清单.md`
 - [x] `docs/阶段三_专家智能体DRL_命令清单.md`
+- [x] `docs/阶段三_稳定飞行基线_实现与测试报告.md`
 - [x] 最小演示产物：`docs/assets/stage3_expert_demo/`
+- [x] 稳定飞行产物：`多任务智能体/validation/results/stage3_stability/`
 - [x] 最终回复：≤300 字中文摘要
 
 ---
@@ -104,6 +124,6 @@
 
 本轮满足任务书底线：
 
-> 4 个任务级智能体可实例化、可小规模训练、可被行为树按任务名调用、输出合法 ActionV1；5 个技能智能体不退化；相关 pytest 全绿。
+> 4 个任务级智能体可实例化、可小规模训练、可被行为树按任务名调用、输出合法 ActionV1；assisted 240 步隔离飞行 24/24 不坠机；5 个技能智能体不退化；相关 pytest 全绿。
 
 未声称完成完整 JSRL、多机协同、完整战术树或任务性能达标。

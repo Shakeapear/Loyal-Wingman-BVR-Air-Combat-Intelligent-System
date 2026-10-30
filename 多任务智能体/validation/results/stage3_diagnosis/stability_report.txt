@@ -1,0 +1,10 @@
+阶段三稳定飞行基线报告（raw_fcs，敌方发射隔离）
+生成时间: 2026-10-30T08:44:51
+tasks=['strike'] seeds=[42] policies=['safe'] steps=240
+
+task | policy | seed | steps | h_min_m | v_range_mps | max|theta| | max|phi| | reason | own_crash | pass
+---|---|---|---|---|---|---|---|---|---|---
+strike | safe | 42 | 45 | -2.1 | 235.0~343.2 | 0.689 | 0.004 | own_crash | True | False
+
+汇总: 0/1 通过，总耗时 0.1s
+JSON: 多任务智能体\validation\results\stage3_diagnosis\stability_summary.json

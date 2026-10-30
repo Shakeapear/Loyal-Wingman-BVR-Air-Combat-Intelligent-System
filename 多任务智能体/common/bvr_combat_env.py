@@ -57,6 +57,7 @@ import gymnasium as gym
 from gymnasium import spaces
 
 from common.constants import G0, GEO_LAT0_DEG, GEO_LON0_DEG, METERS_PER_DEG, wrap_pi
+from common.control_mode import assisted_setpoints, validate_control_mode
 from common.errors import CFG_INVALID, ENV_NOT_RESET, ConfigError, ExecutionError
 from common.jsbsim_bridge import JSBSimGymBridge
 from common.missile_model import Missile, launch_envelope, air_density
@@ -218,6 +219,15 @@ DEFAULT_CONFIG = {
     "reward_fuel_out": -50.0,
     "shaping_scale": 0.02,       # 接近率塑造项系数（奖励/米/千米）
     "render_mode": None,         # 可视化：None / "human"（实时战术显示）/ "rgb_array"（离屏帧）
+    # 本机控制模式（阶段三稳定飞行基线）：
+    # raw_fcs：原 F-104 人工舵面通道（兼容/对照）；assisted：本机 AP 设定值模式。
+    "control_mode": "raw_fcs",
+    "assisted_speed_min_mps": 180.0,
+    "assisted_speed_max_mps": 280.0,
+    "assisted_roll_limit_rad": 0.90,
+    "assisted_alt_per_pitch_m": 50.0,
+    "assisted_alt_min_m": 3000.0,
+    "assisted_alt_max_m": 8000.0,
 }
 
 # ---- 观测字段（28 维，SI 单位；与 OBS_LOW/OBS_HIGH 一一对应）----
@@ -285,6 +295,9 @@ class BVRCombatEnv(gym.Env):
         self.cfg = dict(DEFAULT_CONFIG)
         if config:
             self.cfg.update(config)
+        self.control_mode = validate_control_mode(
+            str(self.cfg.get("control_mode", "raw_fcs")))
+        self.cfg["control_mode"] = self.control_mode
         self.render_mode = self.cfg.get("render_mode")
         self._display = None                # 实时战术显示（render_mode="human" 时惰性创建）
         self.inner_dt = float(self.cfg["inner_dt"])
@@ -339,6 +352,7 @@ class BVRCombatEnv(gym.Env):
         self._prev_dist = None
         self._prev_violation = False
         self.last_info = {}
+        self._assisted_alt_ref_m = None
         self._enemy_heading_cmd = 0.0
         self._enemy_alt_cmd_ft = 15000.0
         self._enemy_fired = False           # 本决策步敌方是否发射（可视化事件标志）
@@ -366,7 +380,7 @@ class BVRCombatEnv(gym.Env):
 
         self.own.reset(seed=None, h_ft=own_h_ft, mach=own_mach,
                        heading_deg=own_heading_deg, lat0_deg=lat0, lon0_deg=lon0,
-                       autopilot=False)
+                       autopilot=self.control_mode == "assisted")
         # 敌机地理位置：以本机为原点，按绝对方位放置（相对方位 ±60°）
         bearing_abs_rad = wrap_pi(np.deg2rad(own_heading_deg + bearing_off_deg))
         east_m = dist * np.sin(bearing_abs_rad)
@@ -384,6 +398,9 @@ class BVRCombatEnv(gym.Env):
 
         # ---- 攻击区解算（reset 时一次，episode 内作为静态包线阈值）----
         s_own, s_enemy = self.own.state_dict(), self.enemy.state_dict()
+        if self.control_mode == "assisted":
+            # AP 高度保持需要一个固定参考；pitch 动作是相对该参考的偏移
+            self._assisted_alt_ref_m = float(s_own["h_sl_m"])
         enemy_abs = self._enemy_abs_pos(s_enemy)
         rel = enemy_abs - s_own["pos_enu_m"]
         dist0 = float(np.hypot(rel[0], rel[1]))
@@ -455,7 +472,14 @@ class BVRCombatEnv(gym.Env):
         s_own_pre = self.own.state_dict()
         s_enemy_pre = self.enemy.state_dict()
         throttle, roll, pitch, yaw = flight
-        self.own.step_manual(throttle, roll, pitch, yaw, self.frames_per_step)
+        if self.control_mode == "assisted":
+            # 前 4 维解释为 AP 设定值；yaw 由 AP 协调转弯承担（显式忽略）
+            setpoints = assisted_setpoints(flight, s_own_pre["h_sl_m"], self.cfg,
+                                            alt_ref_m=self._assisted_alt_ref_m)
+            self.own.step_ap(setpoints["roll_rad"], setpoints["alt_ft"],
+                             setpoints["speed_fps"], self.frames_per_step)
+        else:
+            self.own.step_manual(throttle, roll, pitch, yaw, self.frames_per_step)
         self.enemy.step_ap(self._enemy_roll_cmd, self._enemy_alt_cmd_ft,
                            self.cfg["enemy_speed_fps"], self.frames_per_step)
 
