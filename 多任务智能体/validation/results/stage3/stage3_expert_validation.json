@@ -1,0 +1,337 @@
+{
+  "generated_at": "2026-10-30T08:28:06",
+  "python": "3.12.13",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "seed": 42,
+  "timesteps_per_agent": 512,
+  "eval_steps": 64,
+  "env_config": {
+    "max_steps": 64,
+    "compute_envelope": false
+  },
+  "total_wall_s": 9.231,
+  "passed": 4,
+  "total": 4,
+  "results": [
+    {
+      "task_id": "strike",
+      "mission_name_zh": "超视距打击",
+      "action_version": "action_v1",
+      "action_check": {
+        "shape_ok": true,
+        "dtype_ok": true,
+        "finite": true,
+        "range_ok": true,
+        "ok": true
+      },
+      "predict_check": {
+        "shape_ok": true,
+        "dtype_ok": true,
+        "finite": true,
+        "range_ok": true,
+        "ok": true
+      },
+      "instantiate_s": 0.0,
+      "build_s": 1.796,
+      "train": {
+        "task_id": "strike",
+        "timesteps": 512,
+        "wall_s": 1.54,
+        "metrics": {
+          "train/entropy_loss": -9.92295992,
+          "train/policy_gradient_loss": -0.01286449,
+          "train/value_loss": 2007.52565765,
+          "train/approx_kl": 0.007422,
+          "train/loss": 1019.44067383,
+          "train/explained_variance": 0.01452398
+        },
+        "all_finite": true
+      },
+      "eval": {
+        "task_id": "strike",
+        "steps": 39,
+        "reward_total": 0.30857310849593633,
+        "reward_mean": 0.00791213195770979,
+        "reward_finite": true,
+        "action_shape": [
+          39,
+          7
+        ],
+        "action_dtype": "float32",
+        "action_min": [
+          0.024507176131010056,
+          -0.034342970699071884,
+          -0.09842108190059662,
+          0.04492476209998131,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_max": [
+          0.06376372277736664,
+          0.06432006508111954,
+          -0.05439382418990135,
+          0.14329002797603607,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_mean": [
+          0.058622878044843674,
+          -0.02804613672196865,
+          -0.09108511358499527,
+          0.1300429105758667,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fire_rate": 0.0,
+        "terminated_reason": "own_crash"
+      },
+      "save_path": "C:\\Users\\36266\\Desktop\\大创 开发\\多任务智能体\\models\\task_strike_ppo",
+      "load_consistent": true,
+      "load_action_diff": 0.0,
+      "ok": true
+    },
+    {
+      "task_id": "patrol",
+      "mission_name_zh": "空域巡逻",
+      "action_version": "action_v1",
+      "action_check": {
+        "shape_ok": true,
+        "dtype_ok": true,
+        "finite": true,
+        "range_ok": true,
+        "ok": true
+      },
+      "predict_check": {
+        "shape_ok": true,
+        "dtype_ok": true,
+        "finite": true,
+        "range_ok": true,
+        "ok": true
+      },
+      "instantiate_s": 0.0,
+      "build_s": 0.035,
+      "train": {
+        "task_id": "patrol",
+        "timesteps": 512,
+        "wall_s": 1.564,
+        "metrics": {
+          "train/entropy_loss": -9.92010772,
+          "train/policy_gradient_loss": -0.00775028,
+          "train/value_loss": 2935.45057678,
+          "train/approx_kl": 0.00148092,
+          "train/loss": 1795.34057617,
+          "train/explained_variance": 0.00956202
+        },
+        "all_finite": true
+      },
+      "eval": {
+        "task_id": "patrol",
+        "steps": 37,
+        "reward_total": -9.707781194424227,
+        "reward_mean": -0.2623724639415741,
+        "reward_finite": true,
+        "action_shape": [
+          37,
+          7
+        ],
+        "action_dtype": "float32",
+        "action_min": [
+          0.0,
+          -0.0934370830655098,
+          -0.10001178830862045,
+          0.019173026084899902,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_max": [
+          0.03317466750741005,
+          -0.04216858744621277,
+          -0.008724956773221493,
+          0.0486375093460083,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_mean": [
+          0.0008966126479208469,
+          -0.08882926404476166,
+          -0.01950426958501339,
+          0.041786521673202515,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fire_rate": 0.0,
+        "terminated_reason": "own_crash"
+      },
+      "save_path": "C:\\Users\\36266\\Desktop\\大创 开发\\多任务智能体\\models\\task_patrol_ppo",
+      "load_consistent": true,
+      "load_action_diff": 0.0,
+      "ok": true
+    },
+    {
+      "task_id": "defense",
+      "mission_name_zh": "战术防御",
+      "action_version": "action_v1",
+      "action_check": {
+        "shape_ok": true,
+        "dtype_ok": true,
+        "finite": true,
+        "range_ok": true,
+        "ok": true
+      },
+      "predict_check": {
+        "shape_ok": true,
+        "dtype_ok": true,
+        "finite": true,
+        "range_ok": true,
+        "ok": true
+      },
+      "instantiate_s": 0.0,
+      "build_s": 0.037,
+      "train": {
+        "task_id": "defense",
+        "timesteps": 512,
+        "wall_s": 1.506,
+        "metrics": {
+          "train/entropy_loss": -9.93201458,
+          "train/policy_gradient_loss": -0.00877655,
+          "train/value_loss": 2637.51441956,
+          "train/approx_kl": 0.0048481,
+          "train/loss": 1950.07763672,
+          "train/explained_variance": 0.01225913
+        },
+        "all_finite": true
+      },
+      "eval": {
+        "task_id": "defense",
+        "steps": 39,
+        "reward_total": -4.758787153512223,
+        "reward_mean": -0.12202020734548569,
+        "reward_finite": true,
+        "action_shape": [
+          39,
+          7
+        ],
+        "action_dtype": "float32",
+        "action_min": [
+          0.0,
+          -0.033546753227710724,
+          0.001359342597424984,
+          0.037674617022275925,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_max": [
+          0.0,
+          -0.004618924111127853,
+          0.07694483548402786,
+          0.07358099520206451,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_mean": [
+          0.0,
+          -0.005954401567578316,
+          0.072300486266613,
+          0.07172439992427826,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fire_rate": 0.0,
+        "terminated_reason": "own_crash"
+      },
+      "save_path": "C:\\Users\\36266\\Desktop\\大创 开发\\多任务智能体\\models\\task_defense_ppo",
+      "load_consistent": true,
+      "load_action_diff": 0.0,
+      "ok": true
+    },
+    {
+      "task_id": "ew",
+      "mission_name_zh": "电子压制",
+      "action_version": "action_v1",
+      "action_check": {
+        "shape_ok": true,
+        "dtype_ok": true,
+        "finite": true,
+        "range_ok": true,
+        "ok": true
+      },
+      "predict_check": {
+        "shape_ok": true,
+        "dtype_ok": true,
+        "finite": true,
+        "range_ok": true,
+        "ok": true
+      },
+      "instantiate_s": 0.0,
+      "build_s": 0.05,
+      "train": {
+        "task_id": "ew",
+        "timesteps": 512,
+        "wall_s": 1.53,
+        "metrics": {
+          "train/entropy_loss": -9.9403016,
+          "train/policy_gradient_loss": -0.00813469,
+          "train/value_loss": 2117.47676849,
+          "train/approx_kl": 0.002651,
+          "train/loss": 901.91137695,
+          "train/explained_variance": 0.01175588
+        },
+        "all_finite": true
+      },
+      "eval": {
+        "task_id": "ew",
+        "steps": 36,
+        "reward_total": -9.068359770093528,
+        "reward_mean": -0.2518988847732544,
+        "reward_finite": true,
+        "action_shape": [
+          36,
+          7
+        ],
+        "action_dtype": "float32",
+        "action_min": [
+          0.0,
+          -0.04748038947582245,
+          0.07929754257202148,
+          -0.04502652958035469,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_max": [
+          0.0,
+          -0.012645677663385868,
+          0.1299227774143219,
+          -0.025962403044104576,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_mean": [
+          0.0,
+          -0.03948128595948219,
+          0.12521332502365112,
+          -0.03285054489970207,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fire_rate": 0.0,
+        "terminated_reason": "own_crash"
+      },
+      "save_path": "C:\\Users\\36266\\Desktop\\大创 开发\\多任务智能体\\models\\task_ew_ppo",
+      "load_consistent": true,
+      "load_action_diff": 0.0,
+      "ok": true
+    }
+  ]
+}

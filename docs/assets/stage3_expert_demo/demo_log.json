@@ -1,0 +1,54 @@
+[
+  {
+    "event": "mission_start",
+    "task_id": "strike",
+    "name": "超视距打击",
+    "seed": 7
+  },
+  {
+    "event": "mission_end",
+    "task_id": "strike",
+    "steps": 12,
+    "total_reward": 60.10600341328886,
+    "terminated_reason": null
+  },
+  {
+    "event": "mission_start",
+    "task_id": "patrol",
+    "name": "空域巡逻",
+    "seed": 8
+  },
+  {
+    "event": "mission_end",
+    "task_id": "patrol",
+    "steps": 12,
+    "total_reward": 0.09533509177591624,
+    "terminated_reason": null
+  },
+  {
+    "event": "mission_start",
+    "task_id": "defense",
+    "name": "战术防御",
+    "seed": 9
+  },
+  {
+    "event": "mission_end",
+    "task_id": "defense",
+    "steps": 12,
+    "total_reward": 18.544923948887146,
+    "terminated_reason": null
+  },
+  {
+    "event": "mission_start",
+    "task_id": "ew",
+    "name": "电子压制",
+    "seed": 10
+  },
+  {
+    "event": "mission_end",
+    "task_id": "ew",
+    "steps": 12,
+    "total_reward": 60.34467531459566,
+    "terminated_reason": null
+  }
+]

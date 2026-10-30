@@ -1,0 +1,1407 @@
+{
+  "generated_at": "2026-10-30T08:30:21",
+  "wall_s": 20.4,
+  "tasks": [
+    "strike",
+    "patrol",
+    "defense",
+    "ew"
+  ],
+  "max_steps": 12,
+  "seed": 7,
+  "models_loaded": true,
+  "results": {
+    "strike": {
+      "status": "SUCCESS",
+      "result": {
+        "task_id": "strike",
+        "steps": 12,
+        "total_reward": 60.10600341328886,
+        "terminated_reason": null,
+        "records": [
+          {
+            "step": 0,
+            "task_id": "strike",
+            "action_v1": [
+              0.02430850639939308,
+              0.06501014530658722,
+              -0.05390876159071922,
+              0.04393940046429634,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 5.0088877544835615,
+            "dist_m": 40351.64039226983,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 1,
+            "task_id": "strike",
+            "action_v1": [
+              0.028615999966859818,
+              0.007524276617914438,
+              -0.05967118963599205,
+              0.10602979362010956,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.00888700740492,
+            "dist_m": 39907.29002202383,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 2,
+            "task_id": "strike",
+            "action_v1": [
+              0.05947628244757652,
+              -0.03345470502972603,
+              -0.09422513842582703,
+              0.12978117167949677,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.008729658755535,
+            "dist_m": 39470.80708424708,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 3,
+            "task_id": "strike",
+            "action_v1": [
+              0.05949344113469124,
+              -0.03418917581439018,
+              -0.09502057731151581,
+              0.13048572838306427,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.00865466930385,
+            "dist_m": 39038.07361905458,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 4,
+            "task_id": "strike",
+            "action_v1": [
+              0.059464119374752045,
+              -0.03413260355591774,
+              -0.09490423649549484,
+              0.13104556500911713,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.0086831510056005,
+            "dist_m": 38603.91606877454,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 5,
+            "task_id": "strike",
+            "action_v1": [
+              0.059504926204681396,
+              -0.03412303328514099,
+              -0.09477609395980835,
+              0.13187338411808014,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.008717257422644,
+            "dist_m": 38168.05319764232,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 6,
+            "task_id": "strike",
+            "action_v1": [
+              0.05952950567007065,
+              -0.03409985080361366,
+              -0.0946778953075409,
+              0.13262659311294556,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.008759718587264,
+            "dist_m": 37730.06726827913,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 7,
+            "task_id": "strike",
+            "action_v1": [
+              0.059552863240242004,
+              -0.03393632546067238,
+              -0.0945260152220726,
+              0.13325965404510498,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.008815218744739,
+            "dist_m": 37289.30633104216,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 8,
+            "task_id": "strike",
+            "action_v1": [
+              0.05961490422487259,
+              -0.03386647626757622,
+              -0.09445958584547043,
+              0.13393966853618622,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.00887312717427,
+            "dist_m": 36845.649972328654,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 9,
+            "task_id": "strike",
+            "action_v1": [
+              0.060024842619895935,
+              -0.03399467095732689,
+              -0.0946890115737915,
+              0.13463255763053894,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.008937232568818,
+            "dist_m": 36398.78834388774,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 10,
+            "task_id": "strike",
+            "action_v1": [
+              0.06012711673974991,
+              -0.033923570066690445,
+              -0.09468041360378265,
+              0.13526426255702972,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.008998923761308,
+            "dist_m": 35948.84215582234,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 11,
+            "task_id": "strike",
+            "action_v1": [
+              0.06024368852376938,
+              -0.03380080312490463,
+              -0.09467121213674545,
+              0.1358368843793869,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.009059694076348,
+            "dist_m": 35495.85745200494,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          }
+        ],
+        "model_loaded": true
+      }
+    },
+    "patrol": {
+      "status": "SUCCESS",
+      "result": {
+        "task_id": "patrol",
+        "steps": 12,
+        "total_reward": 0.09533509177591624,
+        "terminated_reason": null,
+        "records": [
+          {
+            "step": 0,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0336085744202137,
+              -0.04769586771726608,
+              -0.10198400169610977,
+              0.04550788179039955,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.008906904407381372,
+            "dist_m": 68524.4703244949,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 1,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.04156901687383652,
+              -0.08516707271337509,
+              0.01397165097296238,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.00864456111521955,
+            "dist_m": 68092.24226873393,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 2,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.09164019674062729,
+              -0.019984260201454163,
+              0.036228109151124954,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.00836883807347389,
+            "dist_m": 67673.80036506023,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 3,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.09190811961889267,
+              -0.019801326096057892,
+              0.03612213209271431,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.008169753792193951,
+            "dist_m": 67265.31267545054,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 4,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.09169047325849533,
+              -0.019786791875958443,
+              0.03578609973192215,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.00806381537309382,
+            "dist_m": 66862.12190679584,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 5,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.09155307710170746,
+              -0.019451528787612915,
+              0.03543003275990486,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.007970805475253728,
+            "dist_m": 66463.58163303316,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 6,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.09130514413118362,
+              -0.019194133579730988,
+              0.035065967589616776,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.007864353099807049,
+            "dist_m": 66070.3639780428,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 7,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.09105890244245529,
+              -0.018878115341067314,
+              0.03472196310758591,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.007744688432441908,
+            "dist_m": 65683.12955642071,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 8,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.0907939225435257,
+              -0.01853330060839653,
+              0.03439588099718094,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.0076133020974190726,
+            "dist_m": 65302.46445154976,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 9,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.0904986783862114,
+              -0.017948925495147705,
+              0.03386067971587181,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.007473431688727433,
+            "dist_m": 64928.792867113385,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 10,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.09020072221755981,
+              -0.01752297207713127,
+              0.033554401248693466,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.007329527689856768,
+            "dist_m": 64562.31648262055,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 11,
+            "task_id": "patrol",
+            "action_v1": [
+              0.0,
+              -0.08987843990325928,
+              -0.01705210842192173,
+              0.033246226608753204,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 0.007185110531047685,
+            "dist_m": 64203.06095606816,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          }
+        ],
+        "model_loaded": true
+      }
+    },
+    "defense": {
+      "status": "SUCCESS",
+      "result": {
+        "task_id": "defense",
+        "steps": 12,
+        "total_reward": 18.544923948887146,
+        "terminated_reason": null,
+        "records": [
+          {
+            "step": 0,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.018587864935398102,
+              0.0010351985692977905,
+              0.03766730800271034,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": -0.12090786860185793,
+            "dist_m": 67958.81185375835,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 1,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.03388398513197899,
+              0.021226711571216583,
+              0.05597696453332901,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": -0.12108548194233765,
+            "dist_m": 67513.08595087523,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 2,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.004495393019169569,
+              0.07472807914018631,
+              0.07512801885604858,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": -0.12126993187358341,
+            "dist_m": 67076.5825445544,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 3,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.00460949819535017,
+              0.0747012123465538,
+              0.0750545859336853,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": -0.12136580924702692,
+            "dist_m": 66644.87300690575,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 4,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.00452860351651907,
+              0.07454199343919754,
+              0.0752219408750534,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": -0.12136801442319993,
+            "dist_m": 66213.27372806575,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 5,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.004541746806353331,
+              0.07452314347028732,
+              0.07523208856582642,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": -0.12135114139254059,
+            "dist_m": 65780.83079769278,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 6,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.004494486376643181,
+              0.0744713842868805,
+              0.07523071765899658,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": -0.121329497436635,
+            "dist_m": 65347.305669524525,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 7,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.004439042881131172,
+              0.0744367316365242,
+              0.07519403100013733,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": -0.12130522510590425,
+            "dist_m": 64912.56692481974,
+            "radar_state": "TRACK",
+            "in_zone": false,
+            "terminated_reason": null
+          },
+          {
+            "step": 8,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.004405477084219456,
+              0.07443373650312424,
+              0.07515200227499008,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 4.878715007411554,
+            "dist_m": 64476.816554242054,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 9,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.0043917447328567505,
+              0.07446511834859848,
+              0.07516723871231079,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 4.878726051394535,
+            "dist_m": 64040.51398451531,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 10,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.004389013163745403,
+              0.07451332360506058,
+              0.07516038417816162,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 4.878731525997982,
+            "dist_m": 63603.93768461618,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 11,
+            "task_id": "defense",
+            "action_v1": [
+              0.0,
+              -0.0043695466592907906,
+              0.07455449551343918,
+              0.07513564079999924,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 4.878734334106161,
+            "dist_m": 63167.22097930811,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          }
+        ],
+        "model_loaded": true
+      }
+    },
+    "ew": {
+      "status": "SUCCESS",
+      "result": {
+        "task_id": "ew",
+        "steps": 12,
+        "total_reward": 60.34467531459566,
+        "terminated_reason": null,
+        "records": [
+          {
+            "step": 0,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.024964207783341408,
+              0.07909642159938812,
+              -0.03822563961148262,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true
+            ],
+            "reward": 5.027089034206478,
+            "dist_m": 36621.62841910642,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 1,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.011430729180574417,
+              0.1158457100391388,
+              -0.02483905665576458,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.029303604194111,
+            "dist_m": 36156.44820940085,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 2,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.04719782620668411,
+              0.12992557883262634,
+              -0.029671302065253258,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.0291209782783906,
+            "dist_m": 35700.39929548128,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 3,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.04714364930987358,
+              0.13018189370632172,
+              -0.03006756491959095,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.028975553925578,
+            "dist_m": 35251.62159920234,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 4,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.04672025516629219,
+              0.13056111335754395,
+              -0.030238110572099686,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.028910200363943,
+            "dist_m": 34806.11158100517,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 5,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.04626758024096489,
+              0.13069793581962585,
+              -0.030352136120200157,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.02885930927557,
+            "dist_m": 34363.14611722666,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 6,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.04585297405719757,
+              0.13076269626617432,
+              -0.030514314770698547,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.028815233738952,
+            "dist_m": 33922.38443027906,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 7,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.04541013762354851,
+              0.1308203935623169,
+              -0.030632300302386284,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.028772196190654,
+            "dist_m": 33483.77462074633,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 8,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.0449514165520668,
+              0.13096265494823456,
+              -0.03074956126511097,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.028732301773428,
+            "dist_m": 33047.159532074904,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 9,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.044465117156505585,
+              0.1311013549566269,
+              -0.03082522563636303,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.028705554760126,
+            "dist_m": 32611.88179406857,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 10,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.04398934543132782,
+              0.13121676445007324,
+              -0.030891980975866318,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.028694781736053,
+            "dist_m": 32177.14270726588,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          },
+          {
+            "step": 11,
+            "task_id": "ew",
+            "action_v1": [
+              0.0,
+              -0.04350724071264267,
+              0.13131438195705414,
+              -0.030936868861317635,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "source": "drl",
+            "masked": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              true
+            ],
+            "reward": 5.028696566152375,
+            "dist_m": 31742.31439964713,
+            "radar_state": "TRACK",
+            "in_zone": true,
+            "terminated_reason": null
+          }
+        ],
+        "model_loaded": true
+      }
+    }
+  }
+}
