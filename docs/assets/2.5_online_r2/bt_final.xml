@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Fallback label="BVR_Mission">
+      <Sequence label="Self_Preservation">
+        <is_missile_incoming />
+        <evade_missile maneuver_type="break_turn" />
+      </Sequence>
+      <Sequence label="Fuel_Check">
+        <is_fuel_low />
+        <return_to_base />
+      </Sequence>
+      <Sequence label="Engagement">
+        <has_target_detected />
+        <Fallback label="Engagement_Flow">
+          <Sequence label="Attack">
+            <is_in_launch_zone />
+            <has_weapon_remaining />
+            <fire_missile />
+          </Sequence>
+          <lock_target />
+        </Fallback>
+      </Sequence>
+      <search_target radar_mode="auto" />
+    </Fallback>
+  </BehaviorTree>
+</root>

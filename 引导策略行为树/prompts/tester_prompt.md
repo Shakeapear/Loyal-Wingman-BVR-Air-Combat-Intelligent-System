@@ -33,7 +33,9 @@ BVRCombatEnv（JSBSim 1v1 超视距空战 Gym 环境）中执行并评估。请�
 - no_logic_error：执行期间无非法动作/异常记 1，否则 0
 - safety_violations：安全包线违规步数（过载/马赫/高度/速度越界），要求 0
 - no_crash：未坠毁记 1
-- steps_executed：实际执行的决策步数（≥60 表示有效飞行）
+- steps_executed：实际执行的决策步数（≥30 表示有效飞行；若提前 enemy_hit，
+  步数不作为失败条件，但必须同时满足 safety_violations=0、no_logic_error=1、
+  no_crash=1、engaged=1、fired_own>=1）
 - fired_own：本机累计发射导弹数
 - in_zone_steps：处于攻击区内的步数
 - enemy_hit：敌机被命中记 1
@@ -48,5 +50,7 @@ BVRCombatEnv（JSBSim 1v1 超视距空战 Gym 环境）中执行并评估。请�
 
 - 恰好 5 组；seed 互不相同；
 - 每组至少包含 `safety_violations == 0` 与 `no_logic_error == 1` 两条判据；
+- `steps_executed` 的最低步数阈值统一用 `>= 30`，不要设为 >30（如 60）；
+  如需表达“有效交战”，优先使用 `enemy_hit == 1` / `engaged == 1` 等指标；
 - 判据必须可用上述指标客观判定，不要使用指标表中不存在的指标；
 - 只输出 JSON 对象（可被 json.loads 解析），不要输出解释文字。

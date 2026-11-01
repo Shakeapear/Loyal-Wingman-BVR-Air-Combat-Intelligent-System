@@ -28,7 +28,8 @@ from llm_bt.mock_llm import coder_response
 from llm_bt.prompts import load_prompt
 from llm_bt.schema import (ACTIONS, CONDITIONS, OODA_ALL, ooda_coverage,
                            tree_node_names, validate_tree_json)
-from llm_bt.tester import default_test_cases, evaluate_case, run_case
+from llm_bt.tester import (_normalize_case, default_test_cases, evaluate_case,
+                           is_early_enemy_hit, run_case)
 from llm_bt.tree_io import text_tree, tree_to_dot, tree_to_xml
 from llm_bt.validator_bridge import validate_tree_static
 
@@ -153,22 +154,95 @@ class TestExecutor:
 
 
 class TestTester:
+    @staticmethod
+    def _case(criteria):
+        return {"case_id": "t", "seed": 11, "success_criteria": criteria}
+
+    @staticmethod
+    def _result(**kw):
+        base = {"logic_errors": 0, "safety_violations": 0, "reason": "timeout",
+                "steps": 60, "fired_own": 2, "in_zone_steps": 25,
+                "enemy_fired": 2}
+        base.update(kw)
+        return base
+
+    @staticmethod
+    def _strict_criteria():
+        return [
+            {"metric": "no_logic_error", "op": "==", "value": 1},
+            {"metric": "safety_violations", "op": "==", "value": 0},
+            {"metric": "no_crash", "op": "==", "value": 1},
+            {"metric": "steps_executed", "op": ">=", "value": 60},
+            {"metric": "engaged", "op": "==", "value": 1},
+            {"metric": "fired_own", "op": ">=", "value": 1},
+        ]
+
     def test_default_cases(self):
         cases = default_test_cases()
         assert len(cases) == 5
         assert len({c["seed"] for c in cases}) == 5
         for c in cases:
             assert any(x["metric"] == "safety_violations" for x in c["success_criteria"])
+            assert any(x["metric"] == "steps_executed" and x["op"] == ">="
+                       and x["value"] == 30 for x in c["success_criteria"])
 
     def test_evaluate_case(self):
         case = {"success_criteria": [
             {"metric": "safety_violations", "op": "==", "value": 0},
             {"metric": "no_crash", "op": "==", "value": 1}]}
-        good = {"logic_errors": 0, "safety_violations": 0, "reason": "timeout",
-                "steps": 60, "fired_own": 0, "in_zone_steps": 0, "enemy_fired": 0}
+        good = self._result(fired_own=0, in_zone_steps=0, enemy_fired=0)
         bad = dict(good, safety_violations=2, reason="own_crash")
         assert evaluate_case(case, good)[0] is True
         assert evaluate_case(case, bad)[0] is False
+
+    def test_early_enemy_hit_waives_steps_floor(self):
+        """提前命中：38 步 enemy_hit，即使判据要求 >=60 也判通过。"""
+        result = self._result(steps=38, reason="enemy_hit", fired_own=2)
+        assert is_early_enemy_hit(result) is True
+        passed, checks = evaluate_case(self._case(self._strict_criteria()), result)
+        assert passed is True
+        steps_check = next(c for c in checks
+                           if c["criterion"]["metric"] == "steps_executed")
+        assert steps_check["actual"] == 38
+        assert steps_check["passed"] is True
+        assert steps_check["waived"] == "early_enemy_hit"
+
+    @pytest.mark.parametrize("reason", ["own_hit", "own_crash", "escape"])
+    def test_early_non_hit_still_fails_steps_floor(self, reason):
+        """提前 own_hit/own_crash/escape：即使 steps<60 仍判失败。"""
+        result = self._result(steps=38, reason=reason)
+        assert is_early_enemy_hit(result) is False
+        passed, _ = evaluate_case(self._case(self._strict_criteria()), result)
+        assert passed is False
+
+    def test_timeout_with_min_steps_passes(self):
+        result = self._result(steps=35, reason="timeout")
+        criteria = [
+            {"metric": "no_logic_error", "op": "==", "value": 1},
+            {"metric": "safety_violations", "op": "==", "value": 0},
+            {"metric": "no_crash", "op": "==", "value": 1},
+            {"metric": "steps_executed", "op": ">=", "value": 30},
+        ]
+        assert evaluate_case(self._case(criteria), result)[0] is True
+
+    def test_safety_or_logic_violation_still_fails(self):
+        criteria = self._strict_criteria()
+        unsafe = self._result(steps=38, reason="enemy_hit", safety_violations=1)
+        assert is_early_enemy_hit(unsafe) is False
+        assert evaluate_case(self._case(criteria), unsafe)[0] is False
+
+        bad_logic = self._result(steps=38, reason="enemy_hit", logic_errors=1)
+        assert is_early_enemy_hit(bad_logic) is False
+        assert evaluate_case(self._case(criteria), bad_logic)[0] is False
+
+    def test_normalize_case_does_not_relax_criteria(self):
+        """规范化只做字段校验，不删除/放宽 steps_executed 与安全判据。"""
+        raw = {"case_id": "c1", "seed": 11,
+               "success_criteria": [dict(c) for c in self._strict_criteria()]}
+        norm = _normalize_case(raw, 0)
+        assert norm["success_criteria"] == raw["success_criteria"]
+        result = self._result(steps=38, reason="own_crash")
+        assert evaluate_case(norm, result)[0] is False
 
 
 class TestExtractJson:

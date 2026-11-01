@@ -60,6 +60,27 @@ _SAFE_CRITERIA = [
 ]
 
 
+def is_early_enemy_hit(result: dict) -> bool:
+    """提前命中语义：enemy_hit 且安全/逻辑/未坠毁/交战/已发射判据全部满足。
+
+    仅用于豁免 steps_executed 的最低步数判据，不作为其他判据的替代。
+    """
+    try:
+        return (METRICS["enemy_hit"](result) == 1
+                and METRICS["no_logic_error"](result) == 1
+                and METRICS["safety_violations"](result) == 0
+                and METRICS["no_crash"](result) == 1
+                and METRICS["engaged"](result) == 1
+                and result.get("fired_own", 0) >= 1)
+    except (KeyError, TypeError):
+        return False
+
+
+def _is_steps_floor(crit: dict) -> bool:
+    """判断是否为 steps_executed 的最低步数判据（仅 >=/> 可被提前命中豁免）。"""
+    return crit.get("metric") == "steps_executed" and crit.get("op") in (">=", ">")
+
+
 def default_test_cases() -> list:
     """离线默认用例（mock Tester / 解析回退共用）。"""
     cases = []
@@ -164,8 +185,14 @@ def run_case(tree_json: dict, case: dict, max_steps: int = 240,
 
 
 def evaluate_case(case: dict, result: dict):
-    """按 success_criteria 评估，返回 (passed, checks)。"""
+    """按 success_criteria 评估，返回 (passed, checks)。
+
+    提前命中豁免：若 result 为 enemy_hit 且 no_logic_error=1、safety_violations=0、
+    no_crash=1、engaged=1、fired_own>=1，则 steps_executed 的 >=/> 最低步数判据
+    不再导致失败（命中即成功结束）；其余判据仍严格生效。
+    """
     checks = []
+    early_hit = is_early_enemy_hit(result)
     for crit in case.get("success_criteria", []):
         fn = METRICS.get(crit.get("metric"))
         op = OPS.get(crit.get("op"))
@@ -174,7 +201,11 @@ def evaluate_case(case: dict, result: dict):
             passed = bool(fn and op and op(actual, crit.get("value")))
         except Exception:
             passed = False
-        checks.append({"criterion": crit, "actual": actual, "passed": passed})
+        check = {"criterion": crit, "actual": actual, "passed": passed}
+        if not passed and early_hit and _is_steps_floor(crit):
+            check["passed"] = True
+            check["waived"] = "early_enemy_hit"
+        checks.append(check)
     return all(c["passed"] for c in checks), checks
 
 

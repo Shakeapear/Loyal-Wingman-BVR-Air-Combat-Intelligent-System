@@ -1,0 +1,74 @@
+{
+  "test_cases": [
+    {
+      "case_id": "case_1",
+      "description": "初始距离约30 km，目标方位+15°，双方高度12000 ft，马赫0.85，接近迎头态势，快速进入攻击区",
+      "expected_behavior": "雷达快速探测并锁定目标，进入攻击区后发射中距弹（双发间隔≥4 s），全程无安全包线违规",
+      "seed": 11,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 30}
+      ]
+    },
+    {
+      "case_id": "case_2",
+      "description": "初始距离约50 km，目标方位-30°，双方高度15000 ft，马赫0.8，侧向进入态势，需调整航向搜索目标",
+      "expected_behavior": "雷达搜索并锁定目标，进入攻击区后发射导弹，若敌机发射导弹则优先规避",
+      "seed": 27,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 30}
+      ]
+    },
+    {
+      "case_id": "case_3",
+      "description": "初始距离约65 km，目标方位+45°，双方高度18000 ft，马赫0.75，远距离大方位态势，需长时间搜索与占位",
+      "expected_behavior": "雷达自动搜索并锁定目标，逐步进入攻击区后发射导弹，全程保持安全包线",
+      "seed": 43,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 30}
+      ]
+    },
+    {
+      "case_id": "case_4",
+      "description": "初始距离约80 km，目标方位-60°，双方高度20000 ft，马赫0.7，极限距离大方位态势，考验搜索与燃油管理",
+      "expected_behavior": "雷达搜索并锁定目标，若燃油不足则返航，否则进入攻击区发射导弹，全程无安全违规",
+      "seed": 58,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 30}
+      ]
+    },
+    {
+      "case_id": "case_5",
+      "description": "初始距离约40 km，目标方位+60°，双方高度8000 ft，马赫0.9，低空高速大方位态势，考验规避与攻击决策",
+      "expected_behavior": "探测并锁定目标，导弹来袭时执行break_turn规避，随后进入攻击区发射导弹，全程安全",
+      "seed": 72,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 30}
+      ]
+    }
+  ]
+}
