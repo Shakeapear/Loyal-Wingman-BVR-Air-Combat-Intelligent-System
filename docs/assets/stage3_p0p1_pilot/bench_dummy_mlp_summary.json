@@ -1,0 +1,60 @@
+{
+  "task": "strike",
+  "policy": "mlp",
+  "timesteps": 20000,
+  "n_envs": 8,
+  "seed": 0,
+  "scene": "bvr80-120",
+  "hyperparams": {
+    "n_steps": 256,
+    "batch_size": 64,
+    "n_epochs": 10,
+    "learning_rate": 0.0003,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01
+  },
+  "model_path": "models\\pilot_20k\\mlp\\mlp_ppo_final.zip",
+  "tensorboard": null,
+  "training_log": "models\\pilot_20k\\mlp\\training_log.csv",
+  "metrics": {
+    "train/learning_rate": 0.0003,
+    "train/entropy_loss": -9.891990798711777,
+    "train/policy_gradient_loss": -0.010899609516491182,
+    "train/value_loss": 856.7676615476609,
+    "train/approx_kl": 0.00941917672753334,
+    "train/clip_fraction": 0.083154296875,
+    "train/loss": 193.16473388671875,
+    "train/explained_variance": 0.5825883150100708,
+    "train/std": 0.9937902092933655,
+    "train/n_updates": 100.0,
+    "train/clip_range": 0.2,
+    "wall_s": 153.56
+  },
+  "final_eval": null,
+  "eval": {
+    "steps": 16,
+    "finite": true,
+    "in_bounds": true,
+    "mean_reward": 0.0081,
+    "action_min": [
+      0.0387091264128685,
+      -0.23412340879440308,
+      -0.30373305082321167,
+      0.10591823607683182,
+      0.04703754186630249,
+      0.030503898859024048,
+      0.0
+    ],
+    "action_max": [
+      0.24577884376049042,
+      0.1669796258211136,
+      0.048692233860492706,
+      0.3773905038833618,
+      0.15621240437030792,
+      0.186555415391922,
+      0.22929763793945312
+    ]
+  }
+}

@@ -51,6 +51,21 @@ MISSION_ENV_CONFIG = {
     "ew": {"max_steps": 300, "enemy_fire_interval_s": 6.0},
 }
 
+# 阶段三 P0/P1 可选场景（opt-in；默认 30~80 km / 240 步不变）
+SCENE_CONFIGS = {
+    "default": {},
+    "bvr80-120": {"scene_dist_min_m": 80e3, "scene_dist_max_m": 120e3,
+                  "max_steps": 600},
+}
+
+
+def scene_config(name: str) -> dict:
+    """返回场景覆盖配置（未知场景抛 ARG_INVALID）。"""
+    if name not in SCENE_CONFIGS:
+        raise ValidationError(ARG_INVALID, "未知训练场景",
+                              detail={"scene": name, "valid": list(SCENE_CONFIGS)})
+    return dict(SCENE_CONFIGS[name])
+
 
 def validate_mission(mission: str) -> str:
     if mission not in MISSION_IDS:

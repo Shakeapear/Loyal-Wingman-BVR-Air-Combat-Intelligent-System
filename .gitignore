@@ -12,6 +12,10 @@ __pycache__/
 # 验证性极小训练模型（非正式模型，不入库）
 多任务智能体/models/
 
+# TensorBoard 大日志（不入库）
+tensorboard/
+多任务智能体/tensorboard/
+
 # JSBSim 运行输出 CSV（可重新生成；样例见 JSBSim_培训与验证资料/样例数据/）
 JSBSim/JSBout172B.csv
 JSBSim/f104_*_raw.csv

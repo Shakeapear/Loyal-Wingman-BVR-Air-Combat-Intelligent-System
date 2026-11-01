@@ -101,6 +101,21 @@ def test_reset_random_geometry_ranges():
     env.own.close(); env.enemy.close()
 
 
+def test_reset_scene_distance_opt_in():
+    """opt-in 场景：80~120 km / 600 步；默认仍为 30~80 km。"""
+    env = make_env(scene_dist_min_m=80e3, scene_dist_max_m=120e3, max_steps=600)
+    assert env.cfg["max_steps"] == 600
+    for seed in range(5):
+        _, info = env.reset(seed=seed)
+        assert 80e3 - 1.0 <= info["dist_m"] <= 120e3 + 1.0
+    env.own.close(); env.enemy.close()
+
+    default = make_env()
+    assert default.cfg["scene_dist_min_m"] == 30e3
+    assert default.cfg["scene_dist_max_m"] == 80e3
+    default.own.close(); default.enemy.close()
+
+
 def test_random_action_rollout_no_error():
     """随机动作 40 步无报错、观测始终在有限空间内（100 步长跑见验证脚本）。"""
     env = make_env(max_steps=200)

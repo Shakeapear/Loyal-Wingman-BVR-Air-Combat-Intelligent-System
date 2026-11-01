@@ -4,9 +4,9 @@ from agents.task_agents.base_task_agent import TaskDRLExpertAgent
 from agents.task_agents.defense_agent import DefenseAgent
 from agents.task_agents.ew_agent import EWAgent
 from agents.task_agents.mission_env import (MISSION_ENV_CONFIG, MISSION_IDS,
-                                           MISSION_LABELS, MISSION_NAMES_ZH,
+                                           MISSION_LABELS, MISSION_NAMES_ZH, SCENE_CONFIGS,
                                            FlatTaskMissionEnv, TaskMissionEnv,
-                                           make_task_env)
+                                           make_task_env, scene_config)
 from agents.task_agents.patrol_agent import PatrolAgent
 from agents.task_agents.strike_agent import StrikeAgent
 
@@ -20,4 +20,4 @@ TASK_AGENTS = {
 __all__ = ["TaskDRLExpertAgent", "StrikeAgent", "PatrolAgent", "DefenseAgent",
            "EWAgent", "TASK_AGENTS", "FlatTaskMissionEnv", "TaskMissionEnv",
            "make_task_env", "MISSION_IDS", "MISSION_LABELS", "MISSION_NAMES_ZH",
-           "MISSION_ENV_CONFIG"]
+           "MISSION_ENV_CONFIG", "SCENE_CONFIGS", "scene_config"]

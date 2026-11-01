@@ -1,0 +1,53 @@
+{
+  "task": "strike",
+  "policy": "hybrid",
+  "timesteps": 20000,
+  "n_envs": 8,
+  "seed": 0,
+  "scene": "bvr80-120",
+  "hyperparams": {
+    "n_steps": 256,
+    "batch_size": 64,
+    "n_epochs": 10,
+    "learning_rate": 0.0003,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01
+  },
+  "model_path": "models\\pilot_20k_subproc\\hybrid\\hybrid_ppo_final.zip",
+  "tensorboard": null,
+  "training_log": "models\\pilot_20k_subproc\\hybrid\\training_log.csv",
+  "metrics": {
+    "task_id": "strike",
+    "policy": "hybrid",
+    "timesteps": 20000,
+    "n_envs": 8,
+    "seed": 0,
+    "wall_s": 118.002,
+    "metrics": {
+      "train/learning_rate": 0.0003,
+      "train/entropy_loss": -5.852700541913509,
+      "train/policy_gradient_loss": 0.028484482596104498,
+      "train/value_loss": 646.8491715431213,
+      "train/approx_kl": 0.06031256169080734,
+      "train/clip_fraction": 0.386865234375,
+      "train/loss": 103.04657745361328,
+      "train/explained_variance": 0.7609193921089172,
+      "train/n_updates": 100.0,
+      "train/clip_range": 0.2,
+      "train/mean_step_reward": 0.9557770304913664,
+      "rollout/ep_rew_mean": 305.2513113396783
+    },
+    "all_finite": true
+  },
+  "final_eval": null,
+  "eval": {
+    "steps": 0,
+    "finite": true,
+    "in_bounds": true,
+    "mean_reward": 0.0,
+    "action_min": [],
+    "action_max": []
+  }
+}

@@ -195,6 +195,8 @@ def _missile_batch_writeback(missiles, pos, vel, t, miss, max_g, max_v, alive, n
 # ---- 交战配置默认值（可经 config 覆盖）----
 DEFAULT_CONFIG = {
     "max_steps": 240,            # episode 最大决策步（超时截断）
+    "scene_dist_min_m": 30e3,    # 初始距离下限（默认 30 km；opt-in 场景可覆盖）
+    "scene_dist_max_m": 80e3,    # 初始距离上限（默认 80 km）
     "inner_dt": INNER_DT_DEFAULT,   # JSBSim 内环步长 s（60 Hz，吞吐权衡，见 README §4.1）
     "missile_dt": MISSILE_DT_DEFAULT,  # 导弹亚步步长 s（0.1 s，与 2.2 攻击区解算 dt=0.2 同量级）
     "escape_radius_m": 150e3,    # 逃逸区域半径（距初始点）
@@ -371,7 +373,8 @@ class BVRCombatEnv(gym.Env):
         own_h_ft = float(self.rng.uniform(8000.0, 20000.0))
         own_mach = float(self.rng.uniform(0.7, 0.9))
         own_heading_deg = float(self.rng.uniform(0.0, 360.0))
-        dist = float(self.rng.uniform(30e3, 80e3))          # 初始距离 30~80 km
+        dist = float(self.rng.uniform(self.cfg["scene_dist_min_m"],
+                                      self.cfg["scene_dist_max_m"]))  # 初始距离
         bearing_off_deg = float(self.rng.uniform(-60.0, 60.0))  # 目标相对方位 ±60°
         enemy_h_ft = float(self.rng.uniform(8000.0, 20000.0))
         enemy_mach = float(self.rng.uniform(0.7, 0.9))
