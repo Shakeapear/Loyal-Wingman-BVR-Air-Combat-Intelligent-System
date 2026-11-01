@@ -1,0 +1,56 @@
+{
+  "seed": 11,
+  "steps": 38,
+  "terminated_reason": "enemy_hit",
+  "logic_errors": 0,
+  "safety_violations": 0,
+  "own_fired": 2,
+  "enemy_fired": 2,
+  "in_zone_steps": 8,
+  "frames": 39,
+  "ooda_executed_coverage": 1.0,
+  "ooda_executed_missing": [],
+  "guided_steps": 38,
+  "is_guided_ratio": 1.0,
+  "wall_s": 0.1,
+  "tick_counts": {
+    "has_human_command": 38,
+    "is_missile_incoming": 38,
+    "is_fuel_low": 31,
+    "has_target_detected": 31,
+    "search_target": 46,
+    "is_in_launch_zone": 31,
+    "lock_target": 37,
+    "maintain_formation": 23,
+    "has_weapon_remaining": 8,
+    "fire_missile": 5,
+    "evade_missile": 7
+  },
+  "tactical_ooda_coverage": 1.0,
+  "boundary": {
+    "boundary_trigger_count": 1,
+    "boundary_override_steps": 38,
+    "per_constraint": {
+      "min_altitude": 0,
+      "min_speed": 0,
+      "over_g": 0,
+      "max_speed": 0,
+      "no_fly_zone": 1,
+      "fuel_low": 0
+    },
+    "per_constraint_override_steps": {
+      "min_altitude": 0,
+      "min_speed": 0,
+      "over_g": 0,
+      "max_speed": 0,
+      "no_fly_zone": 38,
+      "fuel_low": 0
+    },
+    "last_override": "exit_no_fly_zone",
+    "log_entries": 1
+  },
+  "csv": "outputs\\guidance_guard_demo\\guidance_seed11.csv",
+  "acmi": "outputs\\guidance_guard_demo\\guidance_seed11.acmi",
+  "events": "outputs\\guidance_guard_demo\\guidance_seed11.events.json",
+  "tree_id": "bt_tactical_2_6"
+}

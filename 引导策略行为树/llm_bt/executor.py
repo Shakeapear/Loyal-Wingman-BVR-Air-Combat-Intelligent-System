@@ -301,9 +301,15 @@ def build_tree(data: dict, blackboard: Blackboard) -> py_trees.behaviour.Behavio
     return make(root_id)
 
 
-def tick_once(root, bb: Blackboard, obs, info, step):
-    """执行一个决策步：更新黑板 → tick → 返回本步动作（Dict 动作空间）。"""
+def tick_once(root, bb: Blackboard, obs, info, step, boundary=None):
+    """执行一个决策步：更新黑板 → tick → 返回本步动作（Dict 动作空间）。
+
+    boundary（可选）：实现 `apply(action, bb) -> action` 的边界守卫（2.6 D2.6-1）。
+    默认 None，保持 2.5 原有行为不变。
+    """
     bb.set_frame(obs, info, step)
     bb.reset_step_weapon()
     root.tick_once()
+    if boundary is not None:
+        return boundary.apply(bb.action, bb)
     return bb.action

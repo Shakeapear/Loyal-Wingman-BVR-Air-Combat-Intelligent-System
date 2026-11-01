@@ -142,9 +142,17 @@ Prompt 生成或人工追加——离线默认判据不构成对树战术优劣�
 - **单机 1v1 环境限制**：`maintain_formation` 无僚机对象（接口预留，按平飞处理）；
   `has_human_command` 默认无外部输入（黑板可置位）；雷达/锁定由环境自动状态机实现，
   `search_target`/`lock_target` 表现为航向/跟踪指令；
-- **2.6 规划**：`boundary_constraints.py`（边界约束子树，纯规则最高优先级）、
-  `tactical_execution_tree.py`（战术执行子树，以本框架生成的树为起点）、
-  `guide_interface.py`（JSRL 引导接口）；
+- **2.6 已实现（2026-11-01，最小可运行版）**：
+  - `llm_bt/boundary_constraints.py`：第一优先级边界约束守卫（低高度/最小速度/
+    过载/最大速度/禁飞区/低燃油，含滞回、覆盖日志与过载操纵限幅）；
+  - `llm_bt/tactical_execution_tree.py`：第二优先级战术执行子树（OODA 8/8，
+    Human_Command / Self_Defense / Fuel_Return / BVR_Engagement / Default_Patrol）；
+  - `llm_bt/guide_interface.py`：JSRL 引导接口（`get_action` /
+    `update_guide_steps` / `reset`，耗尽返回 `(None, False)`）；
+  - `run_guidance_sim.py`：3 seeds × 240 步联调、CSV/ACMI/summary/约束日志；
+  - 结果：OODA 执行覆盖 100%、0 安全违规、0 逻辑错误；行为树 47 项、三套全量
+    150 项测试通过。报告：`docs/阶段二_2.6_引导策略行为树_实现与测试报告.md`，
+    命令：`docs/阶段二_2.6_命令清单.md`；
 - **2.7 规划**：20 组典型态势批量验证、LLM 树 vs 手写树对比、节点执行日志归档。
 
 ## 八、依赖

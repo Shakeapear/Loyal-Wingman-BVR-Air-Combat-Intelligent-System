@@ -1,0 +1,10 @@
+[
+  {
+    "step": 0,
+    "constraint": "no_fly_zone",
+    "event": "trigger",
+    "value": 261.32250879185267,
+    "threshold": 20000.0,
+    "action_override": "exit_no_fly_zone"
+  }
+]
