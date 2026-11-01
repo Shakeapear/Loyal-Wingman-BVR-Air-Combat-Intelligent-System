@@ -103,6 +103,7 @@ def main(argv=None):
     done = int(state.get("done", 0))
     for i in range(done, args.episodes):
         seed = args.base_seed + i
+        t_ep = time.time()
         try:
             ep = _run_episode(env, seed, args.policy)
             state["steps_total"] += ep["steps"]
@@ -118,7 +119,7 @@ def main(argv=None):
             env = _new_env(args.envelope)     # 重建环境继续，最终判定 FAIL
         state["done"] = i + 1
         state["elapsed_s"] = round(float(state.get("elapsed_s", 0.0)) +
-                                   (time.time() - t0), 1)
+                                   (time.time() - t_ep), 1)
         if (i + 1) % 25 == 0 or i + 1 == args.episodes:
             wall = time.time() - t0
             print(f"[进度] {i + 1}/{args.episodes}  episode，"
