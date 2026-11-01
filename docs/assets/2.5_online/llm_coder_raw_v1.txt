@@ -1,0 +1,41 @@
+{
+  "bt_id": "bt_v1",
+  "mission": "超视距空战拦截：雷达搜索并锁定目标，进入攻击区后发射中距弹（双发间隔≥4 s），导弹来袭时优先规避，燃油不足时返航，全程满足安全包线约束",
+  "nodes": [
+    {"id": "n1", "type": "Selector", "label": "BVR_Mission"},
+    {"id": "n2", "type": "Sequence", "label": "SelfDefense"},
+    {"id": "n3", "type": "Condition", "name": "is_missile_incoming"},
+    {"id": "n4", "type": "Action", "name": "evade_missile", "args": {"maneuver_type": "break_turn"}},
+    {"id": "n5", "type": "Sequence", "label": "FuelCheck"},
+    {"id": "n6", "type": "Condition", "name": "is_fuel_low"},
+    {"id": "n7", "type": "Action", "name": "return_to_base"},
+    {"id": "n8", "type": "Sequence", "label": "Engage"},
+    {"id": "n9", "type": "Condition", "name": "has_target_detected"},
+    {"id": "n10", "type": "Action", "name": "lock_target"},
+    {"id": "n11", "type": "Selector", "label": "AttackOrTrack"},
+    {"id": "n12", "type": "Sequence", "label": "Fire"},
+    {"id": "n13", "type": "Condition", "name": "is_in_launch_zone"},
+    {"id": "n14", "type": "Condition", "name": "has_weapon_remaining"},
+    {"id": "n15", "type": "Action", "name": "fire_missile"},
+    {"id": "n16", "type": "Action", "name": "lock_target"},
+    {"id": "n17", "type": "Action", "name": "search_target", "args": {"radar_mode": "auto"}}
+  ],
+  "edges": [
+    {"from": "n1", "to": "n2", "order": 0},
+    {"from": "n1", "to": "n5", "order": 1},
+    {"from": "n1", "to": "n8", "order": 2},
+    {"from": "n1", "to": "n17", "order": 3},
+    {"from": "n2", "to": "n3", "order": 0},
+    {"from": "n2", "to": "n4", "order": 1},
+    {"from": "n5", "to": "n6", "order": 0},
+    {"from": "n5", "to": "n7", "order": 1},
+    {"from": "n8", "to": "n9", "order": 0},
+    {"from": "n8", "to": "n10", "order": 1},
+    {"from": "n8", "to": "n11", "order": 2},
+    {"from": "n11", "to": "n12", "order": 0},
+    {"from": "n11", "to": "n16", "order": 1},
+    {"from": "n12", "to": "n13", "order": 0},
+    {"from": "n12", "to": "n14", "order": 1},
+    {"from": "n12", "to": "n15", "order": 2}
+  ]
+}

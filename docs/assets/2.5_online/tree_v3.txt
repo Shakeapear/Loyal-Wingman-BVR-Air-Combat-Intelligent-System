@@ -1,0 +1,16 @@
+Selector [BVR_Mission]
+├── Sequence [SelfDefense]
+│   ├── is_missile_incoming
+│   └── evade_missile(maneuver_type=break_turn)
+├── Sequence [FuelCheck]
+│   ├── is_fuel_low
+│   └── return_to_base
+├── Sequence [Engage]
+│   ├── has_target_detected
+│   └── Selector [EngageBranch]
+│       ├── Sequence [Attack]
+│       │   ├── is_in_launch_zone
+│       │   ├── has_weapon_remaining
+│       │   └── fire_missile
+│       └── lock_target
+└── search_target(radar_mode=auto)

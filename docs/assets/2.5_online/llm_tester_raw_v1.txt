@@ -1,0 +1,79 @@
+{
+  "test_cases": [
+    {
+      "case_id": "case_1",
+      "description": "初始距离约30 km，目标方位+60°，本机高度8000 ft、马赫0.7，目标高度8000 ft、马赫0.7，迎头接近。",
+      "expected_behavior": "雷达快速探测并锁定目标，进入攻击区后发射导弹（双发间隔≥4 s），全程无安全违规。",
+      "seed": 11,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 60},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "in_zone_steps", "op": ">=", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1}
+      ]
+    },
+    {
+      "case_id": "case_2",
+      "description": "初始距离约50 km，目标方位-60°，本机高度12000 ft、马赫0.8，目标高度12000 ft、马赫0.8，侧向接近。",
+      "expected_behavior": "雷达搜索并锁定目标，进入攻击区后发射导弹，全程满足安全包线。",
+      "seed": 22,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 60},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "in_zone_steps", "op": ">=", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1}
+      ]
+    },
+    {
+      "case_id": "case_3",
+      "description": "初始距离约65 km，目标方位+30°，本机高度16000 ft、马赫0.9，目标高度16000 ft、马赫0.9，迎头接近。",
+      "expected_behavior": "雷达探测并锁定目标，进入攻击区后发射导弹，全程无安全违规。",
+      "seed": 33,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 60},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "in_zone_steps", "op": ">=", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1}
+      ]
+    },
+    {
+      "case_id": "case_4",
+      "description": "初始距离约80 km，目标方位-30°，本机高度20000 ft、马赫0.85，目标高度20000 ft、马赫0.85，迎头接近。",
+      "expected_behavior": "雷达搜索并锁定目标，进入攻击区后发射导弹，全程满足安全包线。",
+      "seed": 44,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 60},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "in_zone_steps", "op": ">=", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1}
+      ]
+    },
+    {
+      "case_id": "case_5",
+      "description": "初始距离约40 km，目标方位0°，本机高度10000 ft、马赫0.75，目标高度10000 ft、马赫0.75，迎头接近。",
+      "expected_behavior": "雷达快速探测并锁定目标，进入攻击区后发射导弹，全程无安全违规。",
+      "seed": 55,
+      "success_criteria": [
+        {"metric": "no_logic_error", "op": "==", "value": 1},
+        {"metric": "safety_violations", "op": "==", "value": 0},
+        {"metric": "no_crash", "op": "==", "value": 1},
+        {"metric": "steps_executed", "op": ">=", "value": 60},
+        {"metric": "fired_own", "op": ">=", "value": 1},
+        {"metric": "in_zone_steps", "op": ">=", "value": 1},
+        {"metric": "engaged", "op": "==", "value": 1}
+      ]
+    }
+  ]
+}

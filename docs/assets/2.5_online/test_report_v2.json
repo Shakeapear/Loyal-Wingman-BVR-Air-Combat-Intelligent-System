@@ -1,0 +1,472 @@
+{
+  "pass_rate": 0.6,
+  "n_pass": 3,
+  "n_cases": 5,
+  "safety_violations": 0,
+  "ooda_coverage": 1.0,
+  "ooda_missing": [],
+  "ooda_executed_coverage": 1.0,
+  "ooda_executed_missing": [],
+  "cases": [
+    {
+      "case_id": "case_1",
+      "seed": 11,
+      "passed": false,
+      "checks": [
+        {
+          "criterion": {
+            "metric": "no_logic_error",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "safety_violations",
+            "op": "==",
+            "value": 0
+          },
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "no_crash",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "steps_executed",
+            "op": ">=",
+            "value": 60
+          },
+          "actual": 38,
+          "passed": false
+        },
+        {
+          "criterion": {
+            "metric": "engaged",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "fired_own",
+            "op": ">=",
+            "value": 1
+          },
+          "actual": 2,
+          "passed": true
+        }
+      ],
+      "result": {
+        "case_id": "case_1",
+        "seed": 11,
+        "steps": 38,
+        "reason": "enemy_hit",
+        "logic_errors": 0,
+        "safety_violations": 0,
+        "in_zone_steps": 25,
+        "fired_own": 2,
+        "enemy_fired": 2,
+        "executed_nodes": [
+          "evade_missile",
+          "fire_missile",
+          "has_target_detected",
+          "has_weapon_remaining",
+          "is_fuel_low",
+          "is_in_launch_zone",
+          "is_missile_incoming",
+          "lock_target",
+          "search_target"
+        ],
+        "tick_counts": {
+          "is_missile_incoming": 38,
+          "is_fuel_low": 26,
+          "has_target_detected": 26,
+          "search_target": 1,
+          "is_in_launch_zone": 25,
+          "has_weapon_remaining": 25,
+          "fire_missile": 5,
+          "lock_target": 23,
+          "evade_missile": 12
+        }
+      }
+    },
+    {
+      "case_id": "case_2",
+      "seed": 27,
+      "passed": true,
+      "checks": [
+        {
+          "criterion": {
+            "metric": "no_logic_error",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "safety_violations",
+            "op": "==",
+            "value": 0
+          },
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "no_crash",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "steps_executed",
+            "op": ">=",
+            "value": 60
+          },
+          "actual": 65,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "engaged",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "fired_own",
+            "op": ">=",
+            "value": 1
+          },
+          "actual": 2,
+          "passed": true
+        }
+      ],
+      "result": {
+        "case_id": "case_2",
+        "seed": 27,
+        "steps": 65,
+        "reason": "enemy_hit",
+        "logic_errors": 0,
+        "safety_violations": 0,
+        "in_zone_steps": 16,
+        "fired_own": 2,
+        "enemy_fired": 2,
+        "executed_nodes": [
+          "fire_missile",
+          "has_target_detected",
+          "has_weapon_remaining",
+          "is_fuel_low",
+          "is_in_launch_zone",
+          "is_missile_incoming",
+          "lock_target",
+          "search_target"
+        ],
+        "tick_counts": {
+          "is_missile_incoming": 65,
+          "is_fuel_low": 65,
+          "has_target_detected": 65,
+          "search_target": 49,
+          "is_in_launch_zone": 16,
+          "has_weapon_remaining": 16,
+          "fire_missile": 5,
+          "lock_target": 14
+        }
+      }
+    },
+    {
+      "case_id": "case_3",
+      "seed": 43,
+      "passed": true,
+      "checks": [
+        {
+          "criterion": {
+            "metric": "no_logic_error",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "safety_violations",
+            "op": "==",
+            "value": 0
+          },
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "no_crash",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "steps_executed",
+            "op": ">=",
+            "value": 60
+          },
+          "actual": 131,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "engaged",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        }
+      ],
+      "result": {
+        "case_id": "case_3",
+        "seed": 43,
+        "steps": 131,
+        "reason": "own_hit",
+        "logic_errors": 0,
+        "safety_violations": 0,
+        "in_zone_steps": 58,
+        "fired_own": 2,
+        "enemy_fired": 2,
+        "executed_nodes": [
+          "evade_missile",
+          "fire_missile",
+          "has_target_detected",
+          "has_weapon_remaining",
+          "is_fuel_low",
+          "is_in_launch_zone",
+          "is_missile_incoming",
+          "lock_target",
+          "search_target"
+        ],
+        "tick_counts": {
+          "is_missile_incoming": 131,
+          "is_fuel_low": 109,
+          "has_target_detected": 109,
+          "search_target": 25,
+          "is_in_launch_zone": 84,
+          "lock_target": 82,
+          "has_weapon_remaining": 52,
+          "fire_missile": 5,
+          "evade_missile": 22
+        }
+      }
+    },
+    {
+      "case_id": "case_4",
+      "seed": 59,
+      "passed": true,
+      "checks": [
+        {
+          "criterion": {
+            "metric": "no_logic_error",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "safety_violations",
+            "op": "==",
+            "value": 0
+          },
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "no_crash",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "steps_executed",
+            "op": ">=",
+            "value": 60
+          },
+          "actual": 68,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "engaged",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        }
+      ],
+      "result": {
+        "case_id": "case_4",
+        "seed": 59,
+        "steps": 68,
+        "reason": "enemy_hit",
+        "logic_errors": 0,
+        "safety_violations": 0,
+        "in_zone_steps": 31,
+        "fired_own": 2,
+        "enemy_fired": 2,
+        "executed_nodes": [
+          "evade_missile",
+          "fire_missile",
+          "has_target_detected",
+          "has_weapon_remaining",
+          "is_fuel_low",
+          "is_in_launch_zone",
+          "is_missile_incoming",
+          "lock_target",
+          "search_target"
+        ],
+        "tick_counts": {
+          "is_missile_incoming": 68,
+          "is_fuel_low": 67,
+          "has_target_detected": 67,
+          "search_target": 36,
+          "is_in_launch_zone": 31,
+          "has_weapon_remaining": 31,
+          "fire_missile": 5,
+          "lock_target": 29,
+          "evade_missile": 1
+        }
+      }
+    },
+    {
+      "case_id": "case_5",
+      "seed": 77,
+      "passed": false,
+      "checks": [
+        {
+          "criterion": {
+            "metric": "no_logic_error",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "safety_violations",
+            "op": "==",
+            "value": 0
+          },
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "no_crash",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "steps_executed",
+            "op": ">=",
+            "value": 60
+          },
+          "actual": 59,
+          "passed": false
+        },
+        {
+          "criterion": {
+            "metric": "engaged",
+            "op": "==",
+            "value": 1
+          },
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "criterion": {
+            "metric": "fired_own",
+            "op": ">=",
+            "value": 1
+          },
+          "actual": 2,
+          "passed": true
+        }
+      ],
+      "result": {
+        "case_id": "case_5",
+        "seed": 77,
+        "steps": 59,
+        "reason": "enemy_hit",
+        "logic_errors": 0,
+        "safety_violations": 0,
+        "in_zone_steps": 41,
+        "fired_own": 2,
+        "enemy_fired": 2,
+        "executed_nodes": [
+          "evade_missile",
+          "fire_missile",
+          "has_target_detected",
+          "has_weapon_remaining",
+          "is_fuel_low",
+          "is_in_launch_zone",
+          "is_missile_incoming",
+          "lock_target",
+          "search_target"
+        ],
+        "tick_counts": {
+          "is_missile_incoming": 59,
+          "is_fuel_low": 55,
+          "has_target_detected": 55,
+          "search_target": 14,
+          "is_in_launch_zone": 41,
+          "has_weapon_remaining": 41,
+          "fire_missile": 5,
+          "lock_target": 39,
+          "evade_missile": 4
+        }
+      }
+    }
+  ],
+  "converged": false,
+  "elapsed_s": 14.8,
+  "schema_versions": {
+    "frame": "frame_v1",
+    "csv": "csv_v1",
+    "info": "info_v1",
+    "result_record": "record_v1",
+    "test_case": "test_case_v1",
+    "bt_schema": "bt_v1"
+  }
+}
