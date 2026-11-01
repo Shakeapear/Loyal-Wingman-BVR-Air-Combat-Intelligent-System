@@ -1,0 +1,56 @@
+{
+  "task": "strike",
+  "policy": "hybrid",
+  "timesteps": 2048,
+  "n_envs": 2,
+  "seed": 0,
+  "model_path": "models\\hybrid_smoke\\hybrid_ppo_final.zip",
+  "tensorboard": null,
+  "metrics": {
+    "task_id": "strike",
+    "policy": "hybrid",
+    "timesteps": 2048,
+    "n_envs": 2,
+    "seed": 0,
+    "wall_s": 37.755,
+    "metrics": {
+      "train/learning_rate": 0.0003,
+      "train/entropy_loss": -5.70413812994957,
+      "train/policy_gradient_loss": -0.0009694227483123541,
+      "train/value_loss": 8546.591186523438,
+      "train/approx_kl": 0.00397752970457077,
+      "train/clip_fraction": 0.0068359375,
+      "train/loss": 4633.7451171875,
+      "train/explained_variance": -0.001586318016052246,
+      "train/n_updates": 32.0,
+      "train/clip_range": 0.2,
+      "train/mean_step_reward": 2.855870894275597,
+      "rollout/ep_rew_mean": 304.3971010572032
+    },
+    "all_finite": true
+  },
+  "eval": {
+    "steps": 16,
+    "finite": true,
+    "in_bounds": true,
+    "mean_reward": 2.5088,
+    "action_min": [
+      0.44982290267944336,
+      0.10856649279594421,
+      0.21638496220111847,
+      0.6326431035995483,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "action_max": [
+      0.5173960328102112,
+      0.14658360183238983,
+      0.43476736545562744,
+      0.6886441111564636,
+      0.0,
+      0.0,
+      1.0
+    ]
+  }
+}

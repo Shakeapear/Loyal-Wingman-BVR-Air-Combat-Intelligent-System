@@ -1,0 +1,73 @@
+{
+  "version": "action_v1",
+  "task_id": "strike",
+  "dim": 7,
+  "dtype": "float32",
+  "fields": [
+    "throttle",
+    "roll",
+    "pitch",
+    "yaw",
+    "fire",
+    "switch",
+    "ecm"
+  ],
+  "low": [
+    0.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "high": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "edge_dims": [
+    4,
+    5,
+    6
+  ],
+  "frame": "ENU/SI",
+  "decision_hz": 1.0,
+  "control_mode": "assisted",
+  "control_modes": [
+    "raw_fcs",
+    "assisted"
+  ],
+  "continuous_semantics": {
+    "raw_fcs": "throttle/roll/pitch/yaw 直接驱动 F-104 人工舵面通道",
+    "assisted": "throttle/roll/pitch 解释为 AP 速度/滚转/高度设定值，yaw 忽略"
+  },
+  "assisted_mapping": {
+    "throttle": "v_cmd_mps = 180 + 100*throttle",
+    "roll": "roll_cmd_rad = 0.90*roll",
+    "pitch": "alt_cmd_m = clip(alt_ref_m + 500*pitch, 3000, 8000)",
+    "yaw": "ignored (AP coordinated turn)"
+  },
+  "mask": {
+    "version": "action_mask_v1",
+    "dim": 7,
+    "fire": "n_missiles>0 and radar_state==TRACK and r_min<=dist<=r_max",
+    "switch": "reserved (always False)",
+    "ecm": "always True"
+  },
+  "mission": "strike",
+  "mission_name_zh": "超视距打击",
+  "policy": "hybrid_actor_critic",
+  "observation": {
+    "version": "bvr_obs_v1+mask_v1",
+    "dim": 35,
+    "base_dim": 28,
+    "mask_dim": 7
+  },
+  "algorithm": "PPO",
+  "model_path": "models\\hybrid_smoke\\hybrid_ppo_final"
+}

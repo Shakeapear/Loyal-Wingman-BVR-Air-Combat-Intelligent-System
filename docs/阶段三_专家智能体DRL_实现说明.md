@@ -13,7 +13,21 @@
 - **任务级（新增）**：`strike` / `patrol` / `defense` / `ew`，统一 `get_action(obs) -> PolicyOutput(ActionV1)`；
 - **技能级（保留）**：`cruise_hold` / `turn` / `climb_descent` / `pursuit` / `evasion`，保持原 `TaskAgent.predict` 与 3 维/离散动作，不退化；
 - **行为树**：新增独立 py_trees 任务选择通道，按黑板任务名选择 4 个任务级智能体，叶节点 `get_action → to_env_action → BVRCombatEnv.step(Dict)`；
-- **JSRL 接入点**：`get_action(..., guide_action=..., guide_steps=...)` 已预留并实现透传/占位，**未实现**完整课程衰减、`jsrl_trainer.py` 与混合动作策略。
+- **JSRL 接入点**：`get_action(..., guide_action=..., guide_steps=...)` 已预留并实现透传/占位；**完整课程衰减与 `jsrl_trainer.py` 未实现**；P1 混合动作策略已于 2026-11-01 实现（见 §1.1）。
+
+### 1.1 P1 混合动作网络增量（2026-11-01）
+
+| 文件 | 内容 | 状态 |
+|------|------|:--:|
+| `agents/hybrid_policy.py` | `HybridActorCritic`（FC 256→128；连续 4 维 μ/log_std；武器 3 维 logits；Critic）、`HybridDistribution`（Gaussian+tanh × Bernoulli，含 tanh 雅可比；掩码维熵=0）、`HybridActorCriticPolicy`（SB3 接入）、`MaskedObsWrapper`（28→35） | ✅ 实现 |
+| `agents/ppo_agent.py` | `HybridPPOAgent` + `python -m agents.ppo_agent` 训练入口（--task/--policy/--timesteps/--n-envs/--seed/--resume/--checkpoint-freq/--tensorboard） | ✅ 实现 |
+| `tests/test_hybrid_policy.py` | 14 项：动作界、log_prob/熵对拍、掩码梯度/采样、`_try_fire_own` 对拍、SB3 predict/evaluate、learn(2048)、save/load | ✅ 14 passed |
+
+- 动作掩码复用 `compute_action_mask`；训练时掩码通过 `MaskedObsWrapper` 拼到 obs（28→35），
+  PPO rollout 与 update 使用同一份掩码，避免训练/推理漂移；
+- `switch` 恒 0、`ecm` 恒 1；连续动作 `throttle∈[0,1]`、`roll/pitch/yaw∈[-1,1]`；
+- 2048 步冒烟（2 envs，seed 0）：`ep_rew_mean=304.40`、loss 有限、`finite/in_bounds=True`；
+- **仍未验收**：P1 的 >60% 命中率、长训练、LSTM/JSRL/多机。状态 🟡。
 
 ---
 

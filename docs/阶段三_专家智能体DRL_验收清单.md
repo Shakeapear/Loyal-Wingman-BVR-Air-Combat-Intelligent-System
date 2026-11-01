@@ -74,7 +74,29 @@
   - 新增 `control_mode/control_modes/assisted_mapping/continuous_semantics`；`*.spec.json` 随模型保存；
   - 证据：`action_spec()` 单测、验证脚本保存的 spec。
 
-### 1.6 范围约束
+### 1.6 P1 混合动作网络（2026-11-01）
+
+- [x] **混合动作网络实现**
+  - `HybridActorCritic`：FC(256→128) 主干、连续 4 维 μ/log_std、武器 3 维 logits、Critic；
+  - `HybridDistribution`：Gaussian+tanh（含雅可比） × Bernoulli；`log_prob`/熵与解析式对拍（atol 1e-5）；
+  - 证据：`agents/hybrid_policy.py`、`tests/test_hybrid_policy.py`（14 项）。
+- [x] **动作掩码训练/推理一致**
+  - 复用 `compute_action_mask`；`MaskedObsWrapper` 将 7 维掩码拼到 obs（28→35）；
+  - 非法 fire logits≤−1e7、采样不选、梯度≈0；无弹/未跟踪/超包线/合法发射与 `_try_fire_own` 对拍；
+  - 证据：`test_illegal_fire_probability_and_gradient_zero`、`TestMaskParity`。
+- [x] **SB3 接入可训**
+  - `HybridActorCriticPolicy` 覆写 `_build/forward/evaluate_actions/get_distribution/predict_values`；
+  - `python -m agents.ppo_agent --task strike --policy hybrid --timesteps 2048 --n-envs 2 --seed 0` 通过；
+  - 2048 步：`ep_rew_mean=304.40`、`policy_gradient_loss=-9.69e-4`、`value_loss=8546.59`、`entropy_loss=-5.704`、`all_finite=True`；评估 `finite/in_bounds=True`；
+  - 证据：`models/hybrid_smoke/train_summary.json`（不入库）、`docs/阶段三_混合动作PPO网络_实现与测试报告.md`。
+- [x] **保存/加载与推理协议**
+  - save/load 后 deterministic 动作一致；`HybridPPOAgent.get_action` 返回 `PolicyOutput(source="drl", masked, action_version="action_v1")`；
+  - 证据：`test_learn_save_load_deterministic`、`test_agent_get_action_policy_output`。
+- [x] **回归**
+  - 多任务 94 + 行为树 52 + 可视化 23 = **169 passed / 0 failed**；原有 MlpPolicy 路径未改。
+- [ ] **P1 性能验收（>60% 命中率）**：未做长训练，状态 🟡；留待服务器训练与固定测试集评估。
+
+### 1.7 范围约束
 
 - [x] **未启动完整训练**
   - 仅 512 步/智能体（验证）与 32 步（pytest），未执行 1e6/1e7 步。
@@ -110,7 +132,7 @@
 | 项 | 状态 | 后续动作 |
 |---|---|---|
 | 完整 JSRL 训练循环（课程衰减、引导样本、内在奖励） | 未实现 | 阶段三 3.1：新增 `jsrl_trainer.py`，接 `get_action(guide_action, guide_steps)` |
-| 混合动作 PPO（连续 4 + Bernoulli 3，掩码进分布） | 未实现 | 阶段三 P1：`hybrid_policy.py`/`ppo_agent.py` |
+| 混合动作 PPO（连续 4 + Bernoulli 3，掩码进分布） | 🟡 网络实现+2048步冒烟通过；命中率/长训练未验收 | 后续：固定测试集长训练，目标 >60% 命中率 |
 | LSTM / frame_stack 部分可观测 | 未实现 | 阶段三 P2 |
 | 多机巡逻/防御/HVA/多方向来袭 | 未实现 | `common/bvr_multi_env.py` 扩展，保持 ActionV1 不变 |
 | 80~120 km / 600 步场景参数化、`obs_v2` 4 维任务标签 | 未实现 | 阶段三 3.2/3.3 |
