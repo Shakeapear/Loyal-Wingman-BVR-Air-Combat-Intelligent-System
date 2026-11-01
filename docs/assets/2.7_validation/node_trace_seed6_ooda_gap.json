@@ -1,0 +1,3381 @@
+{
+  "ok": true,
+  "ooda_complete": false,
+  "entries": 673,
+  "first_step": 0,
+  "last_step": 74,
+  "monotonic": true,
+  "missing_steps": [],
+  "illegal_nodes": [],
+  "ooda_executed_coverage": 0.875,
+  "ooda_executed_missing": [
+    "evade_missile"
+  ],
+  "trace": [
+    {
+      "step": 0,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 0,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 0,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 0,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 0,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 0,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 0,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 0,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 0,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 1,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 1,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 1,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 1,
+      "node": "has_target_detected",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 1,
+      "node": "lock_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 1,
+      "node": "is_in_launch_zone",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 1,
+      "node": "has_weapon_remaining",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 1,
+      "node": "fire_missile",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 2,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 2,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 2,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 2,
+      "node": "has_target_detected",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 2,
+      "node": "lock_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 2,
+      "node": "is_in_launch_zone",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 2,
+      "node": "has_weapon_remaining",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 2,
+      "node": "fire_missile",
+      "status": "FAILURE"
+    },
+    {
+      "step": 2,
+      "node": "lock_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 3,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 3,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 3,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 3,
+      "node": "has_target_detected",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 3,
+      "node": "lock_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 3,
+      "node": "is_in_launch_zone",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 3,
+      "node": "has_weapon_remaining",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 3,
+      "node": "fire_missile",
+      "status": "FAILURE"
+    },
+    {
+      "step": 3,
+      "node": "lock_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 4,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 4,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 4,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 4,
+      "node": "has_target_detected",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 4,
+      "node": "lock_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 4,
+      "node": "is_in_launch_zone",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 4,
+      "node": "has_weapon_remaining",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 4,
+      "node": "fire_missile",
+      "status": "FAILURE"
+    },
+    {
+      "step": 4,
+      "node": "lock_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 5,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 5,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 5,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 5,
+      "node": "has_target_detected",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 5,
+      "node": "lock_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 5,
+      "node": "is_in_launch_zone",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 5,
+      "node": "has_weapon_remaining",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 5,
+      "node": "fire_missile",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 6,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 6,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 6,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 6,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 6,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 6,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 6,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 6,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 6,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 7,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 7,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 7,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 7,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 7,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 7,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 7,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 7,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 7,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 8,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 8,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 8,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 8,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 8,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 8,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 8,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 8,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 8,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 9,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 9,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 9,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 9,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 9,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 9,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 9,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 9,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 9,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 10,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 10,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 10,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 10,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 10,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 10,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 10,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 10,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 10,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 11,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 11,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 11,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 11,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 11,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 11,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 11,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 11,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 11,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 12,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 12,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 12,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 12,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 12,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 12,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 12,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 12,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 12,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 13,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 13,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 13,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 13,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 13,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 13,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 13,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 13,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 13,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 14,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 14,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 14,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 14,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 14,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 14,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 14,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 14,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 14,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 15,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 15,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 15,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 15,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 15,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 15,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 15,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 15,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 15,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 16,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 16,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 16,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 16,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 16,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 16,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 16,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 16,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 16,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 17,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 17,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 17,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 17,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 17,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 17,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 17,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 17,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 17,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 18,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 18,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 18,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 18,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 18,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 18,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 18,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 18,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 18,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 19,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 19,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 19,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 19,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 19,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 19,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 19,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 19,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 19,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 20,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 20,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 20,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 20,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 20,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 20,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 20,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 20,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 20,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 21,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 21,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 21,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 21,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 21,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 21,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 21,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 21,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 21,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 22,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 22,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 22,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 22,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 22,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 22,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 22,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 22,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 22,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 23,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 23,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 23,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 23,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 23,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 23,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 23,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 23,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 23,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 24,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 24,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 24,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 24,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 24,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 24,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 24,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 24,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 24,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 25,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 25,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 25,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 25,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 25,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 25,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 25,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 25,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 25,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 26,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 26,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 26,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 26,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 26,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 26,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 26,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 26,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 26,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 27,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 27,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 27,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 27,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 27,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 27,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 27,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 27,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 27,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 28,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 28,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 28,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 28,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 28,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 28,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 28,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 28,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 28,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 29,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 29,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 29,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 29,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 29,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 29,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 29,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 29,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 29,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 30,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 30,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 30,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 30,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 30,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 30,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 30,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 30,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 30,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 31,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 31,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 31,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 31,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 31,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 31,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 31,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 31,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 31,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 32,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 32,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 32,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 32,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 32,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 32,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 32,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 32,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 32,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 33,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 33,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 33,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 33,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 33,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 33,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 33,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 33,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 33,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 34,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 34,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 34,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 34,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 34,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 34,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 34,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 34,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 34,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 35,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 35,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 35,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 35,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 35,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 35,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 35,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 35,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 35,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 36,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 36,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 36,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 36,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 36,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 36,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 36,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 36,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 36,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 37,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 37,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 37,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 37,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 37,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 37,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 37,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 37,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 37,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 38,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 38,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 38,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 38,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 38,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 38,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 38,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 38,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 38,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 39,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 39,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 39,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 39,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 39,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 39,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 39,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 39,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 39,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 40,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 40,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 40,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 40,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 40,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 40,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 40,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 40,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 40,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 41,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 41,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 41,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 41,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 41,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 41,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 41,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 41,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 41,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 42,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 42,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 42,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 42,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 42,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 42,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 42,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 42,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 42,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 43,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 43,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 43,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 43,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 43,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 43,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 43,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 43,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 43,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 44,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 44,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 44,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 44,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 44,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 44,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 44,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 44,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 44,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 45,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 45,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 45,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 45,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 45,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 45,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 45,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 45,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 45,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 46,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 46,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 46,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 46,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 46,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 46,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 46,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 46,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 46,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 47,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 47,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 47,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 47,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 47,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 47,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 47,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 47,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 47,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 48,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 48,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 48,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 48,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 48,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 48,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 48,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 48,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 48,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 49,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 49,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 49,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 49,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 49,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 49,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 49,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 49,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 49,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 50,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 50,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 50,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 50,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 50,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 50,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 50,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 50,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 50,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 51,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 51,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 51,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 51,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 51,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 51,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 51,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 51,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 51,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 52,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 52,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 52,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 52,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 52,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 52,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 52,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 52,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 52,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 53,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 53,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 53,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 53,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 53,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 53,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 53,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 53,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 53,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 54,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 54,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 54,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 54,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 54,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 54,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 54,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 54,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 54,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 55,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 55,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 55,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 55,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 55,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 55,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 55,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 55,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 55,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 56,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 56,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 56,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 56,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 56,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 56,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 56,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 56,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 56,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 57,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 57,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 57,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 57,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 57,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 57,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 57,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 57,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 57,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 58,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 58,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 58,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 58,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 58,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 58,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 58,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 58,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 58,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 59,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 59,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 59,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 59,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 59,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 59,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 59,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 59,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 59,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 60,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 60,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 60,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 60,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 60,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 60,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 60,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 60,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 60,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 61,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 61,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 61,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 61,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 61,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 61,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 61,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 61,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 61,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 62,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 62,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 62,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 62,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 62,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 62,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 62,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 62,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 62,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 63,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 63,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 63,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 63,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 63,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 63,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 63,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 63,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 63,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 64,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 64,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 64,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 64,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 64,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 64,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 64,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 64,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 64,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 65,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 65,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 65,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 65,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 65,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 65,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 65,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 65,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 65,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 66,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 66,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 66,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 66,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 66,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 66,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 66,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 66,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 66,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 67,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 67,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 67,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 67,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 67,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 67,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 67,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 67,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 67,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 68,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 68,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 68,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 68,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 68,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 68,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 68,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 68,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 68,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 69,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 69,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 69,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 69,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 69,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 69,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 69,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 69,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 69,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 70,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 70,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 70,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 70,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 70,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 70,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 70,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 70,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 70,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 71,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 71,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 71,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 71,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 71,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 71,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 71,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 71,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 71,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 72,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 72,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 72,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 72,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 72,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 72,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 72,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 72,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 72,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 73,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 73,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 73,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 73,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 73,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 73,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 73,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 73,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 73,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 74,
+      "node": "has_human_command",
+      "status": "FAILURE"
+    },
+    {
+      "step": 74,
+      "node": "is_missile_incoming",
+      "status": "FAILURE"
+    },
+    {
+      "step": 74,
+      "node": "is_fuel_low",
+      "status": "FAILURE"
+    },
+    {
+      "step": 74,
+      "node": "has_target_detected",
+      "status": "FAILURE"
+    },
+    {
+      "step": 74,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 74,
+      "node": "is_in_launch_zone",
+      "status": "FAILURE"
+    },
+    {
+      "step": 74,
+      "node": "lock_target",
+      "status": "FAILURE"
+    },
+    {
+      "step": 74,
+      "node": "search_target",
+      "status": "SUCCESS"
+    },
+    {
+      "step": 74,
+      "node": "maintain_formation",
+      "status": "SUCCESS"
+    }
+  ]
+}
