@@ -25,11 +25,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from common.missile_model import launch_envelope
+from common.paths import ensure_writable_dir, results_dir
 
-plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Arial Unicode MS"]
+plt.rcParams["font.sans-serif"] = [
+    "Microsoft YaHei", "SimHei", "Noto Sans CJK SC", "WenQuanYi Zen Hei",
+    "Arial Unicode MS", "DejaVu Sans",
+]
 plt.rcParams["axes.unicode_minus"] = False
 
-RESULTS = Path(__file__).resolve().parent / "results"
+RESULTS = ensure_writable_dir(results_dir(), label="攻击区图表输出目录")
 CACHE_FILE = RESULTS / "launch_envelope_cache.npz"
 BEARINGS = np.arange(-180.0, 181.0, 15.0)
 

@@ -16,7 +16,15 @@ $PY = "C:\Users\36266\.conda\envs\DC\python.exe"
 git status --short
 ```
 
-本轮未新增第三方依赖；如环境缺失，按 `多任务智能体/README.md` 安装 torch(CPU)、gymnasium、stable-baselines3、py_trees、jsbsim、numpy、matplotlib。
+服务器/新机器先跑预检（检查依赖、JSBSim 数据、输出目录权限）：
+
+```powershell
+& $PY -X utf8 "多任务智能体\validation\preflight_server.py" --run-smoke
+```
+
+依赖以 `多任务智能体/requirements-server.txt` 为准（含 PyYAML、scipy、pytest、
+Pillow、imageio-ffmpeg）；Jupyter/LLM 相关依赖不在训练必需范围内。
+若仓库根目录不是默认的 `大创 开发/`，设置 `BVR_JSBSIM_ROOT` 指向 `JSBSim/`。
 
 ## 1. 接口/适配层/注册表/智能体测试
 
@@ -82,7 +90,7 @@ docs\assets\stage3_expert_demo\
 & $PY -m pytest "可视化工具\tests" -q
 ```
 
-预期：80 + 19 + 23 = **122 passed**，0 failed。
+预期：三套全量 **179 passed**，0 failed（以实际输出为准）。
 
 ## 4.1 稳定飞行基线（assisted，240 步）
 

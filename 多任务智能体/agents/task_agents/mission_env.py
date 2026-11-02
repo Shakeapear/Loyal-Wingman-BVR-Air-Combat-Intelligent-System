@@ -24,7 +24,8 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from agents.policy_interface import ACTION_V1_HIGH, ACTION_V1_LOW
+from agents.policy_interface import (ACTION_V1_HIGH, ACTION_V1_LOW,
+                                     clip_action_v1)
 from common.bvr_combat_env import (BVRCombatEnv, FlatActionBVRCombatEnv, OBS_HIGH,
                                    OBS_LOW)
 from common.errors import ARG_INVALID, ValidationError
@@ -87,9 +88,25 @@ class ScaledObservation(gym.ObservationWrapper):
         self._low, self._high = low, np.maximum(high, low + 1e-6)
         self.observation_space = spaces.Box(-np.ones_like(low), np.ones_like(high),
                                             dtype=np.float32)
+        # 保留尺度化前的原始观测：ActionMaskV1 的距离等阈值必须用物理量，
+        # 不能误用 [-1,1] 的尺度化值（info 缺字段时会静默改变发射掩码）。
+        self._last_raw_obs: np.ndarray | None = None
+
+    def _store_raw(self, observation) -> np.ndarray:
+        self._last_raw_obs = np.asarray(observation, dtype=np.float32).copy()
+        return self._last_raw_obs
 
     def observation(self, observation):
-        return normalize_obs(observation, self._low, self._high)
+        raw = self._store_raw(observation)
+        return normalize_obs(raw, self._low, self._high)
+
+    def reset(self, **kwargs):
+        obs, info = self.env.reset(**kwargs)
+        return self.observation(obs), info
+
+    def step(self, action):
+        obs, reward, terminated, truncated, info = self.env.step(action)
+        return self.observation(obs), reward, terminated, truncated, info
 
 
 def normalize_obs(obs, low=None, high=None) -> np.ndarray:
@@ -180,6 +197,11 @@ class FlatTaskMissionEnv(MissionMixin, FlatActionBVRCombatEnv):
         super().__init__(mission=mission, config=config)
         self.action_space = spaces.Box(low=ACTION_V1_LOW.copy(), high=ACTION_V1_HIGH.copy(),
                                        shape=(7,), dtype=np.float32)
+
+    def step(self, action):
+        # FlatActionBVRCombatEnv 历史阈值是 >0；ActionV1 契约/评估阈值是 >0.5。
+        # 这里先按 ActionV1 归一化，避免 P0 训练时 0.01 也触发发射、而评估不触发。
+        return super().step(clip_action_v1(action))
 
 
 def make_task_env(mission: str = "strike", config: dict | None = None,

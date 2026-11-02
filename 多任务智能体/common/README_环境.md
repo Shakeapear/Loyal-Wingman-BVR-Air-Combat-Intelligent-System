@@ -8,6 +8,7 @@ D2.3-1（bvr_combat_env.py）、D2.3-2（jsbsim_bridge.py）、D2.3-3（接口�
 |--------|------|
 | D2.3-1 1v1 超视距交战环境 | `common/bvr_combat_env.py` |
 | D2.3-2 JSBSim 桥接层 | `common/jsbsim_bridge.py`（5 任务技能环境 `jsbsim_env.py` 已改造复用） |
+| 路径解析 | `common/paths.py`（默认 `<repo>/JSBSim`；服务器可用 `BVR_JSBSIM_ROOT` 覆盖并校验必需 XML） |
 | D2.3-3 接口验证脚本 | `validation/check_env_and_throughput.py` → `validation/results/env_check_and_throughput_report.txt` |
 | 单元测试 | `tests/test_bvr_combat_env.py`（20 用例） |
 
@@ -59,6 +60,8 @@ common/
 **SB3 兼容性**：stable-baselines3 2.x 不支持 Dict/Tuple 动作空间（实测报错），
 故提供 `FlatActionBVRCombatEnv`（动作展平为 Box(7)，后 3 维按 `>0` 阈值化为 0/1），
 物理/奖励/终止与观测完全不变，供 PPO/SAC 等训练接入（见 §8）。
+任务级 `FlatTaskMissionEnv` 在进入底层前先按 ActionV1 契约做 `>0.5` 二值化，
+与 `clip_action_v1`/评估口径一致，避免 P0 训练与固定测试集阈值漂移。
 
 **control_mode（阶段三稳定飞行基线）**：`BVRCombatEnv(config={"control_mode": ...})`
 支持 `raw_fcs`（默认，上述人工舵面通道）与 `assisted`（本机接通 JSBSim AP，

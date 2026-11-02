@@ -24,15 +24,15 @@ import torch.nn as nn
 from stable_baselines3 import PPO
 
 from agents.action_adapter import coerce_action_v1, to_flat_action
-from agents.policy_interface import (ACTION_V1_VERSION, SAFE_ACTION_V1,
-                                     PolicyOutput, action_spec, apply_action_mask,
-                                     clip_action_v1, compute_action_mask)
+from agents.policy_interface import (ACTION_V1_DIM, ACTION_V1_VERSION,
+                                     SAFE_ACTION_V1, PolicyOutput, action_spec,
+                                     apply_action_mask, clip_action_v1,
+                                     compute_action_mask)
 from agents.task_agents.mission_env import (MISSION_NAMES_ZH,
                                             FlatTaskMissionEnv, ScaledObservation,
                                             TaskMissionEnv, normalize_obs,
                                             validate_mission, wrap_observation)
-
-MODEL_DIR = Path(__file__).resolve().parents[2] / "models"
+from common.paths import MODEL_DIR
 
 DEFAULT_TRAIN_CONFIG = {
     "algo": "PPO",
@@ -62,13 +62,14 @@ class TaskDRLExpertAgent:
 
     def __init__(self, env_config: dict | None = None, train_config: dict | None = None,
                  seed: int = 42, model_path: str | Path | None = None,
-                 auto_build: bool = False):
+                 auto_build: bool = False, device: str = "cpu"):
         if self.task_id is None:
             raise ValueError("子类必须指定 task_id")
         self.mission = validate_mission(self.mission or self.task_id)
         self.task_id = self.mission
         self.env_config = dict(env_config or {})
         self.control_mode = str(self.env_config.get("control_mode", "assisted"))
+        self.device = str(device)
         self.train_config = dict(DEFAULT_TRAIN_CONFIG)
         if train_config:
             self.train_config.update(train_config)
@@ -139,6 +140,7 @@ class TaskDRLExpertAgent:
             ent_coef=float(self.train_config["ent_coef"]),
             max_grad_norm=float(self.train_config["max_grad_norm"]),
             seed=self.seed,
+            device=self.device,
             verbose=0,
         )
         return self.model
@@ -163,6 +165,12 @@ class TaskDRLExpertAgent:
         })
         return spec
 
+    @staticmethod
+    def _base_obs(obs) -> np.ndarray:
+        """兼容原始 28 维与已拼掩码的 35 维观测，避免误用尺度层。"""
+        arr = np.asarray(obs, dtype=np.float32).reshape(-1)
+        return arr[:-ACTION_V1_DIM] if arr.size == 28 + ACTION_V1_DIM else arr
+
     def get_action(self, obs, *, info: dict | None = None, deterministic: bool = True,
                    mask=None, guide_action=None, guide_steps: int = 0) -> PolicyOutput:
         """统一推理入口。
@@ -171,8 +179,10 @@ class TaskDRLExpertAgent:
         - 否则由 PPO 策略输出 source="drl"；
         - 输出始终裁剪为合法 ActionV1，并按 ActionMaskV1 清零非法武器位。
         """
-        mask_arr = (np.asarray(mask, dtype=bool).reshape(7) if mask is not None
-                    else compute_action_mask(obs, info, self.env_config))
+        base_obs = self._base_obs(obs)
+        mask_arr = (np.asarray(mask, dtype=bool).reshape(ACTION_V1_DIM)
+                    if mask is not None
+                    else compute_action_mask(base_obs, info, self.env_config))
         source = "drl"
         meta: dict[str, Any] = {"deterministic": bool(deterministic)}
 
@@ -183,7 +193,7 @@ class TaskDRLExpertAgent:
         else:
             try:
                 model = self._ensure_model()
-                policy_obs = normalize_obs(obs)
+                policy_obs = normalize_obs(base_obs)
                 raw_action, _ = model.predict(policy_obs, deterministic=deterministic)
                 action = clip_action_v1(raw_action)
             except Exception as exc:  # 行为树安全兜底：不中断整棵树
@@ -192,7 +202,7 @@ class TaskDRLExpertAgent:
                 meta["error"] = f"{type(exc).__name__}: {exc}"
 
         action = apply_action_mask(action, mask_arr)
-        self._last_obs = np.asarray(obs, dtype=np.float32).reshape(-1)
+        self._last_obs = base_obs.copy()
         return PolicyOutput(action=action, source=source, masked=mask_arr,
                             action_version=ACTION_V1_VERSION, task_id=self.task_id,
                             info=meta)
@@ -304,7 +314,7 @@ class TaskDRLExpertAgent:
         if not path.exists():
             raise FileNotFoundError(f"模型不存在: {path}")
         env = wrap_observation(self.build_env()) if build_env else None
-        self.model = self.algo_cls.load(str(path), env=env)
+        self.model = self.algo_cls.load(str(path), env=env, device=self.device)
         self.train_env = env
         return self.model
 

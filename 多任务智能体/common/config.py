@@ -15,8 +15,6 @@ common/config.py
 - 态势相关、需要非线性决策的（盘旋/爬升下降/追击）：[128,128]；
 - 最复杂、奖励稀疏的（规避）：[256,256]（参照 tianshou 默认）。
 """
-import yaml
-
 # 每个任务的网络与算法超参（验证性运行用小步数，完整训练值见 total_timesteps_full）
 TASK_CONFIGS = {
     "cruise_hold": {
@@ -73,6 +71,7 @@ TASK_CONFIGS = {
 
 
 def save_configs(path):
+    import yaml
     with open(path, "w", encoding="utf-8") as f:
         yaml.safe_dump(TASK_CONFIGS, f, allow_unicode=True, sort_keys=False)
 
@@ -80,5 +79,6 @@ def save_configs(path):
 def load_configs(path=None):
     if path is None:
         return TASK_CONFIGS
+    import yaml
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)

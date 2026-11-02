@@ -41,8 +41,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 
 from common.bvr_combat_env import BVRCombatEnv
+from common.paths import ensure_writable_dir, results_dir
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
+RESULTS_DIR = results_dir()
 PROGRESS_FILE = RESULTS_DIR / "stability_progress.json"
 
 # 近水平巡航动作（与 check_env_and_throughput.py 的吞吐工况一致）
@@ -86,7 +87,7 @@ def main(argv=None):
     ap.add_argument("--no-resume", action="store_true", help="忽略进度文件从头跑")
     args = ap.parse_args(argv)
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_writable_dir(RESULTS_DIR, label="稳定性结果目录")
     state = {"done": 0, "errors": [], "reasons": {}, "steps_total": 0,
              "obs_nonfinite": 0, "reward_nonfinite": 0, "elapsed_s": 0.0}
     if PROGRESS_FILE.is_file() and not args.no_resume and args.episodes >= 1000:

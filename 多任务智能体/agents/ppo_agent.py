@@ -25,7 +25,9 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 import time
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -34,8 +36,9 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecMonitor
 
-from agents.hybrid_policy import (HybridActorCriticPolicy, MaskedObsWrapper,
-                                  masked_obs)
+from common.paths import MODEL_DIR, ensure_writable_dir
+
+from agents.hybrid_policy import HybridActorCriticPolicy, MaskedObsWrapper
 from agents.policy_interface import (ACTION_V1_DIM, ACTION_V1_VERSION,
                                      PolicyOutput, action_spec,
                                      apply_action_mask, clip_action_v1,
@@ -45,8 +48,6 @@ from agents.task_agents.mission_env import (MISSION_NAMES_ZH,
                                             FlatTaskMissionEnv, normalize_obs,
                                             scene_config, validate_mission,
                                             wrap_observation)
-
-MODEL_DIR = Path(__file__).resolve().parents[1] / "models"
 
 DEFAULT_TRAIN_CONFIG = {
     "policy": "hybrid",
@@ -108,6 +109,36 @@ class _RewardStatsCallback(BaseCallback):
         return out
 
 
+def _has_prior_artifacts(out_dir: str | Path) -> bool:
+    """判断输出目录是否已有训练产物（用于阻止误覆盖）。"""
+    out = Path(out_dir)
+    for name in ("training_log.csv", "train_summary.json",
+                 "hybrid_ppo_final.zip", "mlp_ppo_final.zip"):
+        if (out / name).exists():
+            return True
+    for sub in ("checkpoints", "eval_periodic"):
+        directory = out / sub
+        if directory.is_dir() and any(p.is_file() for p in directory.rglob("*")):
+            return True
+    return False
+
+
+def _last_logged_episodes(log_path: str | Path) -> int:
+    """从已有 training_log.csv 读取最后一个 episode 计数（续训监控用）。"""
+    path = Path(log_path)
+    try:
+        with path.open("r", newline="", encoding="utf-8") as handle:
+            rows = list(csv.DictReader(handle))
+    except (OSError, csv.Error):
+        return 0
+    for row in reversed(rows):
+        try:
+            return max(0, int(float(row.get("episodes", "") or 0)))
+        except (TypeError, ValueError):
+            continue
+    return 0
+
+
 class _TrainingMonitorCallback(BaseCallback):
     """长训练监控：CSV 学习曲线、每 N episode 固定测试集评估、每 M episode checkpoint。"""
 
@@ -115,7 +146,8 @@ class _TrainingMonitorCallback(BaseCallback):
                  log_path: str | Path, eval_dir: str | Path,
                  checkpoint_dir: str | Path, log_every_steps: int = 512,
                  eval_every_episodes: int = 500,
-                 checkpoint_every_episodes: int = 1000):
+                 checkpoint_every_episodes: int = 1000,
+                 append_log: bool = False, resume_episodes: int = 0):
         super().__init__()
         self.policy = policy
         self.scene = scene
@@ -126,10 +158,12 @@ class _TrainingMonitorCallback(BaseCallback):
         self.log_every_steps = int(log_every_steps)
         self.eval_every_episodes = int(eval_every_episodes)
         self.checkpoint_every_episodes = int(checkpoint_every_episodes)
-        self.episodes = 0
+        self.append_log = bool(append_log)
+        self.episodes = int(resume_episodes)
         self._last_log_step = 0
-        self._last_eval_ep = 0
-        self._last_ckpt_ep = 0
+        # 续训时以已有 episode 计数为基线，避免恢复后立即触发评估/checkpoint。
+        self._last_eval_ep = self.episodes
+        self._last_ckpt_ep = self.episodes
         self._reward_sum = 0.0
         self._reward_n = 0
         self._ep_returns = []
@@ -140,11 +174,25 @@ class _TrainingMonitorCallback(BaseCallback):
     def _on_training_start(self) -> None:
         self._t_start = time.time()
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
-        self._csv = self.log_path.open("w", newline="", encoding="utf-8")
+        resume_csv = (self.append_log and self.log_path.is_file()
+                      and self.log_path.stat().st_size > 0)
+        self._csv = self.log_path.open("a" if resume_csv else "w",
+                                       newline="", encoding="utf-8")
         self._writer = csv.writer(self._csv)
-        self._writer.writerow(["step", "wall_s", "episodes", "mean_step_reward",
-                               "ep_rew_mean", "policy_gradient_loss",
-                               "value_loss", "entropy_loss", "approx_kl"])
+        if not resume_csv:
+            self._writer.writerow(["step", "wall_s", "episodes", "mean_step_reward",
+                                   "ep_rew_mean", "policy_gradient_loss",
+                                   "value_loss", "entropy_loss", "approx_kl"])
+        else:
+            # 续训时保留已有评估历史，避免 eval_history.json 被覆盖。
+            history = self.eval_dir / "eval_history.json"
+            if history.is_file():
+                try:
+                    loaded = json.loads(history.read_text(encoding="utf-8"))
+                    if isinstance(loaded, list):
+                        self.eval_history = loaded
+                except (OSError, ValueError):
+                    pass
         self.eval_dir.mkdir(parents=True, exist_ok=True)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
@@ -182,7 +230,9 @@ class _TrainingMonitorCallback(BaseCallback):
         if (self.eval_every_episodes > 0
                 and self.episodes - self._last_eval_ep >= self.eval_every_episodes):
             from agents.evaluate_strike import evaluate_model
-            tag = f"ep{self.episodes:05d}"
+            # 文件名同时带 episode 与 num_timesteps：续训时即使 episode 计数
+            # 从 0 重新开始，也不会覆盖上一段训练的评估/模型文件。
+            tag = f"ep{self.episodes:05d}_step{step:09d}"
             agg = evaluate_model(self.model, self.policy, self.eval_seeds,
                                  scene=self.scene, deterministic=True,
                                  out_dir=self.eval_dir / tag)
@@ -195,7 +245,7 @@ class _TrainingMonitorCallback(BaseCallback):
         if (self.checkpoint_every_episodes > 0
                 and self.episodes - self._last_ckpt_ep >= self.checkpoint_every_episodes):
             self.model.save(str(self.checkpoint_dir
-                                / f"ckpt_ep{self.episodes:05d}.zip"))
+                                / f"ckpt_ep{self.episodes:05d}_step{step:09d}.zip"))
             self._last_ckpt_ep = self.episodes
         return True
 
@@ -209,10 +259,12 @@ class HybridPPOAgent:
 
     def __init__(self, task: str = "strike", seed: int = 0,
                  env_config: dict | None = None, train_config: dict | None = None,
-                 model_path: str | Path | None = None, scene: str = "default"):
+                 model_path: str | Path | None = None, scene: str = "default",
+                 device: str = "cpu"):
         self.task_id = validate_mission(str(task))
         self.seed = int(seed)
         self.scene = str(scene)
+        self.device = str(device)
         self.env_config = dict(env_config or {})
         self.train_config = dict(DEFAULT_TRAIN_CONFIG)
         if train_config:
@@ -248,7 +300,7 @@ class HybridPPOAgent:
             clip_range=float(cfg["clip_range"]),
             ent_coef=float(cfg["ent_coef"]),
             max_grad_norm=float(cfg["max_grad_norm"]),
-            seed=self.seed, verbose=0,
+            seed=self.seed, device=self.device, verbose=0,
         )
         return self.model
 
@@ -287,8 +339,11 @@ class HybridPPOAgent:
     def get_action(self, obs, *, info=None, deterministic=True, mask=None,
                    guide_action=None, guide_steps: int = 0) -> PolicyOutput:
         info = dict(info or {})
+        obs_arr = np.asarray(obs, dtype=np.float32).reshape(-1)
+        base_obs = (obs_arr[:-ACTION_V1_DIM]
+                    if obs_arr.size == 28 + ACTION_V1_DIM else obs_arr)
         mask_arr = (np.asarray(mask, dtype=bool).reshape(ACTION_V1_DIM) if mask is not None
-                    else compute_action_mask(obs, info, self.env_config))
+                    else compute_action_mask(base_obs, info, self.env_config))
         meta = {"deterministic": bool(deterministic)}
         source = "drl"
         if guide_steps and int(guide_steps) > 0 and guide_action is not None:
@@ -298,7 +353,7 @@ class HybridPPOAgent:
             log_prob = value = None
         else:
             policy_obs = np.concatenate(
-                [normalize_obs(obs).reshape(-1),
+                [normalize_obs(base_obs).reshape(-1),
                  mask_arr.astype(np.float32)], axis=0).astype(np.float32)
             try:
                 raw, log_prob, value = self._predict_with_meta(
@@ -325,7 +380,8 @@ class HybridPPOAgent:
     def train(self, timesteps: int = 2048, progress_bar: bool = False,
               tensorboard_log: str | None = None,
               checkpoint_freq: int = 0, checkpoint_dir: str | Path | None = None,
-              verbose: int = 0, extra_callbacks=None) -> dict:
+              verbose: int = 0, extra_callbacks=None,
+              reset_num_timesteps: bool = True) -> dict:
         model = self._ensure_model()
         if tensorboard_log:
             model.tensorboard_log = str(tensorboard_log)
@@ -341,7 +397,8 @@ class HybridPPOAgent:
                 name_prefix=f"hybrid_{self.task_id}"))
         t0 = time.time()
         model.learn(total_timesteps=int(timesteps), progress_bar=progress_bar,
-                    callback=callbacks or None)
+                    callback=callbacks or None,
+                    reset_num_timesteps=bool(reset_num_timesteps))
         metrics = self._collect_metrics()
         metrics.update(reward_stats.summary())
         self.last_train_metrics = {
@@ -384,7 +441,7 @@ class HybridPPOAgent:
         if not path.exists():
             raise FileNotFoundError(f"模型不存在: {path}")
         env = self.build_env() if build_env else None
-        self.model = PPO.load(str(path), env=env, device="cpu")
+        self.model = PPO.load(str(path), env=env, device=self.device)
         self.train_env = env
         self.model_path = path
         return self.model
@@ -393,12 +450,32 @@ class HybridPPOAgent:
 # ----------------------------------------------------------------------
 # CLI
 # ----------------------------------------------------------------------
+def _subproc_env_fn(policy: str, task: str, scene: str):
+    """SubprocVecEnv 子进程入口：避免每个 JSBSim 进程再开满 CPU 线程。"""
+    import torch
+    torch.set_num_threads(1)
+    return make_policy_env(policy, task, scene)
+
+
+def _choose_vec_env(kind: str) -> str:
+    if kind != "auto":
+        return kind
+    # Windows 的 spawn 对闭包/JSBSim C++ 对象更敏感；本地/单机冒烟默认 dummy，
+    # Linux 服务器默认 subproc。长训练仍可在命令行显式指定。
+    return "dummy" if sys.platform.startswith("win") else "subproc"
+
+
 def _make_vec_env(task: str, n_envs: int, seed: int, policy: str = "hybrid",
-                  scene: str = "default", vec_env: str = "subproc"):
-    def thunk(i):
-        return lambda: make_policy_env(policy, task, scene)
-    fns = [thunk(i) for i in range(int(n_envs))]
-    base = SubprocVecEnv(fns) if vec_env == "subproc" else DummyVecEnv(fns)
+                  scene: str = "default", vec_env: str = "auto"):
+    kind = _choose_vec_env(vec_env)
+    if kind == "subproc":
+        fns = [partial(_subproc_env_fn, policy, task, scene)
+               for _ in range(int(n_envs))]
+        base = SubprocVecEnv(fns)
+    else:
+        fns = [partial(make_policy_env, policy, task, scene)
+               for _ in range(int(n_envs))]
+        base = DummyVecEnv(fns)
     return VecMonitor(base)
 
 
@@ -408,8 +485,11 @@ def main(argv=None) -> int:
     ap.add_argument("--policy", default="hybrid", choices=["hybrid", "mlp"])
     ap.add_argument("--timesteps", type=int, default=2048)
     ap.add_argument("--n-envs", type=int, default=8)
-    ap.add_argument("--vec-env", default="subproc", choices=["subproc", "dummy"],
-                    help="并行环境类型（Linux 长训练用 subproc；Windows 调试可 dummy）")
+    ap.add_argument("--vec-env", default="auto",
+                    choices=["auto", "subproc", "dummy"],
+                    help="并行环境类型（auto：Linux=subproc，Windows=dummy）")
+    ap.add_argument("--device", default="cpu",
+                    help="torch 设备（默认 cpu；本项目不依赖 GPU）")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--scene", default="bvr80-120",
                     choices=["default", "bvr80-120"],
@@ -418,7 +498,9 @@ def main(argv=None) -> int:
     ap.add_argument("--batch-size", type=int, default=64)
     ap.add_argument("--n-epochs", type=int, default=10)
     ap.add_argument("--learning-rate", type=float, default=3e-4)
-    ap.add_argument("--out-dir", default="models/hybrid_smoke")
+    ap.add_argument("--out-dir", default=str(MODEL_DIR / "hybrid_smoke"))
+    ap.add_argument("--overwrite", action="store_true",
+                    help="允许在已有训练产物的输出目录上重新开始（默认拒绝）")
     ap.add_argument("--resume", default=None, help="从已有模型继续训练")
     ap.add_argument("--checkpoint-freq", type=int, default=0,
                     help="每 N 环境步保存 checkpoint（0=关闭）")
@@ -437,27 +519,44 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     task = validate_mission(args.task)
+    if args.n_envs <= 0 or args.n_steps <= 0 or args.batch_size <= 0:
+        raise SystemExit("--n-envs/--n-steps/--batch-size 必须为正整数")
+    rollout = int(args.n_envs) * int(args.n_steps)
+    if rollout % int(args.batch_size) != 0:
+        raise SystemExit(
+            f"n_envs*n_steps={rollout} 必须能被 batch_size={args.batch_size} 整除；"
+            "请调整 --n-envs/--n-steps/--batch-size。")
     seed = int(args.seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = ensure_writable_dir(args.out_dir, label="训练输出目录")
+    resume = bool(args.resume)
+    if not resume and not args.overwrite and _has_prior_artifacts(out_dir):
+        raise SystemExit(
+            f"输出目录已有训练产物：{out_dir}\n"
+            "续训请加 --resume <checkpoint.zip>；确需从头重跑请加 --overwrite，"
+            "或换一个 --out-dir。")
     vec_env = _make_vec_env(task, args.n_envs, seed, args.policy, args.scene, args.vec_env)
     vec_env.seed(seed)
     eval_seeds = parse_seeds(args.eval_seeds)
-    tb_log = (args.tb_log or str(out_dir / "tensorboard")) if args.tensorboard else None
+    tb_log = None
+    if args.tensorboard:
+        tb_log = str(ensure_writable_dir(args.tb_log or (out_dir / "tensorboard"),
+                                         label="TensorBoard 目录"))
+    resume_episodes = _last_logged_episodes(out_dir / "training_log.csv") if resume else 0
     monitor = _TrainingMonitorCallback(
         policy=args.policy, scene=args.scene, eval_seeds=eval_seeds,
         log_path=out_dir / "training_log.csv", eval_dir=out_dir / "eval_periodic",
         checkpoint_dir=out_dir / "checkpoints",
         log_every_steps=args.log_every_steps,
         eval_every_episodes=args.eval_freq_episodes,
-        checkpoint_every_episodes=args.checkpoint_episodes)
+        checkpoint_every_episodes=args.checkpoint_episodes,
+        append_log=resume, resume_episodes=resume_episodes)
 
     if args.policy == "hybrid":
         agent = HybridPPOAgent(
             task=task, seed=seed, model_path=out_dir / "hybrid_ppo_final",
-            scene=args.scene,
+            scene=args.scene, device=args.device,
             train_config={"n_steps": args.n_steps, "batch_size": args.batch_size,
                           "n_epochs": args.n_epochs,
                           "learning_rate": args.learning_rate})
@@ -466,35 +565,46 @@ def main(argv=None) -> int:
         if args.resume:
             if not args.quiet:
                 print(f"[resume] {args.resume}")
-            agent.model = PPO.load(args.resume, env=vec_env, device="cpu")
+            agent.model = PPO.load(args.resume, env=vec_env, device=args.device)
         else:
             agent.build_model(vec_env)
-        # PPO 已带 seed；TensorBoard 在 learn 前设置
+        # PPO 已带 seed；TensorBoard 在 learn 前设置。续训时保留累计步数，
+        # 否则 checkpoint/eval 文件名会从头计数并覆盖上一段产物。
         metrics = agent.train(timesteps=args.timesteps, tensorboard_log=tb_log,
                               checkpoint_freq=args.checkpoint_freq,
                               checkpoint_dir=out_dir / "checkpoints",
-                              verbose=0, extra_callbacks=[monitor])
+                              verbose=0, extra_callbacks=[monitor],
+                              reset_num_timesteps=not resume)
         model_path = agent.save(out_dir / "hybrid_ppo_final")
-        model = PPO.load(str(model_path), env=vec_env, device="cpu")
+        model = PPO.load(str(model_path), env=vec_env, device=args.device)
     else:
         from stable_baselines3 import PPO as SB3PPO
-        model = (SB3PPO.load(args.resume, env=vec_env, device="cpu") if args.resume
+        model = (SB3PPO.load(args.resume, env=vec_env, device=args.device) if args.resume
                  else SB3PPO("MlpPolicy", vec_env,
                              policy_kwargs={"net_arch": [256, 128]},
                              learning_rate=args.learning_rate,
                              n_steps=args.n_steps, batch_size=args.batch_size,
                              n_epochs=args.n_epochs, gamma=0.99, gae_lambda=0.95,
                              clip_range=0.2, ent_coef=0.01, max_grad_norm=0.5,
-                             tensorboard_log=tb_log, seed=seed, verbose=0))
+                             tensorboard_log=tb_log, seed=seed,
+                             device=args.device, verbose=0))
+        callbacks = [monitor]
+        if args.checkpoint_freq and args.checkpoint_freq > 0:
+            cb_dir = ensure_writable_dir(out_dir / "checkpoints",
+                                         label="checkpoint 目录")
+            callbacks.append(CheckpointCallback(
+                save_freq=max(int(args.checkpoint_freq) // max(int(args.n_envs), 1), 1),
+                save_path=str(cb_dir), name_prefix=f"mlp_{task}"))
         t0 = time.time()
-        model.learn(total_timesteps=int(args.timesteps), callback=[monitor])
+        model.learn(total_timesteps=int(args.timesteps), callback=callbacks,
+                    reset_num_timesteps=not resume)
         metrics = {str(k): float(v) for k, v in model.logger.name_to_value.items()
                    if np.isscalar(v)} if model.logger is not None else {}
         metrics["wall_s"] = round(time.time() - t0, 3)
         model_path = out_dir / "mlp_ppo_final"
         model.save(str(model_path))
         model_path = Path(str(model_path) + ".zip")
-        model = SB3PPO.load(str(model_path), env=vec_env, device="cpu")
+        model = SB3PPO.load(str(model_path), env=vec_env, device=args.device)
 
     # 训练后确定性评估：形状/界/掩码一致性
     obs = vec_env.reset()

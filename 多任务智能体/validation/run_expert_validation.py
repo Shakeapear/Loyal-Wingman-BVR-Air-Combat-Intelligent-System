@@ -11,8 +11,8 @@ validation/run_expert_validation.py（阶段三专家智能体 DRL 底座验证�
 5. 保存/加载后同观测推理一致性；
 6. 输出 JSON/TXT 报告（固定 seed，记录耗时/步数/动作统计）。
 
-用法（DC 环境，仓库根目录）：
-    & "C:\\Users\\36266\\.conda\\envs\\DC\\python.exe" "多任务智能体\\validation\\run_expert_validation.py"
+用法（任意目录；脚本自行定位 多任务智能体/）：
+    python 多任务智能体/validation/run_expert_validation.py
     ... --tasks strike,patrol --timesteps 512
 """
 from __future__ import annotations
@@ -34,8 +34,9 @@ if str(_LIB) not in sys.path:
 
 from agents.policy_interface import ACTION_V1_HIGH, ACTION_V1_LOW  # noqa: E402
 from agents.task_agents import TASK_AGENTS  # noqa: E402
+from common.paths import MODEL_DIR, ensure_writable_dir, results_dir  # noqa: E402
 
-RESULTS_DIR = _HERE / "results" / "stage3"
+RESULTS_DIR = results_dir() / "stage3"
 
 
 def _check_action(action, task_id):
@@ -124,7 +125,7 @@ def main(argv=None):
                     help="验证环境单局最大步数（短局加速，非最终场景）")
     ap.add_argument("--envelope", action="store_true",
                     help="启用攻击区解算（默认关闭以加速验证）")
-    ap.add_argument("--model-dir", default=str(_LIB / "models"))
+    ap.add_argument("--model-dir", default=str(MODEL_DIR))
     ap.add_argument("--out-dir", default=str(RESULTS_DIR))
     args = ap.parse_args(argv)
 
@@ -135,8 +136,8 @@ def main(argv=None):
         return 2
 
     model_dir = Path(args.model_dir)
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = ensure_writable_dir(args.out_dir, label="专家验证输出目录")
+    model_dir = ensure_writable_dir(model_dir, label="模型输出目录")
     env_config = {"max_steps": int(args.max_env_steps),
                   "compute_envelope": bool(args.envelope)}
 

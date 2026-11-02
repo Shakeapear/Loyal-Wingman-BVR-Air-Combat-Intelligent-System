@@ -1,7 +1,18 @@
-# 阶段三 P0/P1 服务器依赖（候选，与本地 DC 环境对齐；2026-11-01）
-# 服务器安装完成后建议执行：pip freeze > requirements-server.lock.txt
-# CPU-only 建议先按 PyTorch 官方 CPU 源安装 torch，避免拉取 CUDA 轮子：
-#   pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+# 阶段三 P0/P1 服务器依赖（与本地 DC 环境对齐；2026-11-01）
+# 安装完成后建议执行：pip freeze > requirements-server.lock.txt
+#
+# 1) 先装 CPU-only torch，避免 Linux 默认拉取 CUDA 轮子：
+#    pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+# 2) 再装本文件：
+#    pip install -r 多任务智能体/requirements-server.txt
+# 3) 运行预检：
+#    python 多任务智能体/validation/preflight_server.py --run-smoke
+#
+# 服务器上必须能定位 JSBSim 数据目录（默认 <repo>/JSBSim）：
+#    export BVR_JSBSIM_ROOT=/absolute/path/to/JSBSim
+# 若代码目录只读，可把输出重定向到可写位置：
+#    export BVR_MODEL_DIR=/data/bvr/models
+#    export BVR_RESULTS_DIR=/data/bvr/results
 torch==2.13.0
 stable_baselines3==2.9.0
 gymnasium==1.3.0
@@ -9,7 +20,12 @@ jsbsim==1.3.1
 py_trees==2.5.0
 numpy==2.5.2
 pandas==2.3.3
+scipy==1.18.0
 matplotlib==3.11.1
+Pillow==12.3.0
+imageio-ffmpeg==0.7.0
+PyYAML==6.0.3
 tensorboard==2.21.0
 cloudpickle==3.1.2
 rich==15.0.0
+pytest==9.1.1

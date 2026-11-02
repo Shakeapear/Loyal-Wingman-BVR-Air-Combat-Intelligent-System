@@ -253,7 +253,12 @@ class MaskedObsWrapper(gym.ObservationWrapper):
 
     def _with_mask(self, obs) -> np.ndarray:
         base = np.asarray(obs, dtype=np.float32).reshape(self._base_dim)
-        mask = compute_action_mask(base, self._last_info, self.env_cfg)
+        # 掩码阈值（距离/弹量等）必须使用尺度化前的物理观测；ScaledObservation
+        # 会保存 _last_raw_obs。若上游没有该属性，才退回当前观测（info 完整时
+        # compute_action_mask 仍优先使用 info，不受影响）。
+        raw = getattr(self.env, "_last_raw_obs", None)
+        mask_obs = raw if raw is not None else base
+        mask = compute_action_mask(mask_obs, self._last_info, self.env_cfg)
         return np.concatenate([base, mask.astype(np.float32)], axis=0)
 
     def observation(self, observation):

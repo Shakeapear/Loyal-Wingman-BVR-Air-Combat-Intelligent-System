@@ -26,15 +26,26 @@ import numpy as np
 
 _HERE = Path(__file__).resolve().parent
 _LIB = _HERE.parent
-_ROOT = _LIB.parent
 if str(_LIB) not in sys.path:
     sys.path.insert(0, str(_LIB))
 
 from agents.bt_expert import (build_expert_tree, records_to_csv,  # noqa: E402
                               run_missions)
 from agents.expert_registry import DEFAULT_REGISTRY  # noqa: E402
+from common.paths import (DOCS_ASSETS_DIR, MODEL_DIR, RESULTS_DIR,  # noqa: E402
+                          ensure_writable_dir)
 
-DEFAULT_OUT = _ROOT / "docs" / "assets" / "stage3_expert_demo"
+
+def _default_out() -> str:
+    """优先写 docs/assets；代码目录只读时回退到 validation/results。"""
+    preferred = DOCS_ASSETS_DIR / "stage3_expert_demo"
+    try:
+        ensure_writable_dir(preferred, label="行为树演示输出目录")
+        return str(preferred)
+    except RuntimeError as exc:
+        fallback = RESULTS_DIR / "stage3_expert_demo"
+        print(f"[提示] {exc}\n[提示] 改用可写目录：{fallback}", file=sys.stderr)
+        return str(fallback)
 
 
 def _plot(results: dict, out_png: Path) -> Path:
@@ -80,8 +91,9 @@ def main(argv=None):
     ap.add_argument("--tasks", default="strike,patrol")
     ap.add_argument("--steps", type=int, default=24, help="每个任务最大决策步")
     ap.add_argument("--seed", type=int, default=7)
-    ap.add_argument("--model-dir", default=str(_LIB / "models"))
-    ap.add_argument("--out-dir", default=str(DEFAULT_OUT))
+    ap.add_argument("--model-dir", default=str(MODEL_DIR))
+    ap.add_argument("--out-dir", default=None,
+                    help="产物目录；缺省优先 docs/assets，不可写时回退 results/")
     ap.add_argument("--no-load-models", action="store_true",
                     help="不加载已训练模型（用随机初始化策略演示接口）")
     args = ap.parse_args(argv)
@@ -96,8 +108,8 @@ def main(argv=None):
         print("[错误] 演示仅支持任务级智能体（strike/patrol/defense/ew）", file=sys.stderr)
         return 2
 
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = ensure_writable_dir(args.out_dir or _default_out(),
+                                  label="行为树演示输出目录")
     root, bb = build_expert_tree(tasks=tuple(canonical), max_steps=args.steps,
                                  seed=args.seed, load_models=not args.no_load_models,
                                  model_dir=args.model_dir)

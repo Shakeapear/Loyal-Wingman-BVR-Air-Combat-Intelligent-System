@@ -30,17 +30,13 @@ JSBSimGymBridge：单机 JSBSim 生命周期管理（init/load/reset/step/close�
 """
 from __future__ import annotations
 
-from pathlib import Path
-
 import numpy as np
 
 import jsbsim
 
-from common.constants import (F104_FUEL_CAPACITY_LBS, FPS2MPS, FT2M, G0,
+from common.constants import (F104_FUEL_CAPACITY_LBS, FPS2MPS, FT2M,
                               METERS_PER_DEG, wrap_pi as _wrap_pi)
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-JSB_ROOT = PROJECT_ROOT / "JSBSim"
+from common.paths import jsbsim_root
 
 SIM_DT = 1.0 / 120.0          # JSBSim 内环积分步长（秒）
 
@@ -72,16 +68,10 @@ class JSBSimGymBridge:
     """单机 JSBSim 桥接层（init/load/reset/step/close + SI 状态字典）。"""
 
     def __init__(self, root=None, aircraft="f104", sim_dt=SIM_DT):
-        self.root = str(root or JSB_ROOT)
+        self.root = str(jsbsim_root(root, validate=True))
         self.aircraft = aircraft
         self.sim_dt = float(sim_dt)
-        self.fdm = jsbsim.FGFDMExec(self.root, None)
-        try:
-            self.fdm.set_debug_level(0)
-        except Exception:
-            pass
-        self.fdm.set_dt(self.sim_dt)
-        self.fdm.load_model(aircraft)
+        self.fdm = self._new_fdm()
         self.load()
         self.rng = np.random.default_rng()
         self._origin_lat = 30.0   # reset_cruise.xml 初始纬度
@@ -89,9 +79,46 @@ class JSBSimGymBridge:
 
     # ---------- 生命周期 ----------
 
+    def _new_fdm(self):
+        """创建并校验 FDM 实例；把 C++ 侧失败转成可读的 Python 异常。"""
+        try:
+            fdm = jsbsim.FGFDMExec(self.root, None)
+        except Exception as exc:
+            raise RuntimeError(
+                f"JSBSim 初始化失败：root={self.root}\n"
+                "请确认已安装 jsbsim 且 BVR_JSBSIM_ROOT 指向完整数据目录。"
+            ) from exc
+        try:
+            fdm.set_debug_level(0)
+        except Exception:
+            pass
+        fdm.set_dt(self.sim_dt)
+        try:
+            loaded = fdm.load_model(self.aircraft)
+        except Exception as exc:
+            raise RuntimeError(
+                f"JSBSim 加载机型失败：aircraft={self.aircraft}, root={self.root}"
+            ) from exc
+        if loaded is False:
+            raise RuntimeError(
+                f"JSBSim 找不到机型：aircraft={self.aircraft}, root={self.root}\n"
+                "请确认 JSBSim/aircraft/f104/f104.xml 存在。"
+            )
+        return fdm
+
     def load(self):
         """（重新）加载初始条件文件（reset 内部调用，亦可手动）。"""
-        self.fdm.load_ic("reset_cruise", True)
+        try:
+            loaded = self.fdm.load_ic("reset_cruise", True)
+        except Exception as exc:
+            raise RuntimeError(
+                f"JSBSim 加载初始条件失败：root={self.root}\n"
+                "请确认 JSBSim/aircraft/f104/reset_cruise.xml 存在。"
+            ) from exc
+        if loaded is False:
+            raise RuntimeError(
+                f"JSBSim 找不到初始条件 reset_cruise：root={self.root}"
+            )
 
     def reset(self, seed=None, h_ft=None, mach=None, heading_deg=None,
               lat0_deg=30.0, lon0_deg=120.0, autopilot=False,
@@ -118,13 +145,7 @@ class JSBSimGymBridge:
         # jsbsim 1.3.1 在已飞行过的 FDM 上二次 run_ic 时，ic/vt-fps、ic/mach
         # 的空速换算会复用上一次飞行高度的大气状态，导致重置后马赫数错误；
         # 全新实例上任意高度/马赫覆盖均验证正确。
-        self.fdm = jsbsim.FGFDMExec(self.root, None)
-        try:
-            self.fdm.set_debug_level(0)
-        except Exception:
-            pass
-        self.fdm.set_dt(self.sim_dt)
-        self.fdm.load_model(self.aircraft)
+        self.fdm = self._new_fdm()
         self.load()
         self._set("ic/h-sl-ft", h_ft)
         self._set("ic/terrain-elevation-ft", 0.0)

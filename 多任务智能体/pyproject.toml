@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bvr-agents"
+version = "0.1.0"
+description = "BVR task-level expert agents (PPO/hybrid) and JSBSim environments"
+requires-python = ">=3.10"
+# 运行时依赖以 requirements-server.txt 的固定版本为准；这里只声明包边界，
+# 避免 `pip install -e` 时绕过已锁定的版本。
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+bvr-train = "agents.ppo_agent:main"
+bvr-evaluate = "agents.evaluate_strike:main"
+
+[tool.setuptools]
+package-dir = { "" = "." }
+packages = ["agents", "agents.task_agents", "common"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

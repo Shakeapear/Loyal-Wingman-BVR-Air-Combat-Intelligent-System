@@ -42,8 +42,9 @@ from agents.action_adapter import to_flat_action  # noqa: E402
 from agents.policy_interface import SAFE_ACTION_V1  # noqa: E402
 from agents.task_agents import TASK_AGENTS, FlatTaskMissionEnv  # noqa: E402
 from agents.task_agents.base_task_agent import MODEL_DIR  # noqa: E402
+from common.paths import ensure_writable_dir, results_dir  # noqa: E402
 
-RESULTS_DIR = _HERE / "results" / "stage3_stability"
+RESULTS_DIR = results_dir() / "stage3_stability"
 CSV_FIELDS = ["task_id", "policy", "seed", "step", "h_m", "v_mps", "theta_rad",
               "phi_rad", "throttle", "roll", "pitch", "yaw", "fire", "switch",
               "ecm", "reward", "terminated", "truncated", "terminated_reason"]
@@ -186,8 +187,7 @@ def main(argv=None):
     if any(p not in ("safe", "random", "model") for p in policies):
         print("[错误] policies 仅支持 safe/random/model", file=sys.stderr)
         return 2
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = ensure_writable_dir(args.out_dir, label="稳定飞行结果目录")
     model_dir = Path(args.model_dir)
 
     print(f"[稳定飞行基线] tasks={tasks} seeds={seeds} policies={policies} "

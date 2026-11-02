@@ -25,8 +25,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 
 from common.bvr_combat_env import BVRCombatEnv, make_bvr_env
+from common.paths import ensure_writable_dir, results_dir
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
+RESULTS_DIR = results_dir()
 
 
 def level_action():
@@ -122,7 +123,7 @@ def main():
     args = ap.parse_args()
     sample_s = 15.0 if args.quick else 60.0
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_writable_dir(RESULTS_DIR, label="吞吐测试结果目录")
     lines = [f"BVRCombatEnv 接口验证与吞吐量报告（{datetime.now():%Y-%m-%d %H:%M:%S}）", "=" * 60]
 
     ok, wall = run_env_checker()

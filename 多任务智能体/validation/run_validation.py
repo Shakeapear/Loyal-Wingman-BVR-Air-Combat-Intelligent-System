@@ -23,9 +23,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from agents import AGENTS
 from common.config import TASK_CONFIGS
+from common.paths import ensure_writable_dir, results_dir
 from common.tasks import TASKS, init_task_state
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
+RESULTS_DIR = results_dir()
 
 
 def check_env_smoke(task_id, n_steps=60):
@@ -77,7 +78,7 @@ def main():
     ap.add_argument("--skip-train", action="store_true", help="跳过 L3 极小训练")
     args = ap.parse_args()
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_writable_dir(RESULTS_DIR, label="验证结果目录")
     task_ids = list(AGENTS.keys()) if args.tasks == "all" else args.tasks.split(",")
 
     report = []

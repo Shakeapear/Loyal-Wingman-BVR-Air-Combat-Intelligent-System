@@ -8,6 +8,7 @@
 多任务智能体\
 ├── README.md                     ← 本文件
 ├── common\                       ← 环境与战场要素（自研核心）
+│   ├── paths.py                  ← 路径唯一入口（BVR_* 环境变量、权限校验）
 │   ├── bvr_combat_env.py         ← BVR 1v1 Gym 环境（步骤 2.3，28 维观测 + Dict/Flat 动作）
 │   ├── jsbsim_bridge.py          ← JSBSim 桥接层（NED/英制 ↔ ENU/SI）
 │   ├── jsbsim_env.py             ← JSBSim 单机 Gym 环境（1 Hz 决策 + 自驾仪内环）
@@ -25,11 +26,31 @@
 │   ├── pursuit_dqn.py            ← 任务4 接敌追击 → DQN（离散动作）
 │   └── evasion_ppo.py            ← 任务5 威胁规避 → PPO
 ├── models\                       ← 验证性运行产出的模型（不入库，见 .gitignore）
+├── scripts\
+│   └── train_strike.sh           ← Linux 服务器训练入口（预检 + P0/P1）
 ├── tests\                        ← 环境/导弹/雷达单元测试
 └── validation\
+    ├── preflight_server.py       ← 服务器预检（依赖/JSBSim/权限/冒烟）
     ├── run_validation.py         ← 验证性运行（L1 冒烟 / L2 建模型 / L3 极小训练）
-    └── results\                  ← 验证报告与运行日志
+    └── results\                   ← 验证报告与运行日志
 ```
+
+## 服务器运行（Linux）
+
+训练入口不依赖当前工作目录；路径由 `common/paths.py` 集中解析：
+
+```bash
+export BVR_JSBSIM_ROOT=/path/to/repo/JSBSim   # 默认 <repo>/JSBSim
+export BVR_MODEL_DIR=/data/bvr/models          # 可选：代码目录只读时
+export BVR_RESULTS_DIR=/data/bvr/results       # 可选
+pip install -e 多任务智能体 --no-deps          # 可选：从任意目录 import agents/common
+python 多任务智能体/validation/preflight_server.py --run-smoke
+bash 多任务智能体/scripts/train_strike.sh       # 默认 hybrid，1e6 步，8 envs
+OVERWRITE=1 bash 多任务智能体/scripts/train_strike.sh  # 确认要覆盖已有输出目录时
+```
+
+`ppo_agent --vec-env auto`：Linux 默认 `subproc`，Windows 默认 `dummy`；
+长训练建议显式 `--vec-env subproc`。默认 `--device cpu`，不依赖 GPU。
 
 ## 本库边界（可视化不在此列）
 

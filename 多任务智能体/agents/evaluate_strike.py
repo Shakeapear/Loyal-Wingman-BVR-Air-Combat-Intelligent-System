@@ -23,7 +23,7 @@ from pathlib import Path
 _HERE = Path(__file__).resolve().parent
 _AGENT_LIB = _HERE.parent
 if str(_AGENT_LIB) not in sys.path:
-    sys.path.append(str(_AGENT_LIB))
+    sys.path.insert(0, str(_AGENT_LIB))
 
 import numpy as np
 
@@ -31,6 +31,7 @@ from agents.policy_interface import clip_action_v1, compute_action_mask
 from agents.task_agents.mission_env import (FlatTaskMissionEnv, normalize_obs,
                                             scene_config)
 from common.constants import FT2M, wrap_deg180
+from common.paths import ensure_writable_dir
 
 POLICIES = ("mlp", "hybrid")
 
@@ -146,8 +147,7 @@ def evaluate_model(model, policy: str, seeds: list, scene: str = "bvr80-120",
         "termination_counts": reasons,
     }
     if out_dir is not None:
-        out = Path(out_dir)
-        out.mkdir(parents=True, exist_ok=True)
+        out = ensure_writable_dir(out_dir, label="评估输出目录")
         (out / "eval_metrics.json").write_text(
             json.dumps({"aggregate": aggregate, "episodes": rows},
                        ensure_ascii=False, indent=2), encoding="utf-8")

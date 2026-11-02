@@ -50,7 +50,6 @@ get_viz_frame() 返回全量态势快照；render() 支持 "human"（实时战�
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 import numpy as np
 import gymnasium as gym
@@ -61,6 +60,7 @@ from common.control_mode import assisted_setpoints, validate_control_mode
 from common.errors import CFG_INVALID, ENV_NOT_RESET, ConfigError, ExecutionError
 from common.jsbsim_bridge import JSBSimGymBridge
 from common.missile_model import Missile, launch_envelope, air_density
+from common.paths import visualization_dir
 from common.radar_model import FireControlRadar, RWR, MAWS
 
 DECISION_DT = 1.0                     # 决策周期 s（1 Hz）
@@ -72,16 +72,20 @@ INNER_DT_DEFAULT = 1.0 / 60.0         # 空战环境 JSBSim 内环步长 s（60 
 _GV = np.array([0.0, 0.0, -G0])
 _GZ = np.array([0.0, 0.0, G0])
 
-_VIZ_TOOL_DIR = Path(__file__).resolve().parents[2] / "可视化工具"
-
-
 def _ensure_viz_tool_on_path():
     """把项目级 可视化工具/ 目录加入 sys.path（render() 惰性导入 visualization 包用）。
 
     可视化工具与本库分离（见 可视化工具/README.md）：本库只提供 get_viz_frame()
     数据接口，渲染实现由该工具提供；训练路径（render_mode=None）不触发此调用。
     """
-    path = str(_VIZ_TOOL_DIR)
+    viz_dir = visualization_dir()
+    if not viz_dir.is_dir():
+        raise RuntimeError(
+            f"可视化工具目录不存在：{viz_dir}\n"
+            "训练本身不需要可视化；如仅需训练，请保持 render_mode=None，"
+            "或设置 BVR_VIZ_DIR 指向包含 visualization/ 的目录。"
+        )
+    path = str(viz_dir)
     if path not in sys.path:
         sys.path.append(path)
 
