@@ -134,13 +134,20 @@ def main(argv=None):
     if all_records:
         records_to_csv(all_records, out_dir / "bt_expert_demo.csv")
 
+    model_loaded_all = all(
+        bool((row.get("result") or {}).get("model_loaded", False))
+        for row in results.values())
+    fallback_total = sum(
+        int((row.get("result") or {}).get("fallback_count", 0))
+        for row in results.values())
     summary = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "wall_s": round(wall, 2),
         "tasks": canonical,
         "max_steps": args.steps,
         "seed": args.seed,
-        "models_loaded": not args.no_load_models,
+        "models_loaded": bool(model_loaded_all),
+        "fallback_count": int(fallback_total),
         "results": results,
     }
     (out_dir / "demo_summary.json").write_text(
@@ -152,6 +159,14 @@ def main(argv=None):
     print(f"  CSV: {out_dir / 'bt_expert_demo.csv'}")
     print(f"  截图: {png}")
     ok = all(row["status"] == "SUCCESS" for row in results.values())
+    if not args.no_load_models and not model_loaded_all:
+        ok = False
+        print("[失败] 部分任务未找到已训练模型（演示使用随机初始化策略）",
+              file=sys.stderr)
+    if fallback_total:
+        ok = False
+        print(f"[失败] 推理 fallback 次数={fallback_total}（模型/输入存在异常）",
+              file=sys.stderr)
     return 0 if ok else 1
 
 

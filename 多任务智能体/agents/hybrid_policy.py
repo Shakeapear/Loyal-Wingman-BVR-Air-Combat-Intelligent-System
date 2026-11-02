@@ -12,7 +12,7 @@ agents/hybrid_policy.py
       throttle = (a_0 + 1) / 2 ∈ [0,1]；roll/pitch/yaw = a_1..3 ∈ [-1,1]；
       log_prob 含 tanh 雅可比修正；
     - 武器 3 维：Bernoulli(logits)，logits += (mask_weapon - 1) * 1e8；
-      switch 掩码恒 False（单弹种）；ecm logits 固定 +1e8（恒 True）；
+      switch 掩码恒 False（单弹种）；ecm 由网络学习（0/1 边沿）；
       fire 由 compute_action_mask 决定。
 
 掩码来源：`agents.policy_interface.compute_action_mask`（与 `_try_fire_own` 同源）。
@@ -78,11 +78,12 @@ class HybridActorCritic(nn.Module):
         if mask is not None:
             weapon_mask = mask[..., 4:].to(dtype=logits.dtype, device=logits.device)
             logits = logits + (weapon_mask - 1.0) * MASK_SCALE
-        # switch 恒 False、ecm 恒 True：固定 logits，动作必然为 0/1
+        # switch 当前恒 False（单弹种，接口预留）；ecm 保留网络输出，
+        # 由策略学习是否在某个决策步发送一次 0→1 边沿（不是恒 1）。
         logits = torch.cat([
             logits[..., 0:1],
             torch.full_like(logits[..., 1:2], -MASK_SCALE),
-            torch.full_like(logits[..., 2:3], MASK_SCALE),
+            logits[..., 2:3],
         ], dim=-1)
         value = self.critic(h).squeeze(-1)
         return mu, std, logits, value

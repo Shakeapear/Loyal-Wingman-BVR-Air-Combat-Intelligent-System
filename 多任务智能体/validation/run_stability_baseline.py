@@ -244,7 +244,10 @@ def main(argv=None):
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "steps": int(args.steps), "seeds": seeds, "tasks": tasks,
         "policies": policies, "control_mode": args.control_mode,
-        "enemy_fire_isolated": True, "wall_s": round(wall, 2),
+        "enemy_fire_isolated": True,
+        "performance_claim": False,
+        "scope": "稳定飞行/无弹隔离基线，非战术性能验收",
+        "wall_s": round(wall, 2),
         "passed": sum(1 for r in results if r["pass"]), "total": len(results),
         "results": results, "combat_results": combat_results,
     }

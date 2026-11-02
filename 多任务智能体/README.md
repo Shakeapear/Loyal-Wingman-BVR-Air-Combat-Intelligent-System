@@ -47,7 +47,12 @@ pip install -e 多任务智能体 --no-deps          # 可选：从任意目录 
 python 多任务智能体/validation/preflight_server.py --run-smoke
 bash 多任务智能体/scripts/train_strike.sh       # 默认 hybrid，1e6 步，8 envs
 OVERWRITE=1 bash 多任务智能体/scripts/train_strike.sh  # 确认要覆盖已有输出目录时
+NORMALIZE_REWARD=1 bash 多任务智能体/scripts/train_strike.sh  # 可选 reward 归一化
+NO_ENVELOPE=1 bash 多任务智能体/scripts/train_strike.sh       # 跳过攻击区解算，测吞吐用
 ```
+
+ActionV1 的 fire/switch/ecm 均为 0→1 边沿触发；模型加载会校验
+task/policy/观测维度/scene/control_mode，避免 P0/P1 checkpoint 混用。
 
 `ppo_agent --vec-env auto`：Linux 默认 `subproc`，Windows 默认 `dummy`；
 长训练建议显式 `--vec-env subproc`。默认 `--device cpu`，不依赖 GPU。

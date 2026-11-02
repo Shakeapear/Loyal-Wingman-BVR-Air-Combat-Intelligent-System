@@ -34,11 +34,13 @@ import numpy as np
 import torch
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecMonitor
+from stable_baselines3.common.vec_env import (DummyVecEnv, SubprocVecEnv,
+                                              VecMonitor, VecNormalize)
 
 from common.paths import MODEL_DIR, ensure_writable_dir
 
 from agents.hybrid_policy import HybridActorCriticPolicy, MaskedObsWrapper
+from agents.model_spec import save_model_spec, validate_model_artifact
 from agents.policy_interface import (ACTION_V1_DIM, ACTION_V1_VERSION,
                                      PolicyOutput, action_spec,
                                      apply_action_mask, clip_action_v1,
@@ -147,7 +149,8 @@ class _TrainingMonitorCallback(BaseCallback):
                  checkpoint_dir: str | Path, log_every_steps: int = 512,
                  eval_every_episodes: int = 500,
                  checkpoint_every_episodes: int = 1000,
-                 append_log: bool = False, resume_episodes: int = 0):
+                 append_log: bool = False, resume_episodes: int = 0,
+                 compute_envelope: bool = True):
         super().__init__()
         self.policy = policy
         self.scene = scene
@@ -159,6 +162,7 @@ class _TrainingMonitorCallback(BaseCallback):
         self.eval_every_episodes = int(eval_every_episodes)
         self.checkpoint_every_episodes = int(checkpoint_every_episodes)
         self.append_log = bool(append_log)
+        self.compute_envelope = bool(compute_envelope)
         self.episodes = int(resume_episodes)
         self._last_log_step = 0
         # 续训时以已有 episode 计数为基线，避免恢复后立即触发评估/checkpoint。
@@ -235,7 +239,8 @@ class _TrainingMonitorCallback(BaseCallback):
             tag = f"ep{self.episodes:05d}_step{step:09d}"
             agg = evaluate_model(self.model, self.policy, self.eval_seeds,
                                  scene=self.scene, deterministic=True,
-                                 out_dir=self.eval_dir / tag)
+                                 out_dir=self.eval_dir / tag,
+                                 compute_envelope=self.compute_envelope)
             agg["train_step"] = step
             self.eval_history.append(agg)
             (self.eval_dir / "eval_history.json").write_text(
@@ -315,6 +320,7 @@ class HybridPPOAgent:
             "mission": self.task_id,
             "mission_name_zh": MISSION_NAMES_ZH[self.task_id],
             "policy": "hybrid_actor_critic",
+            "scene": self.scene,
             "observation": {"version": "bvr_obs_v1+mask_v1", "dim": 35,
                             "base_dim": 28, "mask_dim": ACTION_V1_DIM},
             "algorithm": "PPO",
@@ -441,7 +447,11 @@ class HybridPPOAgent:
         if not path.exists():
             raise FileNotFoundError(f"模型不存在: {path}")
         env = self.build_env() if build_env else None
-        self.model = PPO.load(str(path), env=env, device=self.device)
+        self.model = PPO.load(str(path), env=None, device=self.device)
+        validate_model_artifact(self.model, policy="hybrid", task=self.task_id,
+                                scene=self.scene, path=path)
+        if env is not None:
+            self.model.set_env(env)
         self.train_env = env
         self.model_path = path
         return self.model
@@ -450,11 +460,12 @@ class HybridPPOAgent:
 # ----------------------------------------------------------------------
 # CLI
 # ----------------------------------------------------------------------
-def _subproc_env_fn(policy: str, task: str, scene: str):
+def _subproc_env_fn(policy: str, task: str, scene: str,
+                    extra_config: dict | None = None):
     """SubprocVecEnv 子进程入口：避免每个 JSBSim 进程再开满 CPU 线程。"""
     import torch
     torch.set_num_threads(1)
-    return make_policy_env(policy, task, scene)
+    return make_policy_env(policy, task, scene, extra_config=extra_config)
 
 
 def _choose_vec_env(kind: str) -> str:
@@ -466,14 +477,16 @@ def _choose_vec_env(kind: str) -> str:
 
 
 def _make_vec_env(task: str, n_envs: int, seed: int, policy: str = "hybrid",
-                  scene: str = "default", vec_env: str = "auto"):
+                  scene: str = "default", vec_env: str = "auto",
+                  extra_config: dict | None = None):
     kind = _choose_vec_env(vec_env)
     if kind == "subproc":
-        fns = [partial(_subproc_env_fn, policy, task, scene)
+        fns = [partial(_subproc_env_fn, policy, task, scene, extra_config)
                for _ in range(int(n_envs))]
         base = SubprocVecEnv(fns)
     else:
-        fns = [partial(make_policy_env, policy, task, scene)
+        fns = [partial(make_policy_env, policy, task, scene,
+                       extra_config=extra_config)
                for _ in range(int(n_envs))]
         base = DummyVecEnv(fns)
     return VecMonitor(base)
@@ -490,6 +503,11 @@ def main(argv=None) -> int:
                     help="并行环境类型（auto：Linux=subproc，Windows=dummy）")
     ap.add_argument("--device", default="cpu",
                     help="torch 设备（默认 cpu；本项目不依赖 GPU）")
+    ap.add_argument("--compute-envelope", action=argparse.BooleanOptionalAction,
+                    default=True,
+                    help="reset 时解算攻击区（默认开启；--no-compute-envelope 提速）")
+    ap.add_argument("--normalize-reward", action="store_true",
+                    help="启用 reward/return 归一化（默认关闭，便于与旧基线对比）")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--scene", default="bvr80-120",
                     choices=["default", "bvr80-120"],
@@ -536,7 +554,18 @@ def main(argv=None) -> int:
             f"输出目录已有训练产物：{out_dir}\n"
             "续训请加 --resume <checkpoint.zip>；确需从头重跑请加 --overwrite，"
             "或换一个 --out-dir。")
-    vec_env = _make_vec_env(task, args.n_envs, seed, args.policy, args.scene, args.vec_env)
+    vec_env = _make_vec_env(
+        task, args.n_envs, seed, args.policy, args.scene, args.vec_env,
+        extra_config={"compute_envelope": bool(args.compute_envelope)})
+    if args.normalize_reward:
+        stats_path = out_dir / "vecnormalize.pkl"
+        if resume and stats_path.is_file():
+            vec_env = VecNormalize.load(str(stats_path), vec_env)
+        else:
+            if resume and not args.quiet:
+                print("[warn] 未找到 vecnormalize.pkl，续训从零开始统计")
+            vec_env = VecNormalize(vec_env, norm_obs=False, norm_reward=True,
+                                   clip_reward=10.0, gamma=0.99)
     vec_env.seed(seed)
     eval_seeds = parse_seeds(args.eval_seeds)
     tb_log = None
@@ -551,7 +580,8 @@ def main(argv=None) -> int:
         log_every_steps=args.log_every_steps,
         eval_every_episodes=args.eval_freq_episodes,
         checkpoint_every_episodes=args.checkpoint_episodes,
-        append_log=resume, resume_episodes=resume_episodes)
+        append_log=resume, resume_episodes=resume_episodes,
+        compute_envelope=bool(args.compute_envelope))
 
     if args.policy == "hybrid":
         agent = HybridPPOAgent(
@@ -565,7 +595,14 @@ def main(argv=None) -> int:
         if args.resume:
             if not args.quiet:
                 print(f"[resume] {args.resume}")
-            agent.model = PPO.load(args.resume, env=vec_env, device=args.device)
+            agent.model = PPO.load(args.resume, env=None, device=args.device)
+            try:
+                validate_model_artifact(agent.model, policy="hybrid", task=task,
+                                        scene=args.scene, path=args.resume)
+            except ValueError as exc:
+                raise SystemExit(f"[resume 错误] {exc}") from exc
+            agent.model.set_env(vec_env)
+            agent.train_env = vec_env
         else:
             agent.build_model(vec_env)
         # PPO 已带 seed；TensorBoard 在 learn 前设置。续训时保留累计步数，
@@ -577,17 +614,27 @@ def main(argv=None) -> int:
                               reset_num_timesteps=not resume)
         model_path = agent.save(out_dir / "hybrid_ppo_final")
         model = PPO.load(str(model_path), env=vec_env, device=args.device)
+        validate_model_artifact(model, policy="hybrid", task=task,
+                                scene=args.scene, path=model_path)
     else:
         from stable_baselines3 import PPO as SB3PPO
-        model = (SB3PPO.load(args.resume, env=vec_env, device=args.device) if args.resume
-                 else SB3PPO("MlpPolicy", vec_env,
-                             policy_kwargs={"net_arch": [256, 128]},
-                             learning_rate=args.learning_rate,
-                             n_steps=args.n_steps, batch_size=args.batch_size,
-                             n_epochs=args.n_epochs, gamma=0.99, gae_lambda=0.95,
-                             clip_range=0.2, ent_coef=0.01, max_grad_norm=0.5,
-                             tensorboard_log=tb_log, seed=seed,
-                             device=args.device, verbose=0))
+        if args.resume:
+            model = SB3PPO.load(args.resume, env=None, device=args.device)
+            try:
+                validate_model_artifact(model, policy="mlp", task=task,
+                                        scene=args.scene, path=args.resume)
+            except ValueError as exc:
+                raise SystemExit(f"[resume 错误] {exc}") from exc
+            model.set_env(vec_env)
+        else:
+            model = SB3PPO("MlpPolicy", vec_env,
+                           policy_kwargs={"net_arch": [256, 128]},
+                           learning_rate=args.learning_rate,
+                           n_steps=args.n_steps, batch_size=args.batch_size,
+                           n_epochs=args.n_epochs, gamma=0.99, gae_lambda=0.95,
+                           clip_range=0.2, ent_coef=0.01, max_grad_norm=0.5,
+                           tensorboard_log=tb_log, seed=seed,
+                           device=args.device, verbose=0)
         callbacks = [monitor]
         if args.checkpoint_freq and args.checkpoint_freq > 0:
             cb_dir = ensure_writable_dir(out_dir / "checkpoints",
@@ -604,7 +651,18 @@ def main(argv=None) -> int:
         model_path = out_dir / "mlp_ppo_final"
         model.save(str(model_path))
         model_path = Path(str(model_path) + ".zip")
+        save_model_spec(model_path, {
+            "task_id": task, "mission": task, "policy": "mlp",
+            "scene": args.scene, "algorithm": "PPO",
+            "observation": {"version": "bvr_obs_v1", "dim": 28},
+        })
         model = SB3PPO.load(str(model_path), env=vec_env, device=args.device)
+        validate_model_artifact(model, policy="mlp", task=task,
+                                scene=args.scene, path=model_path)
+
+    if args.normalize_reward:
+        vec_env.training = False
+        vec_env.save(str(out_dir / "vecnormalize.pkl"))
 
     # 训练后确定性评估：形状/界/掩码一致性
     obs = vec_env.reset()
@@ -628,10 +686,13 @@ def main(argv=None) -> int:
     if args.final_eval:
         final_eval = evaluate_model(
             model, args.policy, eval_seeds, scene=args.scene,
-            deterministic=True, out_dir=out_dir / "eval_final")
+            deterministic=True, out_dir=out_dir / "eval_final",
+            compute_envelope=bool(args.compute_envelope))
     summary = {
         "task": task, "policy": args.policy, "timesteps": int(args.timesteps),
         "n_envs": int(args.n_envs), "seed": seed, "scene": args.scene,
+        "compute_envelope": bool(args.compute_envelope),
+        "normalize_reward": bool(args.normalize_reward),
         "hyperparams": {"n_steps": args.n_steps, "batch_size": args.batch_size,
                         "n_epochs": args.n_epochs, "learning_rate": args.learning_rate,
                         "gamma": 0.99, "gae_lambda": 0.95, "clip_range": 0.2,

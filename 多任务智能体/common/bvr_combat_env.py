@@ -50,6 +50,7 @@ get_viz_frame() 返回全量态势快照；render() 支持 "human"（实时战�
 from __future__ import annotations
 
 import sys
+import warnings
 
 import numpy as np
 import gymnasium as gym
@@ -331,6 +332,7 @@ class BVRCombatEnv(gym.Env):
         self.enemy_maws = MAWS()
 
         self.rng = np.random.default_rng()
+        self.envelope_fallback_count = 0
         self._reset_state()
 
     # ------------------------------------------------------------------
@@ -352,6 +354,9 @@ class BVRCombatEnv(gym.Env):
         self.enemy_n_left = self.cfg["n_missiles"]
         self.own_selected = 0                 # 本机当前选中武器槽（0/1，接口预留）
         self.ecm_on = False
+        # ActionV1 的 fire/switch/ecm 为边沿触发：只在 0→1 的决策步生效。
+        self._prev_weapon = np.zeros(3, dtype=np.int64)
+        self._envelope_fallback = False
         self.r_max_own = self.r_min_own = self.r_nez_own = None
         self.r_max_enemy = self.r_min_enemy = None
         self._enemy_next_fire_t = 0.0
@@ -413,6 +418,7 @@ class BVRCombatEnv(gym.Env):
         dist0 = float(np.hypot(rel[0], rel[1]))
         bearing_own_deg = float(np.rad2deg(wrap_pi(np.arctan2(rel[0], rel[1]) - s_own["psi_rad"])))
         bearing_enemy_deg = float(np.rad2deg(wrap_pi(np.arctan2(-rel[0], -rel[1]) - s_enemy["psi_rad"])))
+        self._envelope_fallback = False
         if not self.cfg["compute_envelope"]:
             self.r_max_own = self.r_max_enemy = 45e3
             self.r_min_own = self.r_min_enemy = 1e3
@@ -427,8 +433,16 @@ class BVRCombatEnv(gym.Env):
                                             target_h=s_own["h_sl_m"], target_speed=s_own["vtrue_mps"],
                                             bearing_deg=bearing_enemy_deg)
                 self.r_max_enemy, self.r_min_enemy = env_enemy.r_max, env_enemy.r_min
-            except Exception:
-                # 极端随机态势解算失败时退化为保守阈值（不影响环境运行）
+            except Exception as exc:
+                # 解算失败不能静默改变发射包线：记录、告警，严格模式下直接失败。
+                self._envelope_fallback = True
+                self.envelope_fallback_count += 1
+                warnings.warn(
+                    f"launch_envelope 解算失败，使用保守阈值 45 km/1 km："
+                    f"{type(exc).__name__}: {exc}",
+                    RuntimeWarning, stacklevel=2)
+                if self.cfg.get("strict_envelope", False):
+                    raise
                 self.r_max_own = self.r_max_enemy = 45e3
                 self.r_min_own = self.r_min_enemy = 1e3
                 self.r_nez_own = 20e3
@@ -449,7 +463,9 @@ class BVRCombatEnv(gym.Env):
                           "in_zone": False,
                           "r_max_own_m": self.r_max_own, "r_min_own_m": self.r_min_own,
                           "r_nez_own_m": self.r_nez_own,
-                          "r_max_enemy_m": self.r_max_enemy, "r_min_enemy_m": self.r_min_enemy}
+                          "r_max_enemy_m": self.r_max_enemy, "r_min_enemy_m": self.r_min_enemy,
+                          "envelope_fallback": bool(self._envelope_fallback),
+                          "envelope_fallback_count": int(self.envelope_fallback_count)}
         # 实时显示跨 episode 复用：重置轨迹与累计奖励（避免上一局残留）
         if self._display is not None:
             self._display.reset()
@@ -459,15 +475,17 @@ class BVRCombatEnv(gym.Env):
         flight = np.asarray(action["flight"], dtype=float)
         flight[0] = np.clip(flight[0], 0.0, 1.0)
         flight[1:] = np.clip(flight[1:], -1.0, 1.0)
-        weapon = np.asarray(action["weapon"], dtype=int)
-
-        # ---- 离散武器动作（边沿触发）----
-        if weapon[2] == 1:
+        weapon = np.asarray(action["weapon"], dtype=np.int64).reshape(3)
+        # ---- 离散武器动作（ActionV1 边沿触发）----
+        # 只有 0→1 的上升沿才视为一次按键；持续保持 1 不会每步重复发射/翻转。
+        press = (weapon == 1) & (self._prev_weapon == 0)
+        self._prev_weapon = weapon.copy()
+        if press[2]:
             self.ecm_on = not self.ecm_on
-        if weapon[1] == 1:
+        if press[1]:
             self.own_selected = 1 - self.own_selected   # 切换选中武器槽（接口预留）
         fired_own = False
-        if weapon[0] == 1:
+        if press[0]:
             fired_own = self._try_fire_own()
 
         # ---- 敌方脚本策略：追击 + 发射 ----
@@ -585,6 +603,8 @@ class BVRCombatEnv(gym.Env):
             "r_max_own_m": self.r_max_own, "r_min_own_m": self.r_min_own,
             "r_nez_own_m": self.r_nez_own,
             "r_max_enemy_m": self.r_max_enemy, "r_min_enemy_m": self.r_min_enemy,
+            "envelope_fallback": bool(self._envelope_fallback),
+            "envelope_fallback_count": int(self.envelope_fallback_count),
         }
         return obs, float(reward), terminated, truncated, self.last_info
 
@@ -882,7 +902,8 @@ class FlatActionBVRCombatEnv(BVRCombatEnv):
     稳定基线（stable-baselines3 2.x）仅支持 Box/Discrete/MultiDiscrete/MultiBinary
     动作空间，不支持 Dict/Tuple 动作空间，故提供本包装用于训练接入：
     [油门 0~1, 滚转/俯仰/偏航 -1~1, 发射/切换/ECM 阈值维 -1~1]，
-    后 3 维按 >0 阈值转为离散 0/1。不改变环境物理/奖励/终止与观测。
+    后 3 维按 >0 转为离散 0/1，再由 BVRCombatEnv 按 0→1 上升沿执行。
+    不改变环境物理/奖励/终止与观测。
     """
 
     def __init__(self, config=None):

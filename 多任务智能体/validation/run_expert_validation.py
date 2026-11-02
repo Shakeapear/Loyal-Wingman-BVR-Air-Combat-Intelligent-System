@@ -87,6 +87,7 @@ def validate_one(task_id: str, timesteps: int, eval_steps: int, seed: int,
     agent2.load(save_path)
     out_after = agent2.get_action(obs_check, info=info, deterministic=True)
     load_consistent = bool(np.allclose(out_before, out_after.action, atol=1e-6))
+    fallback_count = int(agent.fallback_count + agent2.fallback_count)
     agent.close()
     agent2.close()
 
@@ -103,7 +104,9 @@ def validate_one(task_id: str, timesteps: int, eval_steps: int, seed: int,
         "save_path": str(save_path),
         "load_consistent": load_consistent,
         "load_action_diff": float(np.max(np.abs(out_before - out_after.action))),
+        "fallback_count": fallback_count,
         "ok": bool(action_check["ok"] and pred_check["ok"]
+                   and fallback_count == 0
                    and (timesteps == 0 or train_info.get("all_finite", False))
                    and load_consistent and eval_info.get("reward_finite", False)),
     }
@@ -176,6 +179,8 @@ def main(argv=None):
         "timesteps_per_agent": args.timesteps,
         "eval_steps": args.eval_steps,
         "env_config": env_config,
+        "performance_claim": False,
+        "scope": "小规模训练/接口验证，非战术性能验收",
         "total_wall_s": round(total_s, 3),
         "passed": sum(1 for r in results if r.get("ok")),
         "total": len(results),

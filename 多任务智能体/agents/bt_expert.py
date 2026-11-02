@@ -153,6 +153,8 @@ class ExpertAgentControl(py_trees.behaviour.Behaviour):
             "model_loaded": bool(self.load_model
                                  and self._resolved_model_path() is not None
                                  and self._resolved_model_path().exists()),
+            "fallback_count": sum(1 for r in self.records
+                                  if r.get("source") == "fallback"),
         }
         self.blackboard.results[self.task_id] = summary
         self.blackboard.logs.append({

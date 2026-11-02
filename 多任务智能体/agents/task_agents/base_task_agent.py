@@ -24,6 +24,7 @@ import torch.nn as nn
 from stable_baselines3 import PPO
 
 from agents.action_adapter import coerce_action_v1, to_flat_action
+from agents.model_spec import validate_model_artifact
 from agents.policy_interface import (ACTION_V1_DIM, ACTION_V1_VERSION,
                                      SAFE_ACTION_V1, PolicyOutput, action_spec,
                                      apply_action_mask, clip_action_v1,
@@ -81,6 +82,7 @@ class TaskDRLExpertAgent:
         self.model = None
         self.last_train_metrics: dict[str, Any] = {}
         self._last_obs = None
+        self.fallback_count = 0
         if auto_build:
             self.build_model()
 
@@ -158,6 +160,7 @@ class TaskDRLExpertAgent:
         spec.update({
             "mission": self.mission,
             "mission_name_zh": MISSION_NAMES_ZH[self.mission],
+            "policy": "mlp",
             "observation": {"version": "bvr_obs_v1", "dim": 28,
                             "policy_input": "fixed_scale[-1,1]"},
             "algorithm": self.train_config.get("algo", "PPO"),
@@ -197,9 +200,11 @@ class TaskDRLExpertAgent:
                 raw_action, _ = model.predict(policy_obs, deterministic=deterministic)
                 action = clip_action_v1(raw_action)
             except Exception as exc:  # 行为树安全兜底：不中断整棵树
+                self.fallback_count += 1
                 action = SAFE_ACTION_V1.copy()
                 source = "fallback"
                 meta["error"] = f"{type(exc).__name__}: {exc}"
+                meta["fallback_count"] = self.fallback_count
 
         action = apply_action_mask(action, mask_arr)
         self._last_obs = base_obs.copy()
@@ -314,7 +319,11 @@ class TaskDRLExpertAgent:
         if not path.exists():
             raise FileNotFoundError(f"模型不存在: {path}")
         env = wrap_observation(self.build_env()) if build_env else None
-        self.model = self.algo_cls.load(str(path), env=env, device=self.device)
+        self.model = self.algo_cls.load(str(path), env=None, device=self.device)
+        validate_model_artifact(self.model, policy="mlp", task=self.task_id,
+                                control_mode=self.control_mode, path=path)
+        if env is not None:
+            self.model.set_env(env)
         self.train_env = env
         return self.model
 

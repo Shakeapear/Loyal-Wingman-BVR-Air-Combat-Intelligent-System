@@ -58,8 +58,9 @@ common/
   固定 2×中距弹，切换为接口预留）；ECM=电子干扰开关（效果见 §5.2）。
 
 **SB3 兼容性**：stable-baselines3 2.x 不支持 Dict/Tuple 动作空间（实测报错），
-故提供 `FlatActionBVRCombatEnv`（动作展平为 Box(7)，后 3 维按 `>0` 阈值化为 0/1），
-物理/奖励/终止与观测完全不变，供 PPO/SAC 等训练接入（见 §8）。
+故提供 `FlatActionBVRCombatEnv`（动作展平为 Box(7)，后 3 维按 `>0` 转为 0/1，
+再由环境按 ActionV1 的 0→1 上升沿触发），物理/奖励/终止与观测完全不变，
+供 PPO/SAC 等训练接入（见 §8）。
 任务级 `FlatTaskMissionEnv` 在进入底层前先按 ActionV1 契约做 `>0.5` 二值化，
 与 `clip_action_v1`/评估口径一致，避免 P0 训练与固定测试集阈值漂移。
 
@@ -125,6 +126,8 @@ common/
 - 静态近似理由：解算一次 ~0.6 s，逐步解算会破坏 1 Hz 实时性；初始态势下解算的
   包线与交战前期几何一致，作为发射决策阈值足够（发射时点亦在包线内侧判定）。
 - `config["compute_envelope"]=False` 可跳过（单测/吞吐测试用，改用保守固定阈值）。
+- 解算失败不再静默：`info["envelope_fallback"]`/`envelope_fallback_count` 记录，
+  并发 `RuntimeWarning`；`config["strict_envelope"]=True` 时直接抛异常。
 
 ### 5.2 导弹（missile_model.Missile）
 

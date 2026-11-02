@@ -54,7 +54,7 @@ class TestHybridNetwork:
         assert torch.all(actions[:, 1:4].abs() <= 1)
         assert set(actions[:, 4:].unique().tolist()) <= {0.0, 1.0}
         assert torch.all(actions[:, 5] == 0)          # switch 恒 False
-        assert torch.all(actions[:, 6] == 1)          # ecm 恒 True
+        assert set(actions[:, 6].unique().tolist()) <= {0.0, 1.0}  # ecm 可学习
 
     def test_log_prob_matches_analytic_formula(self):
         net = HybridActorCritic(28)
@@ -108,7 +108,8 @@ class TestHybridNetwork:
         mu, std, logits, _ = net(_obs(8), mask)
         dist = HybridDistribution(mu, std, logits, mask[:, 4:])
         mode = dist.mode()
-        assert torch.all(mode[:, 5] == 0) and torch.all(mode[:, 6] == 1)
+        assert torch.all(mode[:, 5] == 0)
+        assert set(mode[:, 6].unique().tolist()) <= {0.0, 1.0}
         assert torch.equal(mode, dist.get_actions(deterministic=True))
 
     def test_split_obs_mask(self):
@@ -220,7 +221,7 @@ class TestSB3Integration:
         assert action.shape == (7,)
         assert 0 <= action[0] <= 1 and np.all(np.abs(action[1:4]) <= 1)
         assert action[4] == 0 or obs[32] > 0.5      # fire 不越过掩码
-        assert action[5] == 0 and action[6] == 1
+        assert action[5] == 0 and action[6] in (0.0, 1.0)
 
         obs_t = torch.as_tensor(obs).float().unsqueeze(0)
         act_t = torch.as_tensor(action).float().unsqueeze(0)
@@ -264,7 +265,7 @@ class TestSB3Integration:
         assert out.action_version == "action_v1"
         assert out.masked is not None and out.masked.shape == (7,)
         assert out.action[4] == 0                     # 未 TRACK：fire 禁用
-        assert out.action[5] == 0 and out.action[6] == 1
+        assert out.action[5] == 0 and out.action[6] in (0.0, 1.0)
         out2 = agent.get_action(obs[:28], info={"own_missiles_left": 2,
                                                 "radar_state": "TRACK",
                                                 "dist_m": 40000.0,

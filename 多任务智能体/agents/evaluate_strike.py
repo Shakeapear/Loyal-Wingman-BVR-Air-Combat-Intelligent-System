@@ -27,6 +27,7 @@ if str(_AGENT_LIB) not in sys.path:
 
 import numpy as np
 
+from agents.model_spec import validate_model_artifact
 from agents.policy_interface import clip_action_v1, compute_action_mask
 from agents.task_agents.mission_env import (FlatTaskMissionEnv, normalize_obs,
                                             scene_config)
@@ -120,10 +121,12 @@ def run_episode(model, policy: str, seed: int, env_config: dict,
 
 
 def evaluate_model(model, policy: str, seeds: list, scene: str = "bvr80-120",
-                   deterministic: bool = True, out_dir: str | Path | None = None) -> dict:
+                   deterministic: bool = True, out_dir: str | Path | None = None,
+                   compute_envelope: bool = True) -> dict:
     if policy not in POLICIES:
         raise ValueError(f"policy 必须为 {POLICIES}")
     env_config = scene_config(scene)
+    env_config["compute_envelope"] = bool(compute_envelope)
     rows = [run_episode(model, policy, seed, env_config, deterministic)
             for seed in seeds]
     n = len(rows)
@@ -174,15 +177,23 @@ def main(argv=None) -> int:
     ap.add_argument("--seeds", default="1-20")
     ap.add_argument("--out-dir", default=None)
     ap.add_argument("--stochastic", action="store_true", help="默认 deterministic")
+    ap.add_argument("--no-envelope", action="store_true",
+                    help="跳过攻击区解算（快速评估；默认与训练一致开启）")
     args = ap.parse_args(argv)
 
     from stable_baselines3 import PPO
     model = PPO.load(args.model, device="cpu")
+    try:
+        validate_model_artifact(model, policy=args.policy, task="strike",
+                                scene=args.scene, path=args.model)
+    except ValueError as exc:
+        raise SystemExit(f"[模型校验失败] {exc}") from exc
     seeds = parse_seeds(args.seeds)
     out = Path(args.out_dir) if args.out_dir else (
         Path(args.model).with_suffix("").parent / f"eval_{args.policy}")
     agg = evaluate_model(model, args.policy, seeds, scene=args.scene,
-                         deterministic=not args.stochastic, out_dir=out)
+                         deterministic=not args.stochastic, out_dir=out,
+                         compute_envelope=not args.no_envelope)
     print(f"[{args.policy}] hit={agg['hit_rate']:.0%} survival={agg['survival_rate']:.0%} "
           f"misfire={agg['misfire_rate']:.0%} safety={agg['safety_violations']} "
           f"avg_steps={agg['avg_steps']} avg_return={agg['avg_return']}")

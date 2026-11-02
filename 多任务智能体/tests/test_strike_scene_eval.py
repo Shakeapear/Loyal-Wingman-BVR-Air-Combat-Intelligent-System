@@ -54,7 +54,8 @@ class _StubModel:
 
 def test_evaluate_model_smoke(tmp_path):
     agg = evaluate_model(_StubModel(), "hybrid", [1], scene="bvr80-120",
-                         deterministic=True, out_dir=tmp_path)
+                         deterministic=True, out_dir=tmp_path,
+                         compute_envelope=False)
     assert agg["n_episodes"] == 1
     assert agg["hit_rate"] in (0.0, 1.0)
     assert "termination_counts" in agg and "avg_steps" in agg

@@ -6,6 +6,8 @@
 #   POLICY=mlp TIMESTEPS=1000000 N_ENVS=8 OUT_DIR=models/p0_strike_1m \
 #       bash 多任务智能体/scripts/train_strike.sh
 #   OVERWRITE=1 ...   # 允许在已有输出目录上从头重跑（默认拒绝，防止误覆盖）
+#   NORMALIZE_REWARD=1 ...  # 启用 reward/return 归一化
+#   NO_ENVELOPE=1 ...       # 跳过 reset 攻击区解算（快速对比/吞吐测试）
 #
 # 所有路径都从脚本位置推导，不依赖当前工作目录；需要覆盖时用环境变量。
 set -euo pipefail
@@ -38,6 +40,8 @@ EVAL_SEEDS="${EVAL_SEEDS:-1-20}"
 OUT_DIR="${OUT_DIR:-${BVR_MODEL_DIR:-$LIB_DIR/models}/${POLICY}_strike_${TIMESTEPS}}"
 EXTRA_ARGS="${EXTRA_ARGS:-}"
 OVERWRITE="${OVERWRITE:-}"
+NORMALIZE_REWARD="${NORMALIZE_REWARD:-}"
+NO_ENVELOPE="${NO_ENVELOPE:-}"
 
 echo "[预检] python=$PYTHON policy=$POLICY timesteps=$TIMESTEPS n_envs=$N_ENVS"
 echo "[输出] $OUT_DIR"
@@ -65,4 +69,6 @@ echo "[输出] $OUT_DIR"
   --tb-log "$OUT_DIR/tensorboard" \
   ${FINAL_EVAL:+--final-eval} \
   ${OVERWRITE:+--overwrite} \
+  ${NORMALIZE_REWARD:+--normalize-reward} \
+  ${NO_ENVELOPE:+--no-compute-envelope} \
   $EXTRA_ARGS

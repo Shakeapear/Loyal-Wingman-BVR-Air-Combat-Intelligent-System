@@ -63,6 +63,34 @@ def test_action_observation_spaces():
     env.own.close(); env.enemy.close()
 
 
+def test_envelope_fallback_is_reported(monkeypatch):
+    import common.bvr_combat_env as mod
+    monkeypatch.setattr(mod, "launch_envelope",
+                        lambda **kwargs: (_ for _ in ()).throw(RuntimeError("boom")))
+    env = BVRCombatEnv(config={"compute_envelope": True, "n_missiles": 0,
+                               "enemy_fire_interval_s": 1e9})
+    try:
+        with pytest.warns(RuntimeWarning):
+            _, info = env.reset(seed=0)
+        assert info["envelope_fallback"] is True
+        assert info["envelope_fallback_count"] == 1
+    finally:
+        env.own.close(); env.enemy.close()
+
+
+def test_envelope_fallback_strict_raises(monkeypatch):
+    import common.bvr_combat_env as mod
+    monkeypatch.setattr(mod, "launch_envelope",
+                        lambda **kwargs: (_ for _ in ()).throw(RuntimeError("boom")))
+    env = BVRCombatEnv(config={"compute_envelope": True, "strict_envelope": True,
+                               "n_missiles": 0, "enemy_fire_interval_s": 1e9})
+    try:
+        with pytest.raises(RuntimeError):
+            env.reset(seed=0)
+    finally:
+        env.own.close(); env.enemy.close()
+
+
 def test_action_maps_to_fcs_channels():
     """连续动作直接映射到 F-104 人工通道（AP 主开关关闭）。"""
     env = make_env()
@@ -250,8 +278,35 @@ def test_weapon_switch_toggle():
     env.reset(seed=0)
     env.step({"flight": NOOP["flight"], "weapon": np.array([0, 1, 0])})
     assert env.own_selected == 1
+    env.step({"flight": NOOP["flight"], "weapon": np.array([0, 0, 0])})  # 释放
     env.step({"flight": NOOP["flight"], "weapon": np.array([0, 1, 0])})
     assert env.own_selected == 0
+    env.own.close(); env.enemy.close()
+
+
+def test_weapon_actions_are_edge_triggered():
+    """ActionV1 的 fire/switch/ecm 只在 0→1 的决策步生效。"""
+    env = make_env()
+    env.reset(seed=0)
+    env.enemy_n_left = 0
+    calls = []
+
+    def fake_fire():
+        calls.append(1)
+        return False
+
+    env._try_fire_own = fake_fire
+    for weapon in ([1, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0]):
+        env.step({"flight": NOOP["flight"], "weapon": np.array(weapon)})
+    assert len(calls) == 2, "持续 fire=1 不应每步重复触发"
+
+    env.step({"flight": NOOP["flight"], "weapon": np.array([0, 0, 1])})
+    assert env.ecm_on
+    env.step({"flight": NOOP["flight"], "weapon": np.array([0, 0, 1])})
+    assert env.ecm_on, "持续 ecm=1 不应每步翻转"
+    env.step({"flight": NOOP["flight"], "weapon": np.array([0, 0, 0])})
+    env.step({"flight": NOOP["flight"], "weapon": np.array([0, 0, 1])})
+    assert not env.ecm_on
     env.own.close(); env.enemy.close()
 
 
@@ -273,8 +328,10 @@ def test_missile_full_chain_headon():
     fired = False
     reason, info = None, {}
     for i in range(180):
+        # ActionV1 fire 为边沿触发：每两拍发一次 0→1，而不是持续保持 1。
+        press = (not fired) and (i % 2 == 0)
         a = {"flight": np.array([0.55, 0.0, -0.08, 0.0], dtype=np.float32),
-             "weapon": np.array([1, 0, 0]) if not fired else np.array([0, 0, 0])}
+             "weapon": np.array([1, 0, 0]) if press else np.array([0, 0, 0])}
         _, r, term, trunc, info = env.step(a)
         if info["own_fired"] >= 1:
             fired = True
