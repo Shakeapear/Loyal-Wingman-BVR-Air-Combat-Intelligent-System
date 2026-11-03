@@ -4,7 +4,7 @@
 ================================================================
 统一封装三种 provider（stdlib urllib 实现，不引入新依赖）：
 
-- deepseek：DeepSeek 开放平台（OpenAI 兼容协议），默认模型 deepseek-chat，
+- deepseek：DeepSeek 开放平台（OpenAI 兼容协议），默认模型 deepseek-flash，
   API Key 取环境变量 DEEPSEEK_API_KEY；
 - openai  ：OpenAI 兼容端点，默认模型 gpt-4o，API Key 取 OPENAI_API_KEY；
 - mock    ：离线确定性模式（mock_llm.py），无需 Key，用于开发/单测/演示。
@@ -30,7 +30,7 @@ from common.errors import (CFG_INVALID, LLM_AUTH_MISSING, LLM_HTTP_ERROR,
 PROVIDERS = {
     "deepseek": {
         "base_url": "https://api.deepseek.com",
-        "model": "deepseek-chat",
+        "model": "deepseek-flash",
         "key_env": "DEEPSEEK_API_KEY",
         "base_env": "DEEPSEEK_BASE_URL",
     },

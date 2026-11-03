@@ -1,0 +1,268 @@
+{
+  "bt_id": "bt_v2",
+  "mission": "超视距空战拦截：雷达搜索并锁定目标，进入攻击区后发射中距弹（双发间隔≥4 s），导弹来袭时优先规避，燃油不足时返航，全程满足安全包线约束。验证场景：80–120 km、600 步；需要远距搜索/闭合，并在 NEZ 内发射。",
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "Selector",
+      "label": "BVR_Mission"
+    },
+    {
+      "id": "n2",
+      "type": "Sequence",
+      "label": "SelfDefense"
+    },
+    {
+      "id": "n3",
+      "type": "Sequence",
+      "label": "FuelRTB"
+    },
+    {
+      "id": "n4",
+      "type": "Sequence",
+      "label": "Attack"
+    },
+    {
+      "id": "n5",
+      "type": "Sequence",
+      "label": "SearchPatrol"
+    },
+    {
+      "id": "n6",
+      "type": "Condition",
+      "name": "is_missile_incoming"
+    },
+    {
+      "id": "n7",
+      "type": "Action",
+      "name": "evade_missile",
+      "args": {
+        "maneuver_type": "defensive_spiral"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "Condition",
+      "name": "is_fuel_low"
+    },
+    {
+      "id": "n9",
+      "type": "Action",
+      "name": "return_to_base"
+    },
+    {
+      "id": "n10",
+      "type": "Condition",
+      "name": "has_target_detected"
+    },
+    {
+      "id": "n11",
+      "type": "Selector",
+      "label": "Engagement"
+    },
+    {
+      "id": "n12",
+      "type": "Sequence",
+      "label": "Launch"
+    },
+    {
+      "id": "n13",
+      "type": "Sequence",
+      "label": "CrankIfInNEZ"
+    },
+    {
+      "id": "n14",
+      "type": "Sequence",
+      "label": "CloseAndTrack"
+    },
+    {
+      "id": "n15",
+      "type": "Condition",
+      "name": "is_in_launch_zone"
+    },
+    {
+      "id": "n16",
+      "type": "Condition",
+      "name": "is_in_nez"
+    },
+    {
+      "id": "n17",
+      "type": "Condition",
+      "name": "has_weapon_remaining"
+    },
+    {
+      "id": "n18",
+      "type": "Action",
+      "name": "fire_missile"
+    },
+    {
+      "id": "n19",
+      "type": "Condition",
+      "name": "is_in_nez"
+    },
+    {
+      "id": "n20",
+      "type": "Action",
+      "name": "lock_target"
+    },
+    {
+      "id": "n21",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "crank"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "Action",
+      "name": "lock_target"
+    },
+    {
+      "id": "n23",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "intercept_closure"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "Action",
+      "name": "search_target",
+      "args": {
+        "radar_mode": "auto"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "search_pattern"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "order": 0
+    },
+    {
+      "from": "n1",
+      "to": "n3",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n4",
+      "order": 2
+    },
+    {
+      "from": "n1",
+      "to": "n5",
+      "order": 3
+    },
+    {
+      "from": "n2",
+      "to": "n6",
+      "order": 0
+    },
+    {
+      "from": "n2",
+      "to": "n7",
+      "order": 1
+    },
+    {
+      "from": "n3",
+      "to": "n8",
+      "order": 0
+    },
+    {
+      "from": "n3",
+      "to": "n9",
+      "order": 1
+    },
+    {
+      "from": "n4",
+      "to": "n10",
+      "order": 0
+    },
+    {
+      "from": "n4",
+      "to": "n11",
+      "order": 1
+    },
+    {
+      "from": "n11",
+      "to": "n12",
+      "order": 0
+    },
+    {
+      "from": "n11",
+      "to": "n13",
+      "order": 1
+    },
+    {
+      "from": "n11",
+      "to": "n14",
+      "order": 2
+    },
+    {
+      "from": "n12",
+      "to": "n15",
+      "order": 0
+    },
+    {
+      "from": "n12",
+      "to": "n16",
+      "order": 1
+    },
+    {
+      "from": "n12",
+      "to": "n17",
+      "order": 2
+    },
+    {
+      "from": "n12",
+      "to": "n18",
+      "order": 3
+    },
+    {
+      "from": "n13",
+      "to": "n19",
+      "order": 0
+    },
+    {
+      "from": "n13",
+      "to": "n20",
+      "order": 1
+    },
+    {
+      "from": "n13",
+      "to": "n21",
+      "order": 2
+    },
+    {
+      "from": "n14",
+      "to": "n22",
+      "order": 0
+    },
+    {
+      "from": "n14",
+      "to": "n23",
+      "order": 1
+    },
+    {
+      "from": "n5",
+      "to": "n24",
+      "order": 0
+    },
+    {
+      "from": "n5",
+      "to": "n25",
+      "order": 1
+    }
+  ]
+}
