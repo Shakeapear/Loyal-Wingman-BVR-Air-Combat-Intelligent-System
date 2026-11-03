@@ -101,8 +101,19 @@ mock 只验证生成/校验/测试流程，不是战术教师；当前 mock 树 
 存活 60%/命中 5%。DeepSeek 在线候选已用仓库外密钥生成并复核。旧 `deepseek-chat` 候选约
 存活 10%/命中 5%，被拒绝；改用 `deepseek-flash`（DeepSeek V4.1 Flash 1017）
 后，候选树外部 20 seeds 达到 **存活 80%/命中 75%/误发射 0%/安全 0/OODA 97%/
-trace 20/20**，已接受并归档到 `docs/assets/3.4_llm_tree_80_120/`。手写
-`tactical_tree_80_120_json()` 保留为基线/回退。
+trace 20/20**。
+
+进一步用 `tools/search_bt_candidates.py` 做外部评分闭环搜索，g1c2 候选
+50 seeds 达到 **存活 92%/命中 80%/误发射 0%/安全 0/trace 50/50**，已归档到
+`docs/assets/3.5_llm_tree_search/`。该树在 30–80 km 只有 60%/60%，所以采用
+场景路由：
+
+```text
+default      → 手写树（90%/75%）
+bvr80-120    → LLM g1c2 树（92%/80%）
+```
+
+清单：`tree_manifest.json`；加载：`llm_bt.tree_registry.resolve_tree(scene)`。
 
 **OODA 关键节点**（`llm_bt/schema.py:OODA_REQUIRED`）：观察 `search_target`/`has_target_detected`、
 判断 `lock_target`/`is_in_launch_zone`、决策 `has_weapon_remaining`/`is_fuel_low`、

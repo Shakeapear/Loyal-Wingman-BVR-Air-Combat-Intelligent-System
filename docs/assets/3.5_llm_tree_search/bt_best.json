@@ -1,0 +1,297 @@
+{
+  "bt_id": "search_g1_c2",
+  "mission": "超视距空战拦截：远距搜索并闭合接敌，雷达锁定后在 NEZ 内发射中距弹；导弹来袭时优先防御，燃油不足返航；全程满足安全包线。",
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "Selector",
+      "label": "BVR_Mission"
+    },
+    {
+      "id": "n2",
+      "type": "Sequence",
+      "label": "SelfDefense"
+    },
+    {
+      "id": "n3",
+      "type": "Condition",
+      "name": "is_missile_incoming"
+    },
+    {
+      "id": "n4",
+      "type": "Parallel",
+      "label": "DefensiveActions"
+    },
+    {
+      "id": "n5",
+      "type": "Action",
+      "name": "evade_missile",
+      "args": {
+        "maneuver_type": "defensive_spiral"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "ecm_on",
+        "parameters": {
+          "duration_s": 5
+        }
+      }
+    },
+    {
+      "id": "n7",
+      "type": "Sequence",
+      "label": "FuelRTB"
+    },
+    {
+      "id": "n8",
+      "type": "Condition",
+      "name": "is_fuel_low"
+    },
+    {
+      "id": "n9",
+      "type": "Action",
+      "name": "return_to_base"
+    },
+    {
+      "id": "n10",
+      "type": "Sequence",
+      "label": "Attack"
+    },
+    {
+      "id": "n11",
+      "type": "Condition",
+      "name": "has_target_detected"
+    },
+    {
+      "id": "n12",
+      "type": "Selector",
+      "label": "Engagement"
+    },
+    {
+      "id": "n13",
+      "type": "Sequence",
+      "label": "Launch"
+    },
+    {
+      "id": "n14",
+      "type": "Condition",
+      "name": "is_in_launch_zone"
+    },
+    {
+      "id": "n15",
+      "type": "Condition",
+      "name": "is_in_nez"
+    },
+    {
+      "id": "n16",
+      "type": "Condition",
+      "name": "has_weapon_remaining"
+    },
+    {
+      "id": "n17",
+      "type": "Action",
+      "name": "fire_missile"
+    },
+    {
+      "id": "n18",
+      "type": "Sequence",
+      "label": "CrankIfInNEZ"
+    },
+    {
+      "id": "n19",
+      "type": "Condition",
+      "name": "is_in_nez"
+    },
+    {
+      "id": "n20",
+      "type": "Action",
+      "name": "lock_target"
+    },
+    {
+      "id": "n21",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "crank"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "Sequence",
+      "label": "CloseAndTrack"
+    },
+    {
+      "id": "n23",
+      "type": "Action",
+      "name": "lock_target"
+    },
+    {
+      "id": "n24",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "intercept_closure",
+        "parameters": {
+          "speed_mps": 460
+        }
+      }
+    },
+    {
+      "id": "n25",
+      "type": "Sequence",
+      "label": "SearchPatrol"
+    },
+    {
+      "id": "n26",
+      "type": "Action",
+      "name": "search_target",
+      "args": {
+        "radar_mode": "auto"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "search_pattern"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "order": 0
+    },
+    {
+      "from": "n1",
+      "to": "n7",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n10",
+      "order": 2
+    },
+    {
+      "from": "n1",
+      "to": "n25",
+      "order": 3
+    },
+    {
+      "from": "n2",
+      "to": "n3",
+      "order": 0
+    },
+    {
+      "from": "n2",
+      "to": "n4",
+      "order": 1
+    },
+    {
+      "from": "n4",
+      "to": "n5",
+      "order": 0
+    },
+    {
+      "from": "n4",
+      "to": "n6",
+      "order": 1
+    },
+    {
+      "from": "n7",
+      "to": "n8",
+      "order": 0
+    },
+    {
+      "from": "n7",
+      "to": "n9",
+      "order": 1
+    },
+    {
+      "from": "n10",
+      "to": "n11",
+      "order": 0
+    },
+    {
+      "from": "n10",
+      "to": "n12",
+      "order": 1
+    },
+    {
+      "from": "n12",
+      "to": "n13",
+      "order": 0
+    },
+    {
+      "from": "n12",
+      "to": "n18",
+      "order": 1
+    },
+    {
+      "from": "n12",
+      "to": "n22",
+      "order": 2
+    },
+    {
+      "from": "n13",
+      "to": "n14",
+      "order": 0
+    },
+    {
+      "from": "n13",
+      "to": "n15",
+      "order": 1
+    },
+    {
+      "from": "n13",
+      "to": "n16",
+      "order": 2
+    },
+    {
+      "from": "n13",
+      "to": "n17",
+      "order": 3
+    },
+    {
+      "from": "n18",
+      "to": "n19",
+      "order": 0
+    },
+    {
+      "from": "n18",
+      "to": "n20",
+      "order": 1
+    },
+    {
+      "from": "n18",
+      "to": "n21",
+      "order": 2
+    },
+    {
+      "from": "n22",
+      "to": "n23",
+      "order": 0
+    },
+    {
+      "from": "n22",
+      "to": "n24",
+      "order": 1
+    },
+    {
+      "from": "n25",
+      "to": "n26",
+      "order": 0
+    },
+    {
+      "from": "n25",
+      "to": "n27",
+      "order": 1
+    }
+  ]
+}

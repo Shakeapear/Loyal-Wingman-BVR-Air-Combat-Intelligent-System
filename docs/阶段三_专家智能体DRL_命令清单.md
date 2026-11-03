@@ -90,7 +90,7 @@ docs\assets\stage3_expert_demo\
 & $PY -m pytest "可视化工具\tests" -q
 ```
 
-预期：三套全量 **205 passed**，0 failed（以实际输出为准）。
+预期：三套全量 **207 passed**，0 failed（以实际输出为准）。
 
 ## 4.1 稳定飞行基线（assisted，240 步）
 

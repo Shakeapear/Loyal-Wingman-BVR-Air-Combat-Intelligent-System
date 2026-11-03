@@ -1,0 +1,29 @@
+{
+  "default": {
+    "source": "handwritten",
+    "builder": "tactical_tree_json",
+    "metrics": {
+      "scene": "default",
+      "seeds": 20,
+      "survival_rate": 0.9,
+      "hit_rate": 0.75,
+      "misfire_rate": 0.0,
+      "safety_violations": 0,
+      "ooda_executed_coverage": 0.99
+    }
+  },
+  "bvr80-120": {
+    "source": "deepseek-flash",
+    "path": "docs/assets/3.5_llm_tree_search/bt_best.json",
+    "metrics": {
+      "scene": "bvr80-120",
+      "seeds": 50,
+      "survival_rate": 0.92,
+      "hit_rate": 0.8,
+      "misfire_rate": 0.0,
+      "safety_violations": 0,
+      "ooda_executed_coverage": 0.935,
+      "note": "seed 3 escape, one OODA-low episode; all engaged seeds 100%"
+    }
+  }
+}

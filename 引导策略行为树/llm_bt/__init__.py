@@ -28,11 +28,13 @@ from .guide_provider import BTGuideProvider
 from .guide_types import GuideStep
 from .maneuvers import ManeuverRegistry, ManeuverSpec
 from .schema import CONVERGENCE, OODA_ALL, validate_tree_json
+from .tree_registry import load_manifest, resolve_tree
 from .validator_bridge import validate_tree_static
 
 __all__ = [
     "Blackboard", "build_tree", "tick_once",
     "BTGuideProvider", "GuideStep",
     "ManeuverRegistry", "ManeuverSpec",
+    "load_manifest", "resolve_tree",
     "CONVERGENCE", "OODA_ALL", "validate_tree_json", "validate_tree_static",
 ]
