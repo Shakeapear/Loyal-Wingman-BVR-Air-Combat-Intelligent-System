@@ -25,7 +25,8 @@ import numpy as np
 from gymnasium import spaces
 
 from agents.policy_interface import (ACTION_V1_HIGH, ACTION_V1_LOW,
-                                     clip_action_v1)
+                                     apply_action_mask, clip_action_v1,
+                                     compute_action_mask)
 from common.bvr_combat_env import (BVRCombatEnv, FlatActionBVRCombatEnv, OBS_HIGH,
                                    OBS_LOW)
 from common.errors import ARG_INVALID, ValidationError
@@ -201,7 +202,12 @@ class FlatTaskMissionEnv(MissionMixin, FlatActionBVRCombatEnv):
     def step(self, action):
         # FlatActionBVRCombatEnv 历史阈值是 >0；ActionV1 契约/评估阈值是 >0.5。
         # 这里先按 ActionV1 归一化，避免 P0 训练时 0.01 也触发发射、而评估不触发。
-        return super().step(clip_action_v1(action))
+        action = clip_action_v1(action)
+        if self.cfg.get("mask_actions", False):
+            # 可选 P0 掩码基线：用上一步 info 计算与评估同源的发射掩码。
+            mask = compute_action_mask(None, getattr(self, "last_info", {}), self.cfg)
+            action = apply_action_mask(action, mask)
+        return super().step(action)
 
 
 def make_task_env(mission: str = "strike", config: dict | None = None,

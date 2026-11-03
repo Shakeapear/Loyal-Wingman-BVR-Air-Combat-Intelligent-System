@@ -8,6 +8,7 @@
 #   OVERWRITE=1 ...   # 允许在已有输出目录上从头重跑（默认拒绝，防止误覆盖）
 #   NORMALIZE_REWARD=1 ...  # 启用 reward/return 归一化
 #   NO_ENVELOPE=1 ...       # 跳过 reset 攻击区解算（快速对比/吞吐测试）
+#   MASK_ACTIONS=1 ...      # 环境侧 ActionMaskV1（P0 可选掩码基线）
 #
 # 所有路径都从脚本位置推导，不依赖当前工作目录；需要覆盖时用环境变量。
 set -euo pipefail
@@ -42,6 +43,7 @@ EXTRA_ARGS="${EXTRA_ARGS:-}"
 OVERWRITE="${OVERWRITE:-}"
 NORMALIZE_REWARD="${NORMALIZE_REWARD:-}"
 NO_ENVELOPE="${NO_ENVELOPE:-}"
+MASK_ACTIONS="${MASK_ACTIONS:-}"
 
 echo "[预检] python=$PYTHON policy=$POLICY timesteps=$TIMESTEPS n_envs=$N_ENVS"
 echo "[输出] $OUT_DIR"
@@ -71,4 +73,5 @@ echo "[输出] $OUT_DIR"
   ${OVERWRITE:+--overwrite} \
   ${NORMALIZE_REWARD:+--normalize-reward} \
   ${NO_ENVELOPE:+--no-compute-envelope} \
+  ${MASK_ACTIONS:+--mask-actions} \
   $EXTRA_ARGS

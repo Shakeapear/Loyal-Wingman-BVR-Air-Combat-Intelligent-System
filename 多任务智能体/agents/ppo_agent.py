@@ -508,6 +508,8 @@ def main(argv=None) -> int:
                     help="reset 时解算攻击区（默认开启；--no-compute-envelope 提速）")
     ap.add_argument("--normalize-reward", action="store_true",
                     help="启用 reward/return 归一化（默认关闭，便于与旧基线对比）")
+    ap.add_argument("--mask-actions", action="store_true",
+                    help="在环境侧按 ActionMaskV1 清零非法武器动作（P0 可选基线）")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--scene", default="bvr80-120",
                     choices=["default", "bvr80-120"],
@@ -556,7 +558,8 @@ def main(argv=None) -> int:
             "或换一个 --out-dir。")
     vec_env = _make_vec_env(
         task, args.n_envs, seed, args.policy, args.scene, args.vec_env,
-        extra_config={"compute_envelope": bool(args.compute_envelope)})
+        extra_config={"compute_envelope": bool(args.compute_envelope),
+                      "mask_actions": bool(args.mask_actions)})
     if args.normalize_reward:
         stats_path = out_dir / "vecnormalize.pkl"
         if resume and stats_path.is_file():
@@ -693,6 +696,7 @@ def main(argv=None) -> int:
         "n_envs": int(args.n_envs), "seed": seed, "scene": args.scene,
         "compute_envelope": bool(args.compute_envelope),
         "normalize_reward": bool(args.normalize_reward),
+        "mask_actions": bool(args.mask_actions),
         "hyperparams": {"n_steps": args.n_steps, "batch_size": args.batch_size,
                         "n_epochs": args.n_epochs, "learning_rate": args.learning_rate,
                         "gamma": 0.99, "gae_lambda": 0.95, "clip_range": 0.2,

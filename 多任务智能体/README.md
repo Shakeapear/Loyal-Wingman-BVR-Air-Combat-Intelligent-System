@@ -49,6 +49,7 @@ bash 多任务智能体/scripts/train_strike.sh       # 默认 hybrid，1e6 步�
 OVERWRITE=1 bash 多任务智能体/scripts/train_strike.sh  # 确认要覆盖已有输出目录时
 NORMALIZE_REWARD=1 bash 多任务智能体/scripts/train_strike.sh  # 可选 reward 归一化
 NO_ENVELOPE=1 bash 多任务智能体/scripts/train_strike.sh       # 跳过攻击区解算，测吞吐用
+MASK_ACTIONS=1 bash 多任务智能体/scripts/train_strike.sh      # P0 可选动作掩码基线
 ```
 
 ActionV1 的 fire/switch/ecm 均为 0→1 边沿触发；模型加载会校验
