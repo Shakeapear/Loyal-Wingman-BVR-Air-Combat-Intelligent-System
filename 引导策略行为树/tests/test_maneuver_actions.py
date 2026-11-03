@@ -15,7 +15,8 @@ import pytest
 from llm_bt.executor import Blackboard, build_tree, tick_once
 from llm_bt.maneuver_actions import MANEUVER_EXECUTORS, run_maneuver
 from llm_bt.maneuvers import ManeuverRegistry
-from llm_bt.schema import validate_tree_json
+from llm_bt.schema import ooda_coverage, validate_tree_json
+from llm_bt.tactical_execution_tree import tactical_tree_80_120_json
 
 
 def _obs(**kw):
@@ -55,11 +56,11 @@ def test_assisted_and_raw_search_use_different_semantics():
     assisted = Blackboard(control_mode="assisted")
     assisted.set_frame(_obs(), _info(), 0)
     assisted.maneuver_registry = registry
-    run_maneuver(assisted, "search_pattern", {})
+    run_maneuver(assisted, "search_pattern", {"speed_mps": 240})
     raw = Blackboard(control_mode="raw_fcs")
     raw.set_frame(_obs(), _info(), 0)
     raw.maneuver_registry = registry
-    run_maneuver(raw, "search_pattern", {})
+    run_maneuver(raw, "search_pattern", {"speed_mps": 240})
     assert abs(assisted.action["flight"][0] - raw.action["flight"][0]) > 0.05
 
 
@@ -96,3 +97,13 @@ def test_execute_maneuver_tree_action_and_unknown_name():
     root2 = build_tree(bad, bb2)
     with pytest.raises(ValueError, match="未注册招式"):
         tick_once(root2, bb2, _obs(), _info(), 0)
+
+
+def test_80_120_reference_tree_is_complete():
+    tree = tactical_tree_80_120_json()
+    registry = ManeuverRegistry.from_csv()
+    assert validate_tree_json(tree, maneuver_ids=set(registry.ids())) == []
+    coverage, missing = ooda_coverage(tree)
+    assert coverage == 1.0 and missing == []
+    names = {n.get("name") for n in tree["nodes"]}
+    assert {"execute_maneuver", "is_in_nez", "evade_missile"} <= names

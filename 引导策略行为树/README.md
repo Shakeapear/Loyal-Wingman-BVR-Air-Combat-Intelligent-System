@@ -78,6 +78,17 @@ ActionV1 维度；行为树通过单一动作调用：
 `execute_maneuver` 由 `maneuver_actions.py` 的 15 个控制器执行；静态校验
 在传入 `maneuver_ids` 时会拒绝未注册招式。
 
+80–120 km 参考树：
+
+```bash
+python -X utf8 run_2_7_validation.py \
+  --tree handwritten_80_120 --scene bvr80-120 \
+  --seeds 1-20 --no-acmi --out-dir outputs/validation_2_7/handwritten_80_120
+```
+
+2026-11-03 结果：存活 80%、命中 75%、误发射 0%、安全 0、OODA 执行 97%、
+node_trace 20/20；30–80 km 回归 90%/75%。
+
 **OODA 关键节点**（`llm_bt/schema.py:OODA_REQUIRED`）：观察 `search_target`/`has_target_detected`、
 判断 `lock_target`/`is_in_launch_zone`、决策 `has_weapon_remaining`/`is_fuel_low`、
 行动 `fire_missile`/`evade_missile`（共 8 项，全含为 100%）。

@@ -93,8 +93,15 @@ def _pitch_command(bb, pitch_norm: float):
 # 各招式控制器
 # ----------------------------------------------------------------------
 def _search(bb, params, elapsed):
-    _h()._act_search(bb, params)
-    return _status().SUCCESS
+    # 远距搜索：蛇形扫描，避免在 80–120 km 场景一直平飞远离目标。
+    _h()._ecm_ensure_on(bb)
+    period = max(2, int(params.get("sweep_period_s", 20)))
+    amplitude = float(params.get("sweep_deg", 60.0))
+    phase = (int(elapsed) // max(1, period // 2)) % 2
+    _turn_relative(bb, amplitude if phase == 0 else -amplitude)
+    _alt(bb, bb.read(_h().IDX_H))
+    _speed(bb, float(params.get("speed_mps", 280.0)))
+    return _status().RUNNING
 
 
 def _intercept(bb, params, elapsed):

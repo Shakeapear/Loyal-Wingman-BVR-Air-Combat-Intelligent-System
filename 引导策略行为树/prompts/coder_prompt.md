@@ -39,6 +39,7 @@ loop, immelmann, fuel_rtb, ecm_on`
 
 - has_target_detected()
 - is_in_launch_zone()
+- is_in_nez()
 - is_missile_incoming()
 - has_weapon_remaining()
 - is_fuel_low()

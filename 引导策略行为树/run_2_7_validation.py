@@ -47,15 +47,22 @@ from common.constants import (FT2M, GEO_LAT0_DEG, GEO_LON0_DEG,     # noqa: E402
 from llm_bt.boundary_constraints import BoundaryConstraints         # noqa: E402
 from llm_bt.executor import Blackboard, build_tree, tick_once       # noqa: E402
 from llm_bt.guide_interface import GuideInterface                   # noqa: E402
+from llm_bt.maneuvers import ManeuverRegistry                       # noqa: E402
 from llm_bt.schema import (ACTIONS, CONDITIONS, OODA_ALL,            # noqa: E402
                            ooda_coverage, validate_tree_json)
-from llm_bt.tactical_execution_tree import tactical_tree_json       # noqa: E402
+from llm_bt.tactical_execution_tree import (tactical_tree_80_120_json,
+                                            tactical_tree_json)     # noqa: E402
 from llm_bt.tester import is_safety_violation                       # noqa: E402
 from visualization.acmi import export_acmi                          # noqa: E402
 from visualization.recorder import EpisodeRecorder                  # noqa: E402
 
 LLM_TREE_DEFAULT = _REPO_ROOT / "docs" / "assets" / "2.5_online_r2" / "bt_final.json"
 LEGAL_NODES = set(ACTIONS) | set(CONDITIONS)
+SCENES = {
+    "default": {"max_steps": 240},
+    "bvr80-120": {"scene_dist_min_m": 80000.0,
+                  "scene_dist_max_m": 120000.0, "max_steps": 600},
+}
 
 
 # ----------------------------------------------------------------------
@@ -88,6 +95,10 @@ def load_tree(tree: str, tree_json: str | None, tree_label: str | None):
         data = tactical_tree_json()
         label = tree_label or "handwritten"
         source = "llm_bt/tactical_execution_tree.py::tactical_tree_json()"
+    elif tree in ("handwritten_80_120", "maneuver"):
+        data = tactical_tree_80_120_json()
+        label = tree_label or "handwritten_80_120"
+        source = "llm_bt/tactical_execution_tree.py::tactical_tree_80_120_json()"
     else:
         p = Path(tree)
         if not p.is_file():
@@ -95,7 +106,11 @@ def load_tree(tree: str, tree_json: str | None, tree_label: str | None):
         data = json.loads(p.read_text(encoding="utf-8"))
         label = tree_label or p.stem
         source = str(p)
-    errors = validate_tree_json(data)
+    try:
+        maneuver_ids = set(ManeuverRegistry.from_csv().ids())
+    except Exception:
+        maneuver_ids = None
+    errors = validate_tree_json(data, maneuver_ids=maneuver_ids)
     if errors:
         raise ValueError(f"行为树 JSON 校验失败: {errors}")
     return data, label, source
@@ -150,8 +165,13 @@ def validate_node_trace(log: list, steps: int, tick_counts: dict) -> dict:
 
 
 def run_episode(tree: dict, seed: int, max_steps: int = 240,
-                compute_envelope: bool = True) -> dict:
-    env = BVRCombatEnv(config={"compute_envelope": bool(compute_envelope)})
+                compute_envelope: bool = True,
+                scene: str = "default") -> dict:
+    env_cfg = {"compute_envelope": bool(compute_envelope),
+               "max_steps": int(max_steps)}
+    env_cfg.update({k: v for k, v in SCENES.get(scene, {}).items()
+                    if k != "max_steps"})
+    env = BVRCombatEnv(config=env_cfg)
     bb = Blackboard(env)
     root = build_tree(tree, bb)
     guard = BoundaryConstraints(env_cfg=env.cfg)
@@ -308,12 +328,12 @@ def aggregate(rows: list, tree_label: str, tree_id: str, tree_source: str,
 
 def run_tree(tree: dict, label: str, source: str, seeds: list, max_steps: int,
              out_dir: Path, compute_envelope: bool = True,
-             no_acmi: bool = False) -> dict:
+             no_acmi: bool = False, scene: str = "default") -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     rows, all_events = [], {}
     for seed in seeds:
         result = run_episode(tree, seed, max_steps=max_steps,
-                             compute_envelope=compute_envelope)
+                             compute_envelope=compute_envelope, scene=scene)
         s, rec = result["summary"], result["rec"]
         s["tree_label"] = label
         rows.append(s)
@@ -471,11 +491,14 @@ def summarize(hw_dir: Path, llm_dir: Path, out_dir: Path):
 def main(argv=None):
     ap = argparse.ArgumentParser(description="2.7 20 组态势行为树验证/对比")
     ap.add_argument("--tree", default="handwritten",
-                    help="handwritten | llm | 树 JSON 路径")
+                    help="handwritten | handwritten_80_120 | llm | 树 JSON 路径")
     ap.add_argument("--tree-json", default=None, help="树 JSON 路径（覆盖 --tree）")
     ap.add_argument("--tree-label", default=None, help="结果标签（默认 handwritten/llm）")
     ap.add_argument("--seeds", default="1-20", help="种子，如 1-20 或 1,2,3")
-    ap.add_argument("--max-steps", type=int, default=240)
+    ap.add_argument("--scene", default="default", choices=sorted(SCENES),
+                    help="场景：default(30–80km/240) 或 bvr80-120(80–120km/600)")
+    ap.add_argument("--max-steps", type=int, default=0,
+                    help="0 时使用场景默认步数")
     ap.add_argument("--out-dir", default=None)
     ap.add_argument("--fast", action="store_true", help="不解算攻击区（冒烟）")
     ap.add_argument("--no-acmi", action="store_true")
@@ -500,10 +523,13 @@ def main(argv=None):
         print(f"[错误] {e}", file=sys.stderr)
         return 2
     seeds = parse_seeds(args.seeds)
+    max_steps = int(args.max_steps or SCENES.get(args.scene, {}).get("max_steps", 240))
     out = Path(args.out_dir) if args.out_dir else _HERE / "outputs" / "validation_2_7" / label
-    print(f"[树] {label} ({source}) 静态 OODA={ooda_coverage(tree)[0]:.0%}  seeds={seeds}")
-    agg = run_tree(tree, label, source, seeds, args.max_steps, out,
-                   compute_envelope=not args.fast, no_acmi=args.no_acmi)
+    print(f"[树] {label} ({source}) 静态 OODA={ooda_coverage(tree)[0]:.0%}  "
+          f"scene={args.scene} steps={max_steps} seeds={seeds}")
+    agg = run_tree(tree, label, source, seeds, max_steps, out,
+                   compute_envelope=not args.fast, no_acmi=args.no_acmi,
+                   scene=args.scene)
     print(f"[汇总] 存活率 {agg['survival_rate']:.0%}，命中率 {agg['hit_rate']:.0%}，"
           f"误发射率 {agg['misfire_rate']:.0%}，安全违规 {agg['safety_violations']}，"
           f"OODA 执行均值 {agg['avg_ooda_executed']:.0%}，trace 通过 "

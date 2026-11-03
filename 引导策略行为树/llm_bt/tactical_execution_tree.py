@@ -37,8 +37,13 @@ from .executor import build_tree
 from .schema import OODA_ALL, ooda_coverage, validate_tree_json
 
 
-def tactical_tree_json() -> dict:
-    """返回战术执行子树 JSON（确定性，不依赖在线 LLM）。"""
+def tactical_tree_json(maneuver_mode: bool = False) -> dict:
+    """返回战术执行子树 JSON（确定性，不依赖在线 LLM）。
+
+    maneuver_mode=True 时，搜索/接敌分支额外调用参数化招式：
+    search_pattern / intercept_closure / lock_and_track；旧 OODA 节点保留，
+    便于 80–120 km 场景复用同一验收口径。
+    """
     nodes, edges = [], []
 
     def add(ntype, label=None, name=None, args=None):
@@ -71,7 +76,8 @@ def tactical_tree_json() -> dict:
     link(root, defense, order); order += 1
     link(defense, add("Condition", name="is_missile_incoming"), 0)
     link(defense, add("Action", name="evade_missile",
-                      args={"maneuver_type": "break_turn"}), 1)
+                      args={"maneuver_type": "defensive_spiral"
+                            if maneuver_mode else "break_turn"}), 1)
 
     # L2.5 燃油约束
     fuel = add("Sequence", label="Fuel_Return")
@@ -89,7 +95,23 @@ def tactical_tree_json() -> dict:
     link(detection, track, 0)
     link(track, add("Condition", name="has_target_detected"), 0)
     link(track, add("Action", name="lock_target"), 1)
-    link(detection, add("Action", name="search_target", args={"radar_mode": "auto"}), 1)
+    if maneuver_mode:
+        link(track, add("Action", name="execute_maneuver",
+                        args={"maneuver": "intercept_closure",
+                              "parameters": {"speed_mps": 280}}), 2)
+
+    if maneuver_mode:
+        search_seq = add("Sequence", label="Search_Pattern")
+        link(detection, search_seq, 1)
+        link(search_seq, add("Action", name="search_target",
+                             args={"radar_mode": "auto"}), 0)
+        link(search_seq, add("Action", name="execute_maneuver",
+                             args={"maneuver": "search_pattern",
+                                   "parameters": {"sweep_deg": 90,
+                                                  "sweep_period_s": 20}}), 1)
+    else:
+        link(detection, add("Action", name="search_target",
+                            args={"radar_mode": "auto"}), 1)
 
     engagement = add("Selector", label="Engagement")
     link(engage, engagement, 1)
@@ -97,10 +119,19 @@ def tactical_tree_json() -> dict:
     link(engagement, launch, 0)
     link(launch, add("Condition", name="is_in_launch_zone"), 0)
     fire = add("Sequence", label="Fire_Control")
-    link(launch, fire, 1)
+    if maneuver_mode:
+        link(launch, add("Condition", name="is_in_nez"), 1)
+        link(launch, fire, 2)
+    else:
+        link(launch, fire, 1)
     link(fire, add("Condition", name="has_weapon_remaining"), 0)
     link(fire, add("Action", name="fire_missile"), 1)
-    link(engagement, add("Action", name="lock_target"), 1)
+    if maneuver_mode:
+        link(engagement, add("Action", name="execute_maneuver",
+                             args={"maneuver": "lock_and_track",
+                                   "parameters": {}}), 1)
+    else:
+        link(engagement, add("Action", name="lock_target"), 1)
 
     # L4 默认巡逻
     patrol = add("Sequence", label="Default_Patrol")
@@ -111,6 +142,11 @@ def tactical_tree_json() -> dict:
     return {"bt_id": "bt_tactical_2_6",
             "mission": "二级优先级引导：边界约束（外部守卫）+ 战术执行（OODA）",
             "nodes": nodes, "edges": edges}
+
+
+def tactical_tree_80_120_json() -> dict:
+    """80–120 km / 600 步参考树：在战术骨架上加入搜索/接敌招式。"""
+    return tactical_tree_json(maneuver_mode=True)
 
 
 def build_tactical_tree(blackboard):
@@ -128,5 +164,5 @@ def validate_tactical_tree() -> list:
     return validate_tree_json(tactical_tree_json())
 
 
-__all__ = ["OODA_ALL", "tactical_tree_json", "build_tactical_tree",
-           "tactical_coverage", "validate_tactical_tree"]
+__all__ = ["OODA_ALL", "tactical_tree_json", "tactical_tree_80_120_json",
+           "build_tactical_tree", "tactical_coverage", "validate_tactical_tree"]

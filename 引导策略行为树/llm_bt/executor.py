@@ -208,6 +208,23 @@ def _act_evade(bb: Blackboard, args: dict):
         bb._evade_active = False
         return STATUS.SUCCESS
     _ecm_ensure_on(bb)
+    evade_type = str(args.get("maneuver_type", "")).lower()
+    if evade_type == "notch":
+        # 多普勒 notch：切向目标视线，保持速度/高度，破坏雷达/导弹速度门。
+        psi = math.degrees(bb.read(IDX_PSI))
+        brg = math.degrees(bb.read(IDX_TGT_BRG)) if bb.read(IDX_TGT_DETECTED) > 0.5 else 90.0
+        _bank_to_heading(bb, psi + brg + 90.0)
+        _hold_altitude(bb, bb.read(IDX_H))
+        _hold_speed(bb, 250.0)
+        return STATUS.RUNNING
+    if evade_type in ("spiral", "defensive_spiral"):
+        # 防御螺旋：大坡度持续下降，尽快消耗来袭弹能量。
+        psi = math.degrees(bb.read(IDX_PSI))
+        sign = -1.0 if bb.read(IDX_TGT_BRG) >= 0.0 else 1.0
+        _bank_to_heading(bb, psi + sign * 70.0, max_bank_cmd=70.0)
+        _hold_altitude(bb, max(2500.0, bb.read(IDX_H) - 500.0))
+        _hold_speed(bb, 250.0)
+        return STATUS.RUNNING
     if not bb._evade_active:
         bb._evade_active = True
         if bb.read(IDX_TGT_DETECTED) > 0.5:
@@ -283,6 +300,10 @@ ACT_FUNCS = {
 COND_FUNCS = {
     "has_target_detected": lambda bb: bb.read(IDX_TGT_DETECTED) > 0.5,
     "is_in_launch_zone": lambda bb: bool(bb.info.get("in_zone", False)),
+    "is_in_nez": lambda bb: (
+        bool(bb.info.get("in_zone", False))
+        and float(bb.info.get("dist_m", 1e9))
+        <= float(bb.info.get("r_nez_own_m", 0.0))),
     "is_missile_incoming": lambda bb: (bb.read(IDX_MAWS) > 0.5
                                        or bool(bb.info.get("maws_alarm", False))),
     "has_weapon_remaining": lambda bb: bb.read(IDX_N_MSL) > 0.5,
