@@ -68,7 +68,15 @@ GuideStep(action, active, source, guide_step, control_mode, mask, meta)
 招式库通过 `llm_bt.maneuvers.ManeuverRegistry` 读取
 `飞行数据集资料库/05_人类战术动作与招式库/04_标注与招式表/maneuver_catalog_v1.csv`；
 可用 `BVR_MANEUVER_CATALOG` 覆盖路径。招式只作为注册表条目，不增加
-ActionV1 维度；行为树后续通过单一 `execute_maneuver` 动作调用。
+ActionV1 维度；行为树通过单一动作调用：
+
+```json
+{"type": "Action", "name": "execute_maneuver",
+ "args": {"maneuver": "crank", "parameters": {"offset_deg": 60}}}
+```
+
+`execute_maneuver` 由 `maneuver_actions.py` 的 15 个控制器执行；静态校验
+在传入 `maneuver_ids` 时会拒绝未注册招式。
 
 **OODA 关键节点**（`llm_bt/schema.py:OODA_REQUIRED`）：观察 `search_target`/`has_target_detected`、
 判断 `lock_target`/`is_in_launch_zone`、决策 `has_weapon_remaining`/`is_fuel_low`、

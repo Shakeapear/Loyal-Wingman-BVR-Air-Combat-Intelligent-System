@@ -24,6 +24,16 @@
 - evade_missile(maneuver_type)
 - maintain_formation(offset_x_m, offset_y_m, offset_z_m)
 - return_to_base()
+- execute_maneuver(maneuver, parameters)  # 参数化人类招式；maneuver 必须来自下方招式库
+
+### 可用招式库（`execute_maneuver.maneuver`）
+
+`search_pattern, intercept_closure, lock_and_track, crank, notch, break_turn,
+barrel_roll, defensive_spiral, launch_and_crank, extend_and_reengage, split_s,
+loop, immelmann, fuel_rtb, ecm_on`
+
+只能使用上述 ID；`parameters` 为对象，可传 `offset_deg`、`speed_mps`、
+`duration_s` 等参数。不要发明招式名。
 
 ## 四、可用条件
 

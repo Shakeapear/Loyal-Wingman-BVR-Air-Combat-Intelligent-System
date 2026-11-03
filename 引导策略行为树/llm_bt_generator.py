@@ -39,6 +39,7 @@ if str(_HERE) not in sys.path:
     sys.path.append(str(_HERE))
 
 from llm_bt.llm_client import LLMClient, extract_json
+from llm_bt.maneuvers import ManeuverRegistry
 from llm_bt.prompts import SYSTEM_CODER, render_coder_prompt
 from llm_bt.schema import CONVERGENCE, SCHEMA_VERSION, ooda_coverage
 from llm_bt.tester import generate_test_cases, run_test_cases
@@ -119,7 +120,12 @@ def run_iteration(mission: str = DEFAULT_MISSION, provider: str = "auto",
             tree["bt_id"] = f"bt_v{r}"
             tree.setdefault("mission", mission)
             try:
-                static_errors, static_warnings = validate_tree_static(tree)
+                try:
+                    maneuver_ids = set(ManeuverRegistry.from_csv().ids())
+                except Exception:
+                    maneuver_ids = None
+                static_errors, static_warnings = validate_tree_static(
+                    tree, maneuver_ids=maneuver_ids)
             except ProjectError as e:
                 static_errors = [f"静态校验无法执行: {e}"]
             except Exception as e:

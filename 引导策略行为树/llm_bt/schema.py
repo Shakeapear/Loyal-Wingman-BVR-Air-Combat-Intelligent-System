@@ -48,6 +48,8 @@ ACTIONS = {
     "evade_missile": {"maneuver_type": "break_turn"},
     "maintain_formation": {"offset_x_m": 0.0, "offset_y_m": 0.0, "offset_z_m": 0.0},
     "return_to_base": {},
+    # 参数化招式：招式名由 ManeuverRegistry 校验，parameters 为可扩展字典。
+    "execute_maneuver": {"maneuver": "search_pattern", "parameters": {}},
 }
 
 # ---- 可用条件 ----
@@ -160,8 +162,12 @@ def root_and_children(data: dict):
     return root, children
 
 
-def validate_tree_json(data) -> list:
-    """校验行为树 JSON，返回错误列表（空列表 = 通过）。"""
+def validate_tree_json(data, maneuver_ids=None) -> list:
+    """校验行为树 JSON，返回错误列表（空列表 = 通过）。
+
+    maneuver_ids 可选：传入招式库 ID 集合时，`execute_maneuver.maneuver`
+    必须是已注册 ID；不传则只做结构校验。
+    """
     errors = []
     if not isinstance(data, dict):
         return ["行为树 JSON 顶层应为对象"]
@@ -201,6 +207,16 @@ def validate_tree_json(data) -> list:
                         if k in args and isinstance(default, float) and \
                                 not isinstance(args[k], (int, float)):
                             errors.append(f"节点 {nid}（{name}）参数 {k} 应为数值")
+                    if name == "execute_maneuver":
+                        maneuver = args.get("maneuver", "")
+                        if not isinstance(maneuver, str) or not maneuver:
+                            errors.append(f"节点 {nid}（execute_maneuver）缺少 maneuver 名称")
+                        elif maneuver_ids is not None and maneuver not in maneuver_ids:
+                            errors.append(
+                                f"节点 {nid}（execute_maneuver）未注册招式: {maneuver!r}")
+                        if "parameters" in args and \
+                                not isinstance(args["parameters"], dict):
+                            errors.append(f"节点 {nid}（execute_maneuver）parameters 应为对象")
     if errors:
         return errors
 

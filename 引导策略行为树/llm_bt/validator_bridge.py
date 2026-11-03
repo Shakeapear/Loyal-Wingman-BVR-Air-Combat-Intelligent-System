@@ -41,9 +41,9 @@ def load_bt_validator():
     return module
 
 
-def validate_tree_static(data: dict):
+def validate_tree_static(data: dict, maneuver_ids=None):
     """JSON + XML(bt_validator) 双层静态校验，返回 (errors, warnings)。"""
-    errors = validate_tree_json(data)
+    errors = validate_tree_json(data, maneuver_ids=maneuver_ids)
     if errors:
         return errors, []
     xml_text = tree_to_xml(data)

@@ -34,6 +34,7 @@ import py_trees
 
 from common.constants import wrap_deg180
 
+from .maneuvers import ManeuverRegistry
 from .schema import ACTIONS, CONDITIONS, node_name, root_and_children
 
 # ---- 观测索引（对齐 OBS_FIELDS_BVR，共 28 维）----
@@ -72,6 +73,8 @@ class Blackboard:
         self._evade_sign = 1.0
         self._evade_active = False
         self._ecm_requested = False    # ECM 仅边沿开启一次（主防默认开启）
+        self._maneuver_state = {}
+        self.maneuver_registry = None   # 可选注入 ManeuverRegistry
 
     def read(self, idx) -> float:
         return float(self.obs[idx]) if self.obs is not None else 0.0
@@ -249,8 +252,26 @@ def _act_return_to_base(bb: Blackboard, args: dict):
     return STATUS.RUNNING
 
 
+def _act_execute_maneuver(bb: Blackboard, args: dict):
+    """参数化招式入口：execute_maneuver(maneuver, parameters)。"""
+    name = args.get("maneuver")
+    params = args.get("parameters") or {}
+    if not isinstance(name, str) or not name:
+        raise ValueError("execute_maneuver 缺少 maneuver 名称")
+    registry = bb.maneuver_registry
+    if registry is None:
+        registry = ManeuverRegistry.from_csv()
+        bb.maneuver_registry = registry
+    if not registry.has(name):
+        raise ValueError(
+            f"未注册招式：{name}；可用：{list(registry.ids())}")
+    from .maneuver_actions import run_maneuver
+    return run_maneuver(bb, name, params)
+
+
 ACT_FUNCS = {
     "navigate_to_waypoint": _act_navigate,
+    "execute_maneuver": _act_execute_maneuver,
     "search_target": _act_search,
     "lock_target": _act_lock,
     "fire_missile": _act_fire,

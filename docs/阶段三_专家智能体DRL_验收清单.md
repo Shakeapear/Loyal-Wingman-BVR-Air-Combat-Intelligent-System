@@ -93,7 +93,7 @@
   - save/load 后 deterministic 动作一致；`HybridPPOAgent.get_action` 返回 `PolicyOutput(source="drl", masked, action_version="action_v1")`；
   - 证据：`test_learn_save_load_deterministic`、`test_agent_get_action_policy_output`。
 - [x] **回归**
-  - 三套全量 **200 passed / 0 failed**（含新增路径/掩码/模型规格/边沿触发测试）；原有 MlpPolicy 路径未改。
+  - 三套全量 **204 passed / 0 failed**（含新增路径/掩码/模型规格/边沿触发测试）；原有 MlpPolicy 路径未改。
 - [ ] **P1 性能验收（>60% 命中率）**：未做长训练，状态 🟡；留待服务器训练与固定测试集评估。
 
 ### 1.7 范围约束
@@ -107,7 +107,7 @@
 - [x] **未实现完整 `jsrl_trainer.py`/课程衰减**
   - 仅 `guide_action/guide_steps` 透传占位，并在文档中标注。
 - [x] **未破坏现有接口与 CLI**
-  - `接口规范.md` v1.0 的 Dict 动作/帧/info/错误码未改；仅补充 `control_mode` 兼容说明；`agents/__init__.py` 仅新增导出；当前三套全量 200 项测试通过。
+  - `接口规范.md` v1.0 的 Dict 动作/帧/info/错误码未改；仅补充 `control_mode` 兼容说明；`agents/__init__.py` 仅新增导出；当前三套全量 204 项测试通过。
 - [x] **未提交 API Key**
   - 本轮未调用任何付费 LLM API；无密钥写入。
 
