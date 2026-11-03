@@ -98,7 +98,9 @@ python -X utf8 llm_bt_generator.py --provider deepseek --scene bvr80-120 --round
 ```
 
 mock 只验证生成/校验/测试流程，不是战术教师；当前 mock 树 20 seeds 复核为
-存活 60%/命中 5%。DeepSeek 在线树需在密钥可用后生成并走同一外部 harness。
+存活 60%/命中 5%。DeepSeek 在线候选已用仓库外密钥生成并复核，结果约
+存活 10%/命中 5%，低于手写参考树 80%/75%，因此**当前最终引导树仍采用手写
+`tactical_tree_80_120_json()`**；LLM 候选需继续用外部 harness 反馈迭代。
 
 **OODA 关键节点**（`llm_bt/schema.py:OODA_REQUIRED`）：观察 `search_target`/`has_target_detected`、
 判断 `lock_target`/`is_in_launch_zone`、决策 `has_weapon_remaining`/`is_fuel_low`、
