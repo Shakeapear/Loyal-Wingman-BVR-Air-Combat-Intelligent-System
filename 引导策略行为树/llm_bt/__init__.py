@@ -24,10 +24,15 @@ if _AGENT_LIB.is_dir() and str(_AGENT_LIB) not in _sys.path:
     _sys.path.append(str(_AGENT_LIB))
 
 from .executor import Blackboard, build_tree, tick_once
+from .guide_provider import BTGuideProvider
+from .guide_types import GuideStep
+from .maneuvers import ManeuverRegistry, ManeuverSpec
 from .schema import CONVERGENCE, OODA_ALL, validate_tree_json
 from .validator_bridge import validate_tree_static
 
 __all__ = [
     "Blackboard", "build_tree", "tick_once",
+    "BTGuideProvider", "GuideStep",
+    "ManeuverRegistry", "ManeuverSpec",
     "CONVERGENCE", "OODA_ALL", "validate_tree_json", "validate_tree_static",
 ]

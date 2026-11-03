@@ -46,6 +46,30 @@ Prompt(prompts/*.md)                                        反馈(缺失节点/
 
 **收敛判据**（计划书步骤 2.5）：用例通过率 > 90%、OODA 关键节点覆盖 > 95%、安全违规 = 0。
 
+### 统一引导契约（2026-11-03）
+
+行为树不再直接向训练循环暴露 Dict 动作，而是经 `BTGuideProvider` 输出
+`GuideStep`：
+
+```python
+GuideStep(action, active, source, guide_step, control_mode, mask, meta)
+```
+
+- `action`：ActionV1 7 维；未激活时为 `None`；
+- `control_mode`：`assisted` 或 `raw_fcs`，必须与环境 `control_mode` 一致；
+- `source`：`bt` / `human` / `drl` / `fallback`；
+- `guide_step`：本 episode 已引导步数；
+- `mask`：ActionMaskV1（可选，由调用方注入）。
+
+`BTGuideProvider` 负责 `GuideInterface` 步数、`BoundaryConstraints` 守卫、
+行为树 tick 和 `GuideStep` 封装。`assisted` 模式下行为树的
+`flight` 前 3 维解释为速度/坡度/高度设定值，不再是 raw FCS 舵面。
+
+招式库通过 `llm_bt.maneuvers.ManeuverRegistry` 读取
+`飞行数据集资料库/05_人类战术动作与招式库/04_标注与招式表/maneuver_catalog_v1.csv`；
+可用 `BVR_MANEUVER_CATALOG` 覆盖路径。招式只作为注册表条目，不增加
+ActionV1 维度；行为树后续通过单一 `execute_maneuver` 动作调用。
+
 **OODA 关键节点**（`llm_bt/schema.py:OODA_REQUIRED`）：观察 `search_target`/`has_target_detected`、
 判断 `lock_target`/`is_in_launch_zone`、决策 `has_weapon_remaining`/`is_fuel_low`、
 行动 `fire_missile`/`evade_missile`（共 8 项，全含为 100%）。

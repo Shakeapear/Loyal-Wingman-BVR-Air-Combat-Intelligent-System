@@ -55,8 +55,11 @@ CRANK_MAX_AGE_S = 30.0        # 导弹在飞判定回退（无 env 时按发射�
 class Blackboard:
     """行为树黑板：一帧观测 + 环境句柄 + 当步动作 + 执行日志。"""
 
-    def __init__(self, env=None):
+    def __init__(self, env=None, control_mode: str = "raw_fcs",
+                 alt_ref_m: float | None = None):
         self.env = env
+        self.control_mode = str(control_mode)
+        self.alt_ref_m = alt_ref_m
         self.obs = None
         self.info = {}
         self.step = 0
@@ -93,6 +96,11 @@ def _bank_to_heading(bb: Blackboard, heading_deg: float, max_bank_cmd: float = 4
     """航向误差 → 坡度指令 → 副翼（含坡度反馈阻尼；正误差=右转）。"""
     psi_deg = math.degrees(bb.read(IDX_PSI))
     err = _wrap180(heading_deg - psi_deg)
+    if getattr(bb, "control_mode", "raw_fcs") == "assisted":
+        # assisted：roll 是坡度设定值（±0.9 rad），按 45° 目标坡度归一化。
+        bb.action["flight"][1] = float(np.clip(err / max(1e-6, max_bank_cmd),
+                                                -1.0, 1.0))
+        return
     phi_cmd = float(np.clip(1.2 * err, -max_bank_cmd, max_bank_cmd))
     phi_deg = math.degrees(bb.read(IDX_PHI))
     bb.action["flight"][1] = float(np.clip(0.010 * (phi_cmd - phi_deg), -0.3, 0.3))
@@ -100,12 +108,23 @@ def _bank_to_heading(bb: Blackboard, heading_deg: float, max_bank_cmd: float = 4
 
 def _hold_altitude(bb: Blackboard, alt_m: float, vd_bias_mps: float = 0.0):
     """高度误差 → 垂速指令 → 俯仰（正俯仰=低头，与 F-104 人工通道符号一致）。"""
+    if getattr(bb, "control_mode", "raw_fcs") == "assisted":
+        # assisted：pitch 是相对 episode 参考高度的设定值（500 m/单位）。
+        base = bb.alt_ref_m if bb.alt_ref_m is not None else bb.read(IDX_H)
+        bb.action["flight"][2] = float(np.clip((alt_m - base) / 500.0,
+                                                -1.0, 1.0))
+        return
     vd_cmd = float(np.clip(0.5 * (alt_m - bb.read(IDX_H)) + vd_bias_mps, -25.0, 25.0))
     bb.action["flight"][2] = float(np.clip(-0.01 * (vd_cmd - bb.read(IDX_VD)), -0.3, 0.3))
 
 
 def _hold_speed(bb: Blackboard, speed_mps: float):
     """速差 → 油门（小增益微调，避免振荡）。"""
+    if getattr(bb, "control_mode", "raw_fcs") == "assisted":
+        # assisted：throttle 是速度设定值（180~280 m/s 线性）。
+        bb.action["flight"][0] = float(np.clip((speed_mps - 180.0) / 100.0,
+                                                0.0, 1.0))
+        return
     bb.action["flight"][0] = float(np.clip(0.85 + 0.005 * (speed_mps - bb.read(IDX_V)), 0.2, 1.0))
 
 
@@ -194,12 +213,17 @@ def _act_evade(bb: Blackboard, args: dict):
     tta = float(bb.info.get("maws_tta_s", 99.0))
     bank = 65.0 if tta < 1.5 else 55.0
     phi_cmd = bank * bb._evade_sign
-    phi_deg = math.degrees(bb.read(IDX_PHI))
-    roll = float(np.clip(0.010 * (phi_cmd - phi_deg), -0.3, 0.3))
     vd_bias = -15.0 if bb.read(IDX_H) > 2500.0 else 0.0
-    _hold_altitude(bb, bb.read(IDX_H), vd_bias_mps=vd_bias)
-    bb.action["flight"][0] = 1.0
-    bb.action["flight"][1] = roll
+    if getattr(bb, "control_mode", "raw_fcs") == "assisted":
+        _hold_altitude(bb, bb.read(IDX_H) + vd_bias)
+        bb.action["flight"][0] = 1.0
+        bb.action["flight"][1] = float(np.clip(phi_cmd / 45.0, -1.0, 1.0))
+    else:
+        _hold_altitude(bb, bb.read(IDX_H), vd_bias_mps=vd_bias)
+        bb.action["flight"][0] = 1.0
+        phi_deg = math.degrees(bb.read(IDX_PHI))
+        bb.action["flight"][1] = float(np.clip(0.010 * (phi_cmd - phi_deg),
+                                              -0.3, 0.3))
     return STATUS.RUNNING
 
 
