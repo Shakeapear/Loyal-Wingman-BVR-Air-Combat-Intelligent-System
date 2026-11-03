@@ -24,6 +24,7 @@ from .executor import Blackboard, build_tree, tick_once
 from .llm_client import extract_json
 from .mock_llm import DEFAULT_TEST_SEEDS
 from .prompts import SYSTEM_TESTER, render_tester_prompt
+from .scenes import env_config, scene_label, scene_max_steps
 from .schema import OODA_ALL, ooda_coverage, tree_node_names
 
 # 数据源：智能体库环境（路径引导由 llm_bt/__init__.py 统一完成）
@@ -81,13 +82,13 @@ def _is_steps_floor(crit: dict) -> bool:
     return crit.get("metric") == "steps_executed" and crit.get("op") in (">=", ">")
 
 
-def default_test_cases() -> list:
+def default_test_cases(scene: str = "default") -> list:
     """离线默认用例（mock Tester / 解析回退共用）。"""
     cases = []
     for i, seed in enumerate(DEFAULT_TEST_SEEDS, 1):
         cases.append({
             "case_id": f"case_{i}",
-            "description": f"随机初始态势 seed={seed}（距离 30~80 km、相对方位 ±60°）",
+            "description": f"随机初始态势 seed={seed}（距离 {scene_label(scene)}、相对方位 ±60°）",
             "expected_behavior": "探测→锁定→进入攻击区发射；受威胁时规避；全程无安全违规",
             "seed": int(seed),
             "success_criteria": [dict(c) for c in _SAFE_CRITERIA],
@@ -107,10 +108,16 @@ def _normalize_case(case: dict, index: int) -> dict:
     }
 
 
-def generate_test_cases(llm, tree_json: dict):
+def generate_test_cases(llm, tree_json: dict, scene: str = "default",
+                        max_steps: int | None = None):
     """LLM 生成测试用例；返回 (cases, raw_text)。解析失败回退默认用例。"""
-    raw = llm.complete(SYSTEM_TESTER, render_tester_prompt(tree_json),
-                       task="tester", context={"tree": tree_json})
+    steps = int(max_steps or scene_max_steps(scene))
+    raw = llm.complete(
+        SYSTEM_TESTER,
+        render_tester_prompt(tree_json, scene_label=scene_label(scene),
+                             max_steps=steps),
+        task="tester",
+        context={"tree": tree_json, "scene": scene, "max_steps": steps})
     try:
         data = extract_json(raw)
         raw_cases = data.get("test_cases") or []
@@ -120,7 +127,7 @@ def generate_test_cases(llm, tree_json: dict):
             raise ValueError("test_cases 为空")
         return cases, raw
     except Exception as e:   # LLM 输出不可解析：回退默认用例并记录原因
-        return default_test_cases(), raw + f"\n[解析回退] {type(e).__name__}: {e}"
+        return default_test_cases(scene), raw + f"\n[解析回退] {type(e).__name__}: {e}"
 
 
 def is_safety_violation(obs, cfg) -> bool:
@@ -136,9 +143,10 @@ _is_safety_violation = is_safety_violation
 
 
 def run_case(tree_json: dict, case: dict, max_steps: int = 240,
-             compute_envelope: bool = True) -> dict:
+             compute_envelope: bool = True, scene: str = "default") -> dict:
     """在 BVRCombatEnv 中执行单个测试用例，返回指标 dict。"""
-    env = BVRCombatEnv(config={"compute_envelope": bool(compute_envelope)})
+    env = BVRCombatEnv(config=env_config(scene, compute_envelope=compute_envelope,
+                                         max_steps=max_steps))
     bb = Blackboard(env)
     root = build_tree(tree_json, bb)
     obs, info = env.reset(seed=int(case["seed"]))
@@ -210,12 +218,13 @@ def evaluate_case(case: dict, result: dict):
 
 
 def run_test_cases(tree_json: dict, cases: list, max_steps: int = 240,
-                   compute_envelope: bool = True) -> dict:
+                   compute_envelope: bool = True,
+                   scene: str = "default") -> dict:
     """批量执行用例并汇总（通过率、安全违规、执行覆盖）。"""
     results, executed = [], set()
     for case in cases:
         result = run_case(tree_json, case, max_steps=max_steps,
-                          compute_envelope=compute_envelope)
+                          compute_envelope=compute_envelope, scene=scene)
         passed, checks = evaluate_case(case, result)
         executed.update(result["executed_nodes"])
         results.append({"case": case, "passed": passed, "checks": checks, "result": result})

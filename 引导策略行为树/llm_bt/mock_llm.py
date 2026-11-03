@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import json
 
+from .scenes import scene_label
+
 DEFAULT_TEST_SEEDS = (11, 22, 33, 44, 55)
 
 _SAFE_CRITERIA = [
@@ -119,11 +121,12 @@ def coder_response(context: dict) -> str:
 
 def tester_response(context: dict) -> str:
     """Mock Tester：输出 5 组测试用例 JSON 文本。"""
+    scene = str((context or {}).get("scene", "default"))
     cases = []
     for i, seed in enumerate(DEFAULT_TEST_SEEDS, 1):
         cases.append({
             "case_id": f"case_{i}",
-            "description": f"随机初始态势 seed={seed}（距离 30~80 km、相对方位 ±60°）",
+            "description": f"随机初始态势 seed={seed}（距离 {scene_label(scene)}、相对方位 ±60°）",
             "expected_behavior": "探测→锁定→进入攻击区发射；受威胁时规避；全程无安全违规",
             "seed": seed,
             "success_criteria": [dict(c) for c in _SAFE_CRITERIA],

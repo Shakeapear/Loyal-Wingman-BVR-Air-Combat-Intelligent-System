@@ -30,7 +30,10 @@ def render_coder_prompt(mission: str, feedback: str = "") -> str:
             .replace("{feedback}", feedback or "（无，首轮生成）"))
 
 
-def render_tester_prompt(tree_json: dict) -> str:
-    """Tester Prompt：注入行为树描述（文本树形图 + 动作参数）。"""
+def render_tester_prompt(tree_json: dict, scene_label: str = "30–80 km",
+                         max_steps: int = 240) -> str:
+    """Tester Prompt：注入行为树描述、目标场景与最大步数。"""
     return (load_prompt("tester_prompt.md")
-            .replace("{bt_description}", describe_tree(tree_json)))
+            .replace("{bt_description}", describe_tree(tree_json))
+            .replace("{scene_label}", str(scene_label))
+            .replace("{max_steps}", str(max_steps)))

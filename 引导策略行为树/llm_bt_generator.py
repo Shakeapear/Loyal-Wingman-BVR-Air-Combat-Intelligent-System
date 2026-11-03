@@ -41,6 +41,7 @@ if str(_HERE) not in sys.path:
 from llm_bt.llm_client import LLMClient, extract_json
 from llm_bt.maneuvers import ManeuverRegistry
 from llm_bt.prompts import SYSTEM_CODER, render_coder_prompt
+from llm_bt.scenes import SCENES, scene_max_steps
 from llm_bt.schema import CONVERGENCE, SCHEMA_VERSION, ooda_coverage
 from llm_bt.tester import generate_test_cases, run_test_cases
 from llm_bt.tree_io import text_tree, tree_to_dot, tree_to_xml
@@ -86,9 +87,17 @@ def _feedback_text(round_idx: int, static_errors, static_warnings,
 
 
 def run_iteration(mission: str = DEFAULT_MISSION, provider: str = "auto",
-                  model: str | None = None, rounds: int = 3, max_steps: int = 240,
-                  compute_envelope: bool = True, out_dir=None, verbose: bool = True):
+                  model: str | None = None, rounds: int = 3, max_steps: int = 0,
+                  compute_envelope: bool = True, out_dir=None, verbose: bool = True,
+                  scene: str = "default"):
     """执行 Coder-Executor-Tester 迭代，返回 {run_dir, history, final_tree, ...}。"""
+    if scene not in SCENES:
+        raise ValueError(f"未知场景 {scene!r}；可用 {sorted(SCENES)}")
+    max_steps = int(max_steps or scene_max_steps(scene))
+    if scene != "default":
+        mission = (mission.rstrip("。") +
+                   f"。验证场景：{SCENES[scene]['label']}、{max_steps} 步；"
+                   "需要远距搜索/闭合，并在 NEZ 内发射。")
     llm = LLMClient(provider=provider, model=model)
     run_dir = unique_dir(Path(out_dir or OUTPUTS_DIR),
                          datetime.now().strftime("%Y%m%d_%H%M%S"))
@@ -97,6 +106,7 @@ def run_iteration(mission: str = DEFAULT_MISSION, provider: str = "auto",
         "# 迭代收敛日志（D2.5-3）", "",
         f"- 时间：{datetime.now():%Y-%m-%d %H:%M:%S}",
         f"- provider：{llm.provider}（model={llm.model or '离线 mock'}）",
+        f"- 场景：{scene}（max_steps={max_steps}）",
         f"- 任务：{mission}",
         f"- 契约版本：{CONTRACT_VERSIONS}",
         f"- 收敛判据：通过率≥{CONVERGENCE['pass_rate']:.0%}，"
@@ -143,10 +153,11 @@ def run_iteration(mission: str = DEFAULT_MISSION, provider: str = "auto",
             continue
 
         coverage, missing_now = ooda_coverage(tree)
-        cases, raw_tester = generate_test_cases(llm, tree)
+        cases, raw_tester = generate_test_cases(llm, tree, scene=scene,
+                                                max_steps=max_steps)
         _write(run_dir / f"llm_tester_raw_v{r}.txt", raw_tester)
         summary = run_test_cases(tree, cases, max_steps=max_steps,
-                                 compute_envelope=compute_envelope)
+                                 compute_envelope=compute_envelope, scene=scene)
         converged = (summary["pass_rate"] >= CONVERGENCE["pass_rate"]
                      and coverage >= CONVERGENCE["ooda_coverage"]
                      and summary["safety_violations"] <= CONVERGENCE["safety_violations"])
@@ -213,7 +224,10 @@ def main(argv=None):
                    help="LLM 提供方；auto=有 DEEPSEEK_API_KEY 用 deepseek，否则 mock")
     p.add_argument("--model", default=None, help="模型名（默认 provider 推荐模型）")
     p.add_argument("--rounds", type=int, default=3, help="最大迭代轮数")
-    p.add_argument("--max-steps", type=int, default=240, help="单用例最大决策步（1 Hz）")
+    p.add_argument("--scene", default="default", choices=sorted(SCENES),
+                   help="验证场景：default(30–80km/240) 或 bvr80-120(80–120km/600)")
+    p.add_argument("--max-steps", type=int, default=0,
+                   help="单用例最大决策步；0=使用场景默认")
     p.add_argument("--fast", action="store_true",
                    help="不复算攻击区（compute_envelope=False），用于冒烟/快速验证")
     p.add_argument("--out-dir", "--out", dest="out", default=None,
@@ -226,7 +240,7 @@ def main(argv=None):
             mission=args.mission, provider=args.provider, model=args.model,
             rounds=args.rounds, max_steps=args.max_steps,
             compute_envelope=not args.fast, out_dir=args.out,
-            verbose=not args.quiet)
+            verbose=not args.quiet, scene=args.scene)
     except ProjectError as e:
         print(f"[错误] {e}", file=sys.stderr)
         return exit_code_for(e)

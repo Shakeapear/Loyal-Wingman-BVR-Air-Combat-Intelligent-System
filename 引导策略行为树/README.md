@@ -89,6 +89,17 @@ python -X utf8 run_2_7_validation.py \
 2026-11-03 结果：存活 80%、命中 75%、误发射 0%、安全 0、OODA 执行 97%、
 node_trace 20/20；30–80 km 回归 90%/75%。
 
+LLM 生成器同样支持场景：
+
+```bash
+python -X utf8 llm_bt_generator.py --provider mock --scene bvr80-120 --rounds 3
+# 在线最终树：先在同一 PowerShell 会话设置 DEEPSEEK_API_KEY，再
+python -X utf8 llm_bt_generator.py --provider deepseek --scene bvr80-120 --rounds 3
+```
+
+mock 只验证生成/校验/测试流程，不是战术教师；当前 mock 树 20 seeds 复核为
+存活 60%/命中 5%。DeepSeek 在线树需在密钥可用后生成并走同一外部 harness。
+
 **OODA 关键节点**（`llm_bt/schema.py:OODA_REQUIRED`）：观察 `search_target`/`has_target_detected`、
 判断 `lock_target`/`is_in_launch_zone`、决策 `has_weapon_remaining`/`is_fuel_low`、
 行动 `fire_missile`/`evade_missile`（共 8 项，全含为 100%）。
