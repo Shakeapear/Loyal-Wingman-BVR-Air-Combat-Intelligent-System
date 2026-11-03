@@ -19,7 +19,8 @@
 ├── 03_单机RL控制环境与接口\      ← 单机 RL 控制环境（接口设计参考）
 │   ├── gym-jsbsim\               ← 已下载：经典 JSBSim Gym 封装
 │   └── RL_air-combat\            ← 已下载：中文空战 RL 入门项目
-└── 04_参考与备查\                ← 未能下载/超大规模的备查资源
+├── 04_参考与备查\                ← 未能下载/超大规模的备查资源
+└── 05_人类战术动作与招式库\      ← 人类动作/招式、DCS ACMI、招式表（见该目录 README）
 ```
 
 ## 与本项目的关系
@@ -31,6 +32,7 @@
 | 1v1/2v2 空战 RL 环境架构参考 | CloseAirCombat（分层控制+导弹模型）、BVRGym（三级架构） |
 | Gym 接口封装（计划书步骤 2.3） | gym-jsbsim（HeadingControlTask 等接口范例） |
 | 机动识别（敌方战术动作识别） | CAFUC、aircraft_maneuver_classification、MIT AIA（备查） |
+| 人类招式/引导行为树 | `05_人类战术动作与招式库/`（ManeuverSpec + DCS ACMI + 手册） |
 
 ## 使用提醒
 

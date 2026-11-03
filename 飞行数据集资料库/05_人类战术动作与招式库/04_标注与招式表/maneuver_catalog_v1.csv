@@ -1,0 +1,16 @@
+maneuver_id,name_zh,name_en,phase,preconditions,parameters,action_sequence_or_controller,exit_conditions,safety_constraints,source_type,source_ref,status,notes
+search_pattern,搜索扫描,search_pattern,observe,radar available; no track,heading/speed/altitude,平飞/蛇形扫描；保持雷达视场,detected or timeout,altitude/speed limits,own env + F-16 manual,F-16 MCH 11-F16 Vol5 Ch4; 现有 search_target,implemented,现有行为树 search_target
+intercept_closure,接敌闭合,intercept_closure,orient,target track or datalink cue,closure speed/heading offset,朝预测拦截点转向并保持能量,enter launch zone or lost track,no-fly/altitude/speed,manual,F-16 MCH 11-F16 Vol5 Ch4.13; own JSBSim,design,80-120km 必需
+lock_and_track,锁定跟踪,lock_and_track,orient,target detected,radar mode,雷达跟踪并保持目标在视场,track lost or launch,radar limits,own env,现有 lock_target,implemented,现有行为树 lock_target
+crank,crank 偏转,crank,act,own missile in flight,offset angle 30-40 deg,发射后向目标一侧偏转并保持雷达照射,missile impact or threat removed,radar gimbal/F-pole,manual + ACMI,F-16 manual; DCS BVR ACMI,partial,需从 ACMI 提取
+notch,notch 规避,notch,defend,incoming missile,aspect/altitude,切向导弹视线并保持速度,threat defeated or range open,speed/altitude/terrain,manual + ACMI,F-16 manual; BVR tactics notes,partial,需轨迹验证
+break_turn,急转,break_turn,defend,incoming threat,bank/G,最大坡度急转并保持能量,threat defeated or separation,speed/stall/G,real trajectory,UAVDB; MIT Maneuver ID,have-basic,需适配 F-104
+barrel_roll,桶滚,barrel_roll,defend/energy,sufficient energy,roll rate/altitude,滚转+俯仰复合机动,energy recovered or threat defeated,altitude/speed,real trajectory,UAVDB; MIT Maneuver ID,have-basic,需适配 F-104
+defensive_spiral,防御螺旋,defensive_spiral,defend,incoming missile,descending spiral,下降螺旋保持速度/角度,threat defeated or altitude floor,altitude floor/G,manual,F-16 manual BFM/ACM,design,需补独立轨迹
+launch_and_crank,发射后偏转,launch_and_crank,act,in launch zone; missile ready,launch range/offset,发射后立即 crank 保持照射,missile impact or threat removed,radar gimbal/F-pole,manual + ACMI,F-16 manual; DCS BVR ACMI,partial,核心 BVR 招式
+extend_and_reengage,脱离再接敌,extend_and_reengage,act,energy low or threat high,extend heading/time,脱离到安全距离后重新接敌,re-engaged or RTB,fuel/altitude/speed,manual + ACMI,F-16 manual; DCS ACMI,partial,需定义 re-engage 条件
+split_s,破 S,split_s,energy,sufficient altitude,speed/roll,半滚倒转下降并改平,level flight or altitude floor,altitude floor/speed,real trajectory,UAVDB; MIT Maneuver ID,have-basic,基础机动
+loop,筋斗,loop,energy,sufficient altitude/speed,pull G,垂直筋斗,level flight or energy depleted,altitude/speed/G,MIT Maneuver ID,MIT Maneuver ID maneuvers,need-download,需按 F-104 包线整定
+immelmann,殷麦曼,immelmann,energy,sufficient altitude/speed,pull/roll,半筋斗+半滚改平,level flight or energy depleted,altitude/speed/G,MIT Maneuver ID,MIT Maneuver ID maneuvers,need-download,需按 F-104 包线整定
+fuel_rtb,燃油返航,fuel_rtb,survive,fuel low,home heading/altitude/speed,朝基地返航并保持能量,home or fuel exhausted,altitude/speed/fuel,own env,F-16 manual; own JSBSim,implemented,现有 return_to_base
+ecm_on,电子对抗,ecm_on,act,ecm available,on/off,按边沿开启 ECM 并保持,threat removed or fuel/safety,ecm/radar constraints,own env + manual,现有 ecm 动作,partial,需真实使用策略
