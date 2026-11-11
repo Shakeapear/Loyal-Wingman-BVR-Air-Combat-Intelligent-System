@@ -46,10 +46,11 @@ $py = "C:\Users\36266\.conda\envs\DC\python.exe"
 
 ## 当前基线（2026-11-11）
 
-- 教师树：`teacher_v3_speed260`（solo default 100/86、bvr80-120 98/86；误发射 0、安全违规 0、trace 50/50）。
-- 对抗：default 19-21-60（combat Pk 12.4%）；bvr80-120 42-14-44（combat Pk 10.7%，其中 31 场为对手逃逸胜）。
+- 教师树：`teacher_v3_speed260`（修复后 solo default/bvr 均 96/86；误发射 0、安全违规 0、trace 50/50）。
+- 对抗：default 26-40-34（combat Pk 17.3%，但 combat wins 26 < 手写 40，生存 60%）；bvr80-120 40-31-29（combat 11 < 手写 29，Pk 10.6%，29 场对手逃逸胜，生存 71%）。
+- 结论：修复后教师树尚未在 combat 上超过手写树，中期前需重新整定；旧的 50-seed 归档数字不再代表当前代码。
 - 场景路由与指标口径见 `引导策略行为树/tree_manifest.json`、`项目状态与进度总览.md`。
-- 回退点：`checkpoint-midterm-20261111`。
+- 回退点：`midterm-ready-20261111`（修复后 50-seed 基线）；此前基线：`checkpoint-midterm-20261111`。
 
 ## 文档优先级
 

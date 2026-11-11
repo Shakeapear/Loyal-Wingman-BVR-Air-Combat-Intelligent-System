@@ -69,17 +69,22 @@
     "metrics": {
       "scene": "default",
       "seeds": 50,
-      "survival_rate": 1.0,
+      "survival_rate": 0.96,
       "hit_rate": 0.86,
       "misfire_rate": 0.0,
       "safety_violations": 0,
-      "ooda_executed_coverage": 0.96,
+      "ooda_executed_coverage": 0.955,
       "node_trace_ok": "50/50",
       "h2h_vs_handwritten": {
-        "games": 100, "wins": 19, "losses": 21, "draws": 60,
-        "combat_wins": 19, "pk_per_launch": 0.1242
+        "games": 100,
+        "wins": 26,
+        "losses": 40,
+        "draws": 34,
+        "combat_wins": 26,
+        "non_combat_wins": 0,
+        "pk_per_launch": 0.1733
       },
-      "note": "solo 100/86; h2h 19-21-60, Pk 12.4%, still draw-heavy"
+      "note": "post-review-fix solo 96/86; h2h 26-40-34, Pk 17.3%, combat wins 26 < handwritten 40, survival 60%"
     }
   },
   "teacher_v3_speed260_bvr80-120": {
@@ -90,18 +95,22 @@
     "metrics": {
       "scene": "bvr80-120",
       "seeds": 50,
-      "survival_rate": 0.98,
+      "survival_rate": 0.96,
       "hit_rate": 0.86,
       "misfire_rate": 0.0,
       "safety_violations": 0,
-      "ooda_executed_coverage": 0.96,
+      "ooda_executed_coverage": 0.9575,
       "node_trace_ok": "50/50",
       "h2h_vs_handwritten": {
-        "games": 100, "wins": 42, "losses": 14, "draws": 44,
-        "combat_wins": 11, "non_combat_wins": 31,
-        "pk_per_launch": 0.1068
+        "games": 100,
+        "wins": 40,
+        "losses": 31,
+        "draws": 29,
+        "combat_wins": 11,
+        "non_combat_wins": 29,
+        "pk_per_launch": 0.1058
       },
-      "note": "solo 98/86; h2h 42-14-44, Pk 10.7%, combat wins 11, 31 escape wins"
+      "note": "post-review-fix solo 96/86; h2h 40-31-29, Pk 10.6%, combat wins 11 < handwritten 29, 29 escape wins"
     }
   }
 }

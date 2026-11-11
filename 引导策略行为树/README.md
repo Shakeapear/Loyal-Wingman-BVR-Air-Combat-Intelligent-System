@@ -6,8 +6,9 @@ LLM 行为树生成器-测试器框架（2.5，已交付）、二级优先级引
 `多任务智能体/` 为**单向依赖**：只调用环境数据/动作接口，不含 DRL 训练代码。
 
 > 当前状态（2026-11-11）：2.5–2.7 均已交付；阶段三教师基线固定为
-> `teacher_v3_speed260`（solo default 100/86、bvr80-120 98/86，误发射 0、
-> 安全违规 0、trace 50/50）。本目录测试 90 项，三套全量 227 项通过。
+> `teacher_v3_speed260`（修复后 solo default/bvr 均 96/86，误发射 0、
+> 安全违规 0、trace 50/50；对握手写树 combat 仍落后）。本目录测试 90 项，
+> 三套全量 227 项通过。
 
 ## 一、步骤 2.5 交付物索引
 
@@ -239,9 +240,11 @@ Prompt 生成或人工追加——离线默认判据不构成对树战术优劣�
   profile 数据驱动（首发/补射动作、防御招式、搜索速度、crank 偏角）；
 - 对抗入口：`run_bt_vs_bt.py`（双树 1v1、对称燃油/逃逸终止、逐发记录）；
   可视化：`visualize_bt_vs_bt.py`；
-- 中期指标：solo default 100/86、bvr80-120 98/86；h2h vs 手写 default
-  19-21-60（combat Pk 12.4%）、bvr80-120 42-14-44（combat Pk 10.7%，其中
-  31 场为对手逃逸胜）。评估必须区分 `combat_wins` 与 `non_combat_wins`；
+- 修复后 50 seeds 指标：solo default/bvr 均 96/86；h2h vs 手写 default
+  26-40-34（combat Pk 17.3%，combat wins 26 < 手写 40，生存 60%）、bvr80-120
+  40-31-29（combat 11 < 手写 29，Pk 10.6%，29 场对手逃逸胜，生存 71%）。
+  评估必须区分 `combat_wins` 与 `non_combat_wins`；当前教师树尚未在 combat
+  上超过手写树，需在中期前重新整定高度比例与防御招式；
 - 入口共享工具：`llm_bt/sim_common.py` 统一种子解析、EpisodeRecorder、边界守卫与
   ACMI 导出；各入口 CLI 和产物格式不变。测试路径由各 `tests/conftest.py` 统一引导；
 - 复现：

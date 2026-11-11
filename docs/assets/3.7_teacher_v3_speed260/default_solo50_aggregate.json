@@ -1,7 +1,7 @@
 {
   "tree_label": "bt_v3_speed260",
   "tree_id": "bt_tactical_v3_speed260",
-  "tree_source": "outputs\\candidates\\bt_v3_speed260.json",
+  "tree_source": "docs\\assets\\3.7_teacher_v3_speed260\\bt_v3_speed260.json",
   "seeds": [
     1,
     2,
@@ -56,7 +56,7 @@
   ],
   "max_steps": 240,
   "n_episodes": 50,
-  "survival_rate": 1.0,
+  "survival_rate": 0.96,
   "hit_rate": 0.86,
   "misfire_rate": 0.0,
   "launch_commands": 91,
@@ -67,13 +67,14 @@
   "avg_ooda_executed": 0.955,
   "full_ooda_episodes": 39,
   "trace_ok_episodes": 50,
-  "avg_steps": 98.3,
+  "avg_steps": 92.5,
   "avg_guided_ratio": 1.0,
-  "avg_wall_s": 0.51,
+  "avg_wall_s": 0.55,
   "boundary_trigger_count": 1,
   "termination_counts": {
     "enemy_hit": 43,
-    "timeout": 7
+    "timeout": 5,
+    "own_hit": 2
   },
   "own_fired": 91,
   "enemy_fired": 100
