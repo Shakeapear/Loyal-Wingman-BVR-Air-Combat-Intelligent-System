@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import math
+import os
 from collections import Counter
 from functools import partial
 
@@ -40,7 +41,8 @@ from .schema import ACTIONS, CONDITIONS, node_name, root_and_children
 # ---- 观测索引（对齐 OBS_FIELDS_BVR，共 28 维）----
 IDX_H, IDX_V, IDX_MACH, IDX_PHI, IDX_THETA, IDX_PSI = 0, 1, 2, 3, 4, 5
 IDX_THROTTLE, IDX_FUEL, IDX_VD, IDX_N_MSL = 9, 10, 11, 12
-IDX_TGT_BRG, IDX_TGT_DETECTED = 18, 21
+IDX_TGT_DIST, IDX_TGT_BRG, IDX_TGT_HEADING = 17, 18, 20
+IDX_TGT_DETECTED = 21
 IDX_MAWS = 24
 
 STATUS = py_trees.common.Status
@@ -51,6 +53,26 @@ WAYPOINT_HDG_TOL_DEG = 15.0   # navigate_to_waypoint 到达判定（航向）
 RTB_DIST_TOL_M = 5000.0       # return_to_base 到达判定（距原点）
 CRANK_OFFSET_DEG = 60.0       # 发射后 F-pole 偏转角（保持目标在雷达方位边缘）
 CRANK_MAX_AGE_S = 30.0        # 导弹在飞判定回退（无 env 时按发射后 30 s）
+
+# 动态发射包线（LAR）参数：热姿态 + 高闭合率 + Rmax 缩放。
+# 候选树搜索可在同一进程内用 configure_lar() 覆盖，再逐候选评估。
+SHOT_WINDOW_TURN_MAX_DEG_S = 1.0   # 目标转弯率超过该值视为防御机动，暂缓补射
+
+LAR_CONFIG = {
+    "aspect_max_deg": float(os.environ.get("BVR_LAR_ASPECT_MAX_DEG", 60.0)),
+    "closure_min_mps": float(os.environ.get("BVR_LAR_CLOSURE_MIN_MPS", 400.0)),
+    "range_factor_min": float(os.environ.get("BVR_LAR_RANGE_FACTOR_MIN", 0.70)),
+    "max_range_m": float(os.environ.get("BVR_LAR_MAX_RANGE_M", 45000.0)),
+}
+
+
+def configure_lar(**kwargs) -> dict:
+    """覆盖动态 LAR 参数并返回当前配置（供候选评估/单元测试）。"""
+    for key, value in kwargs.items():
+        if key not in LAR_CONFIG:
+            raise KeyError(f"未知 LAR 参数: {key}")
+        LAR_CONFIG[key] = float(value)
+    return dict(LAR_CONFIG)
 
 
 class Blackboard:
@@ -75,12 +97,81 @@ class Blackboard:
         self._ecm_requested = False    # ECM 仅边沿开启一次（主防默认开启）
         self._maneuver_state = {}
         self.maneuver_registry = None   # 可选注入 ManeuverRegistry
+        # 派生态势（供动态 LAR / 闭合 / 边界条件使用）
+        self.closure_mps = 0.0
+        self.closure_known = False
+        self._prev_tgt_dist = None
+        self._prev_tgt_step = None
+        self.target_turn_rate_deg_s = 0.0
+        self._prev_tgt_heading = None
+        self._prev_tgt_heading_step = None
 
     def read(self, idx) -> float:
         return float(self.obs[idx]) if self.obs is not None else 0.0
 
     def set_frame(self, obs, info, step):
         self.obs, self.info, self.step = obs, info, int(step)
+        self._update_closure()
+        self._update_target_turn_rate()
+
+    def _update_closure(self):
+        """由相邻决策步的目标距离差计算闭合率（m/s，正=接近）。
+
+        同一 step 内重复 set_frame（run_2_7_validation 会先 set_frame 再 tick_once）
+        不重复计算，避免 dt=0。
+        """
+        if self.obs is None:
+            return
+        detected = float(self.obs[IDX_TGT_DETECTED]) > 0.5
+        dist = float(self.obs[IDX_TGT_DIST])
+        if not detected:
+            self.closure_mps = 0.0
+            self.closure_known = False
+            self._prev_tgt_dist = None
+            self._prev_tgt_step = None
+            return
+        if self._prev_tgt_dist is None or self._prev_tgt_step is None:
+            self._prev_tgt_dist = dist
+            self._prev_tgt_step = self.step
+            self.closure_mps = 0.0
+            self.closure_known = False
+            return
+        if self.step == self._prev_tgt_step:
+            return
+        dt = max(1, self.step - self._prev_tgt_step)
+        self.closure_mps = (self._prev_tgt_dist - dist) / float(dt)
+        self._prev_tgt_dist = dist
+        self._prev_tgt_step = self.step
+        self.closure_known = True
+
+    def mark_target_distance(self):
+        """首帧或重置后建立距离基线（避免第一步闭合率恒为 0）。"""
+        if self.obs is not None and float(self.obs[IDX_TGT_DETECTED]) > 0.5:
+            self._prev_tgt_dist = float(self.obs[IDX_TGT_DIST])
+            self._prev_tgt_step = self.step
+
+    def _update_target_turn_rate(self):
+        """目标航向变化率（deg/s）；用于判断目标是否在防御性转弯。"""
+        if self.obs is None:
+            return
+        if float(self.obs[IDX_TGT_DETECTED]) < 0.5:
+            self.target_turn_rate_deg_s = 0.0
+            self._prev_tgt_heading = None
+            self._prev_tgt_heading_step = None
+            return
+        hdg = math.degrees(float(self.obs[IDX_TGT_HEADING]))
+        if self._prev_tgt_heading is None or self._prev_tgt_heading_step is None:
+            self._prev_tgt_heading = hdg
+            self._prev_tgt_heading_step = self.step
+            self.target_turn_rate_deg_s = 0.0
+            return
+        if self.step == self._prev_tgt_heading_step:
+            return
+        dt = max(1, self.step - self._prev_tgt_heading_step)
+        self.target_turn_rate_deg_s = (
+            _wrap180(hdg - self._prev_tgt_heading) / float(dt))
+        self._prev_tgt_heading = hdg
+        self._prev_tgt_heading_step = self.step
 
     def reset_step_weapon(self):
         """清空武器离散动作（边沿触发：仅当步的 1 有效）。"""
@@ -151,6 +242,78 @@ def _own_missiles_in_flight(bb: Blackboard) -> bool:
         except Exception:
             pass
     return bb._last_fire_step >= 0 and (bb.step - bb._last_fire_step) <= CRANK_MAX_AGE_S
+
+
+def target_aspect_deg(bb: Blackboard) -> float:
+    """目标 aspect（0=迎面飞向我方，180=尾追/背向）。
+
+    由 ObsV1 的 tgt_heading / tgt_bearing / own psi 计算：
+    aspect = |wrap(target_heading - (own_psi + tgt_bearing + 180°))|
+    """
+    if bb.read(IDX_TGT_DETECTED) < 0.5:
+        return 180.0
+    own_psi = math.degrees(bb.read(IDX_PSI))
+    tgt_brg = math.degrees(bb.read(IDX_TGT_BRG))
+    tgt_hdg = math.degrees(bb.read(IDX_TGT_HEADING))
+    return min(180.0, abs(_wrap180(tgt_hdg - (own_psi + tgt_brg + 180.0))))
+
+
+def own_distance_to_base_m(bb: Blackboard) -> float:
+    """本机距初始地理原点的水平距离（m）；无 env 时返回 0。"""
+    if bb.env is None:
+        return 0.0
+    try:
+        pos = bb.env.get_viz_frame()["own"]["pos"]
+        return float(math.hypot(float(pos[0]), float(pos[1])))
+    except Exception:
+        return 0.0
+
+
+def _escape_radius_m(bb: Blackboard) -> float:
+    cfg = getattr(bb.env, "cfg", None)
+    if cfg is None:
+        inner = getattr(bb.env, "env", None)
+        cfg = getattr(inner, "cfg", None)
+    return float(cfg.get("escape_radius_m", 150e3)) if cfg else 150e3
+
+
+def _within_effective_range(bb: Blackboard) -> bool:
+    """在攻击区内且距离不超过有效发射距离上限（默认 50 km）。"""
+    if not bool(bb.info.get("in_zone", False)):
+        return False
+    if bb.read(IDX_TGT_DETECTED) < 0.5:
+        return False
+    rmax = bb.info.get("r_max_own_m")
+    if rmax is None:
+        return False
+    limit = min(float(rmax), float(LAR_CONFIG["max_range_m"]))
+    return bb.read(IDX_TGT_DIST) <= limit
+
+
+def _dynamic_lar(bb: Blackboard) -> bool:
+    """动态发射包线：当前在攻击区 + 热姿态 + 高闭合 + aspect 缩放 Rmax。"""
+    if not bool(bb.info.get("in_zone", False)):
+        return False
+    if bb.read(IDX_TGT_DETECTED) < 0.5:
+        return False
+    aspect = target_aspect_deg(bb)
+    if aspect > float(LAR_CONFIG["aspect_max_deg"]):
+        return False
+    # 首帧还没有闭合率样本：用 aspect/range 先行判断，保留先手窗口。
+    if (getattr(bb, "closure_known", False)
+            and float(bb.closure_mps) < float(LAR_CONFIG["closure_min_mps"])):
+        return False
+    rmax = bb.info.get("r_max_own_m")
+    if rmax is None:
+        return False
+    # 热姿态（<=40°）允许在 Rmax 附近先手；更大的 aspect 才收缩发射距离。
+    if aspect <= 40.0:
+        factor = 1.0
+    else:
+        factor = max(float(LAR_CONFIG["range_factor_min"]),
+                     math.cos(math.radians(aspect)))
+    limit = min(float(rmax) * factor, float(LAR_CONFIG["max_range_m"]))
+    return bb.read(IDX_TGT_DIST) <= limit
 
 
 # ----------------------------------------------------------------------
@@ -309,6 +472,35 @@ COND_FUNCS = {
     "has_weapon_remaining": lambda bb: bb.read(IDX_N_MSL) > 0.5,
     "is_fuel_low": lambda bb: bb.read(IDX_FUEL) < FUEL_LOW_FRAC,
     "has_human_command": lambda bb: bool(bb.human_command),
+    # ---- 对抗增强条件 ----
+    "is_target_hot": lambda bb: (bb.read(IDX_TGT_DETECTED) > 0.5
+                                 and target_aspect_deg(bb)
+                                 <= float(LAR_CONFIG["aspect_max_deg"])),
+    "is_closure_high": lambda bb: (bb.read(IDX_TGT_DETECTED) > 0.5
+                                   and (not getattr(bb, "closure_known", False)
+                                        or float(bb.closure_mps)
+                                        >= float(LAR_CONFIG["closure_min_mps"]))),
+    "is_opening": lambda bb: (bb.read(IDX_TGT_DETECTED) > 0.5
+                              and getattr(bb, "closure_known", False)
+                              and float(bb.closure_mps) < -20.0),
+    "is_target_turning": lambda bb: (
+        bb.read(IDX_TGT_DETECTED) > 0.5
+        and abs(float(getattr(bb, "target_turn_rate_deg_s", 0.0)))
+        > SHOT_WINDOW_TURN_MAX_DEG_S),
+    "is_shot_window_open": lambda bb: (
+        bb.read(IDX_TGT_DETECTED) > 0.5
+        and not bool(bb.info.get("maws_alarm", False))
+        and abs(float(getattr(bb, "target_turn_rate_deg_s", 0.0)))
+        <= SHOT_WINDOW_TURN_MAX_DEG_S),
+    "is_within_dynamic_lar": _dynamic_lar,
+    "is_within_effective_range": _within_effective_range,
+    "is_near_boundary": lambda bb: (own_distance_to_base_m(bb)
+                                    > 0.8 * _escape_radius_m(bb)),
+    "has_missile_in_flight": _own_missiles_in_flight,
+    "has_full_weapons": lambda bb: bb.read(IDX_N_MSL) >= 1.5,
+    "is_rwr_locked": lambda bb: bool(bb.info.get("rwr_alarm", False)),
+    "is_tta_long": lambda bb: (bool(bb.info.get("maws_alarm", False))
+                               and float(bb.info.get("maws_tta_s", 0.0)) > 8.0),
 }
 
 

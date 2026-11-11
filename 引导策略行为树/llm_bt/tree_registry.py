@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .tactical_execution_tree import tactical_tree_json
+from .tactical_execution_tree import tactical_tree_json, tactical_tree_v3_json
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_MANIFEST = Path(__file__).resolve().parents[1] / "tree_manifest.json"
@@ -30,6 +30,8 @@ def resolve_tree(scene: str, manifest: dict | None = None) -> dict:
     entry = manifest[scene]
     if entry.get("builder") == "tactical_tree_json":
         return tactical_tree_json()
+    if entry.get("builder") == "tactical_tree_v3_json":
+        return tactical_tree_v3_json(entry.get("profile", "balanced"))
     path = entry.get("path")
     if not path:
         raise ValueError(f"场景 {scene!r} 缺少 path/builder")

@@ -26,3 +26,22 @@ def test_resolve_and_validate_both_trees():
         tree = resolve_tree(scene)
         assert validate_tree_json(tree, maneuver_ids=ids) == []
         assert ooda_coverage(tree)[0] == 1.0
+
+
+def test_resolve_teacher_v3_for_both_scenes():
+    ids = set(ManeuverRegistry.from_csv().ids())
+    for scene in ("teacher_v3_default", "teacher_v3_bvr80-120"):
+        tree = resolve_tree(scene)
+        assert tree["bt_id"] == "bt_tactical_v3_break_turn_defense"
+        assert validate_tree_json(tree, maneuver_ids=ids) == []
+        assert ooda_coverage(tree)[0] == 1.0
+
+
+def test_resolve_teacher_speed260_for_both_scenes():
+    ids = set(ManeuverRegistry.from_csv().ids())
+    for scene in ("teacher_v3_speed260_default",
+                  "teacher_v3_speed260_bvr80-120"):
+        tree = resolve_tree(scene)
+        assert tree["bt_id"] == "bt_tactical_v3_speed260"
+        assert validate_tree_json(tree, maneuver_ids=ids) == []
+        assert ooda_coverage(tree)[0] == 1.0

@@ -26,5 +26,82 @@
       "ooda_executed_coverage": 0.935,
       "note": "seed 3 escape, one OODA-low episode; all engaged seeds 100%"
     }
+  },
+  "teacher_v3_default": {
+    "source": "v3-break_turn_defense",
+    "builder": "tactical_tree_v3_json",
+    "profile": "break_turn_defense",
+    "path": "docs/assets/3.6_teacher_v3/bt_v3_break_turn_defense.json",
+    "metrics": {
+      "scene": "default",
+      "seeds": 50,
+      "survival_rate": 1.0,
+      "hit_rate": 0.9,
+      "misfire_rate": 0.0,
+      "safety_violations": 0,
+      "ooda_executed_coverage": 0.96,
+      "node_trace_ok": "50/50",
+      "note": "50 seeds: 100% survival / 90% hit; 0 misfire / 0 safety"
+    }
+  },
+  "teacher_v3_bvr80-120": {
+    "source": "v3-break_turn_defense",
+    "builder": "tactical_tree_v3_json",
+    "profile": "break_turn_defense",
+    "path": "docs/assets/3.6_teacher_v3/bt_v3_break_turn_defense.json",
+    "metrics": {
+      "scene": "bvr80-120",
+      "seeds": 50,
+      "survival_rate": 0.96,
+      "hit_rate": 0.84,
+      "misfire_rate": 0.0,
+      "safety_violations": 0,
+      "ooda_executed_coverage": 0.96,
+      "node_trace_ok": "50/50",
+      "note": "50 seeds: 96% survival / 84% hit; 0 misfire / 0 safety"
+    }
+  },
+  "teacher_v3_speed260_default": {
+    "source": "v3-speed260",
+    "builder": "tactical_tree_v3_json",
+    "profile": "speed260",
+    "path": "docs/assets/3.7_teacher_v3_speed260/bt_v3_speed260.json",
+    "metrics": {
+      "scene": "default",
+      "seeds": 50,
+      "survival_rate": 1.0,
+      "hit_rate": 0.86,
+      "misfire_rate": 0.0,
+      "safety_violations": 0,
+      "ooda_executed_coverage": 0.96,
+      "node_trace_ok": "50/50",
+      "h2h_vs_handwritten": {
+        "games": 100, "wins": 19, "losses": 21, "draws": 60,
+        "combat_wins": 19, "pk_per_launch": 0.1242
+      },
+      "note": "solo 100/86; h2h 19-21-60, Pk 12.4%, still draw-heavy"
+    }
+  },
+  "teacher_v3_speed260_bvr80-120": {
+    "source": "v3-speed260",
+    "builder": "tactical_tree_v3_json",
+    "profile": "speed260",
+    "path": "docs/assets/3.7_teacher_v3_speed260/bt_v3_speed260.json",
+    "metrics": {
+      "scene": "bvr80-120",
+      "seeds": 50,
+      "survival_rate": 0.98,
+      "hit_rate": 0.86,
+      "misfire_rate": 0.0,
+      "safety_violations": 0,
+      "ooda_executed_coverage": 0.96,
+      "node_trace_ok": "50/50",
+      "h2h_vs_handwritten": {
+        "games": 100, "wins": 42, "losses": 14, "draws": 44,
+        "combat_wins": 11, "non_combat_wins": 31,
+        "pk_per_launch": 0.1068
+      },
+      "note": "solo 98/86; h2h 42-14-44, Pk 10.7%, combat wins 11, 31 escape wins"
+    }
   }
 }

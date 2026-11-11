@@ -124,7 +124,11 @@ def _crank(bb, params, elapsed):
         return _status().FAILURE
     if not _h()._own_missiles_in_flight(bb):
         return _status().SUCCESS
-    _turn_target(bb, float(params.get("offset_deg", 60.0)))
+    # F-pole 偏转方向：向目标方位的反侧转，使目标滑向雷达方位边缘。
+    # 与 executor._act_lock 的 crank_sign 保持一致（背向目标一侧）。
+    brg = bb.read(_h().IDX_TGT_BRG)
+    sign = 1.0 if brg >= 0.0 else -1.0
+    _turn_target(bb, -sign * float(params.get("offset_deg", 60.0)))
     _alt(bb, bb.read(_h().IDX_H))
     _speed(bb, float(params.get("speed_mps", 250.0)))
     return _status().RUNNING

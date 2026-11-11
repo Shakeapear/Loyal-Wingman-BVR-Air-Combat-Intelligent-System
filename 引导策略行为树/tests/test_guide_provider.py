@@ -18,7 +18,8 @@ from llm_bt.guide_adapter import (AssistedAdapter, RawFCSAdapter,
                                   action_dict_to_v1)
 from llm_bt.guide_provider import BTGuideProvider
 from llm_bt.guide_types import GuideStep
-from llm_bt.tactical_execution_tree import tactical_tree_json
+from llm_bt.tactical_execution_tree import (tactical_tree_json,
+                                            tactical_tree_v3_json)
 
 
 def _obs(**kw):
@@ -71,6 +72,17 @@ def test_bt_provider_assisted_exhaust_and_reset():
     assert not third.active and third.action is None
     provider.reset(obs=obs, info={})
     assert provider.step(obs, {}, step=0).active
+
+
+def test_bt_provider_with_v3_teacher_tree():
+    provider = BTGuideProvider(
+        tree=tactical_tree_v3_json("break_turn_defense"),
+        max_guide_steps=2, control_mode="assisted")
+    obs = _obs()
+    provider.reset(obs=obs, info={})
+    step = provider.step(obs, {}, step=0)
+    assert step.active and step.action.shape == (7,)
+    assert step.meta["tree_id"] == "bt_tactical_v3_break_turn_defense"
 
 
 def test_bt_provider_raw_mode_and_bounds():

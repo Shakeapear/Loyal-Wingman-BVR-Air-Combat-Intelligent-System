@@ -1,0 +1,614 @@
+{
+  "bt_id": "bt_tactical_v3_break_turn_defense",
+  "mission": "对抗教师树 v3：动态 LAR 先手发射、弹在飞 crank、边界感知搜索、人类招式防御/返航，用于 JSRL 引导。",
+  "profile": "break_turn_defense",
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "Selector",
+      "label": "BVR_Mission"
+    },
+    {
+      "id": "n2",
+      "type": "Sequence",
+      "label": "Human_Command_Response"
+    },
+    {
+      "id": "n3",
+      "type": "Condition",
+      "name": "has_human_command"
+    },
+    {
+      "id": "n4",
+      "type": "Action",
+      "name": "navigate_to_waypoint",
+      "args": {
+        "altitude_m": 8000,
+        "speed_mps": 250,
+        "heading_deg": 0
+      }
+    },
+    {
+      "id": "n5",
+      "type": "Sequence",
+      "label": "Self_Defense"
+    },
+    {
+      "id": "n6",
+      "type": "Condition",
+      "name": "is_missile_incoming"
+    },
+    {
+      "id": "n7",
+      "type": "Parallel",
+      "label": "DefensiveActions"
+    },
+    {
+      "id": "n8",
+      "type": "Selector",
+      "label": "DefensiveManeuver"
+    },
+    {
+      "id": "n9",
+      "type": "Sequence",
+      "label": "NotchWhenLongTTA"
+    },
+    {
+      "id": "n10",
+      "type": "Condition",
+      "name": "is_tta_long"
+    },
+    {
+      "id": "n11",
+      "type": "Action",
+      "name": "evade_missile",
+      "args": {
+        "maneuver_type": "break_turn"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "Action",
+      "name": "evade_missile",
+      "args": {
+        "maneuver_type": "break_turn"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "ecm_on",
+        "parameters": {
+          "duration_s": 5
+        }
+      }
+    },
+    {
+      "id": "n14",
+      "type": "Sequence",
+      "label": "Boundary_Return"
+    },
+    {
+      "id": "n15",
+      "type": "Selector",
+      "label": "BoundaryTrigger"
+    },
+    {
+      "id": "n16",
+      "type": "Condition",
+      "name": "is_fuel_low"
+    },
+    {
+      "id": "n17",
+      "type": "Condition",
+      "name": "is_near_boundary"
+    },
+    {
+      "id": "n18",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "fuel_rtb",
+        "parameters": {}
+      }
+    },
+    {
+      "id": "n19",
+      "type": "Sequence",
+      "label": "Pressure_Shot"
+    },
+    {
+      "id": "n20",
+      "type": "Condition",
+      "name": "has_target_detected"
+    },
+    {
+      "id": "n21",
+      "type": "Condition",
+      "name": "is_in_launch_zone"
+    },
+    {
+      "id": "n22",
+      "type": "Condition",
+      "name": "has_full_weapons"
+    },
+    {
+      "id": "n23",
+      "type": "Action",
+      "name": "fire_missile"
+    },
+    {
+      "id": "n24",
+      "type": "Sequence",
+      "label": "First_Shot"
+    },
+    {
+      "id": "n25",
+      "type": "Condition",
+      "name": "has_target_detected"
+    },
+    {
+      "id": "n26",
+      "type": "Condition",
+      "name": "is_in_launch_zone"
+    },
+    {
+      "id": "n27",
+      "type": "Condition",
+      "name": "is_within_dynamic_lar"
+    },
+    {
+      "id": "n28",
+      "type": "Condition",
+      "name": "is_target_hot"
+    },
+    {
+      "id": "n29",
+      "type": "Condition",
+      "name": "is_closure_high"
+    },
+    {
+      "id": "n30",
+      "type": "Condition",
+      "name": "has_weapon_remaining"
+    },
+    {
+      "id": "n31",
+      "type": "Action",
+      "name": "fire_missile"
+    },
+    {
+      "id": "n32",
+      "type": "Sequence",
+      "label": "First_Shot_Closure"
+    },
+    {
+      "id": "n33",
+      "type": "Condition",
+      "name": "has_target_detected"
+    },
+    {
+      "id": "n34",
+      "type": "Condition",
+      "name": "is_in_launch_zone"
+    },
+    {
+      "id": "n35",
+      "type": "Condition",
+      "name": "is_within_effective_range"
+    },
+    {
+      "id": "n36",
+      "type": "Condition",
+      "name": "is_closure_high"
+    },
+    {
+      "id": "n37",
+      "type": "Condition",
+      "name": "has_weapon_remaining"
+    },
+    {
+      "id": "n38",
+      "type": "Action",
+      "name": "fire_missile"
+    },
+    {
+      "id": "n39",
+      "type": "Sequence",
+      "label": "NEZ_Backup"
+    },
+    {
+      "id": "n40",
+      "type": "Condition",
+      "name": "has_target_detected"
+    },
+    {
+      "id": "n41",
+      "type": "Condition",
+      "name": "is_in_launch_zone"
+    },
+    {
+      "id": "n42",
+      "type": "Condition",
+      "name": "is_in_nez"
+    },
+    {
+      "id": "n43",
+      "type": "Condition",
+      "name": "is_closure_high"
+    },
+    {
+      "id": "n44",
+      "type": "Condition",
+      "name": "has_weapon_remaining"
+    },
+    {
+      "id": "n45",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "launch_and_crank",
+        "parameters": {
+          "offset_deg": 60.0
+        }
+      }
+    },
+    {
+      "id": "n46",
+      "type": "Sequence",
+      "label": "Weapons_In_Flight"
+    },
+    {
+      "id": "n47",
+      "type": "Condition",
+      "name": "has_missile_in_flight"
+    },
+    {
+      "id": "n48",
+      "type": "Action",
+      "name": "lock_target"
+    },
+    {
+      "id": "n49",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "crank",
+        "parameters": {
+          "offset_deg": 60.0,
+          "speed_mps": 250.0
+        }
+      }
+    },
+    {
+      "id": "n50",
+      "type": "Sequence",
+      "label": "Close_And_Track"
+    },
+    {
+      "id": "n51",
+      "type": "Condition",
+      "name": "has_target_detected"
+    },
+    {
+      "id": "n52",
+      "type": "Action",
+      "name": "lock_target"
+    },
+    {
+      "id": "n53",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "intercept_closure",
+        "parameters": {
+          "speed_mps": 280.0
+        }
+      }
+    },
+    {
+      "id": "n54",
+      "type": "Sequence",
+      "label": "Search_Default"
+    },
+    {
+      "id": "n55",
+      "type": "Action",
+      "name": "search_target",
+      "args": {
+        "radar_mode": "auto"
+      }
+    },
+    {
+      "id": "n56",
+      "type": "Action",
+      "name": "execute_maneuver",
+      "args": {
+        "maneuver": "search_pattern",
+        "parameters": {
+          "sweep_deg": 45.0,
+          "sweep_period_s": 15.0
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "order": 0
+    },
+    {
+      "from": "n2",
+      "to": "n3",
+      "order": 0
+    },
+    {
+      "from": "n2",
+      "to": "n4",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n5",
+      "order": 1
+    },
+    {
+      "from": "n5",
+      "to": "n6",
+      "order": 0
+    },
+    {
+      "from": "n5",
+      "to": "n7",
+      "order": 1
+    },
+    {
+      "from": "n7",
+      "to": "n8",
+      "order": 0
+    },
+    {
+      "from": "n8",
+      "to": "n9",
+      "order": 0
+    },
+    {
+      "from": "n9",
+      "to": "n10",
+      "order": 0
+    },
+    {
+      "from": "n9",
+      "to": "n11",
+      "order": 1
+    },
+    {
+      "from": "n8",
+      "to": "n12",
+      "order": 1
+    },
+    {
+      "from": "n7",
+      "to": "n13",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n14",
+      "order": 2
+    },
+    {
+      "from": "n14",
+      "to": "n15",
+      "order": 0
+    },
+    {
+      "from": "n15",
+      "to": "n16",
+      "order": 0
+    },
+    {
+      "from": "n15",
+      "to": "n17",
+      "order": 1
+    },
+    {
+      "from": "n14",
+      "to": "n18",
+      "order": 1
+    },
+    {
+      "from": "n1",
+      "to": "n19",
+      "order": 3
+    },
+    {
+      "from": "n19",
+      "to": "n20",
+      "order": 0
+    },
+    {
+      "from": "n19",
+      "to": "n21",
+      "order": 1
+    },
+    {
+      "from": "n19",
+      "to": "n22",
+      "order": 2
+    },
+    {
+      "from": "n19",
+      "to": "n23",
+      "order": 3
+    },
+    {
+      "from": "n1",
+      "to": "n24",
+      "order": 4
+    },
+    {
+      "from": "n24",
+      "to": "n25",
+      "order": 0
+    },
+    {
+      "from": "n24",
+      "to": "n26",
+      "order": 1
+    },
+    {
+      "from": "n24",
+      "to": "n27",
+      "order": 2
+    },
+    {
+      "from": "n24",
+      "to": "n28",
+      "order": 3
+    },
+    {
+      "from": "n24",
+      "to": "n29",
+      "order": 4
+    },
+    {
+      "from": "n24",
+      "to": "n30",
+      "order": 5
+    },
+    {
+      "from": "n24",
+      "to": "n31",
+      "order": 6
+    },
+    {
+      "from": "n1",
+      "to": "n32",
+      "order": 5
+    },
+    {
+      "from": "n32",
+      "to": "n33",
+      "order": 0
+    },
+    {
+      "from": "n32",
+      "to": "n34",
+      "order": 1
+    },
+    {
+      "from": "n32",
+      "to": "n35",
+      "order": 2
+    },
+    {
+      "from": "n32",
+      "to": "n36",
+      "order": 3
+    },
+    {
+      "from": "n32",
+      "to": "n37",
+      "order": 4
+    },
+    {
+      "from": "n32",
+      "to": "n38",
+      "order": 5
+    },
+    {
+      "from": "n1",
+      "to": "n39",
+      "order": 6
+    },
+    {
+      "from": "n39",
+      "to": "n40",
+      "order": 0
+    },
+    {
+      "from": "n39",
+      "to": "n41",
+      "order": 1
+    },
+    {
+      "from": "n39",
+      "to": "n42",
+      "order": 2
+    },
+    {
+      "from": "n39",
+      "to": "n43",
+      "order": 3
+    },
+    {
+      "from": "n39",
+      "to": "n44",
+      "order": 4
+    },
+    {
+      "from": "n39",
+      "to": "n45",
+      "order": 5
+    },
+    {
+      "from": "n1",
+      "to": "n46",
+      "order": 7
+    },
+    {
+      "from": "n46",
+      "to": "n47",
+      "order": 0
+    },
+    {
+      "from": "n46",
+      "to": "n48",
+      "order": 1
+    },
+    {
+      "from": "n46",
+      "to": "n49",
+      "order": 2
+    },
+    {
+      "from": "n1",
+      "to": "n50",
+      "order": 8
+    },
+    {
+      "from": "n50",
+      "to": "n51",
+      "order": 0
+    },
+    {
+      "from": "n50",
+      "to": "n52",
+      "order": 1
+    },
+    {
+      "from": "n50",
+      "to": "n53",
+      "order": 2
+    },
+    {
+      "from": "n1",
+      "to": "n54",
+      "order": 9
+    },
+    {
+      "from": "n54",
+      "to": "n55",
+      "order": 0
+    },
+    {
+      "from": "n54",
+      "to": "n56",
+      "order": 1
+    }
+  ]
+}

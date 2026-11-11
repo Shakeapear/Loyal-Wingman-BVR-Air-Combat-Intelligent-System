@@ -61,6 +61,19 @@ CONDITIONS = (
     "has_weapon_remaining",
     "is_fuel_low",
     "has_human_command",
+    # ---- 对抗增强条件（2026-11-04）----
+    "is_target_hot",          # 目标 aspect < 60°（朝向我方）
+    "is_target_turning",      # 目标航向变化率 > 1°/s（防御性转弯）
+    "is_shot_window_open",    # 无来袭告警 + 目标未转弯（干净补射窗口）
+    "is_closure_high",        # 当前闭合率 > 300 m/s
+    "is_opening",             # 目标正在拉开（闭合率 < -20 m/s）
+    "is_within_dynamic_lar",  # 动态发射包线（热姿态 + 高闭合 + Rmax）
+    "is_within_effective_range",  # 攻击区内且距离 <= 有效发射距离上限
+    "is_near_boundary",       # 距基地 > 80% 逃逸半径
+    "has_missile_in_flight",  # 本机导弹仍在飞
+    "has_full_weapons",       # 本机仍有 2 发（用于 Rmax 首发射击）
+    "is_rwr_locked",          # 被敌雷达锁定（RWR 告警）
+    "is_tta_long",            # MAWS 告警 TTA > 8 s（可先 notch）
 )
 
 # ---- 组合节点子节点数下限（Selector/Sequence 至少 1，Parallel 至少 2）----
@@ -245,3 +258,4 @@ def validate_tree_json(data, maneuver_ids=None) -> list:
         if unreachable:
             errors.append(f"存在从根不可达的节点（或存在环）: {unreachable}")
     return errors
+
