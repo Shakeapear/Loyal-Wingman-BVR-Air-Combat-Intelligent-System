@@ -40,19 +40,17 @@ for _p in (_HERE, _REPO_ROOT / "多任务智能体", _REPO_ROOT / "可视化工�
 import numpy as np
 
 from common.bvr_combat_env import BVRCombatEnv                      # noqa: E402
-from common.constants import GEO_LAT0_DEG, GEO_LON0_DEG             # noqa: E402
-from llm_bt.boundary_constraints import BoundaryConstraints         # noqa: E402
 from llm_bt.executor import Blackboard, tick_once                   # noqa: E402
 from llm_bt.guide_interface import GuideInterface                   # noqa: E402
 from llm_bt.schema import OODA_ALL                                  # noqa: E402
+from llm_bt.sim_common import (build_guard, export_episode_acmi,    # noqa: E402
+                               make_recorder, parse_seeds)
 from llm_bt.tactical_execution_tree import (build_tactical_tree,    # noqa: E402
                                             tactical_coverage,
                                             tactical_tree_json,
                                             validate_tactical_tree)
 from llm_bt.tester import is_safety_violation                       # noqa: E402
 from llm_bt.tree_io import text_tree, tree_to_dot                   # noqa: E402
-from visualization.acmi import export_acmi                          # noqa: E402
-from visualization.recorder import EpisodeRecorder                  # noqa: E402
 
 
 def _default_action() -> dict:
@@ -67,9 +65,9 @@ def run_episode(seed: int, max_steps: int = 240,
     env = BVRCombatEnv(config={"compute_envelope": bool(compute_envelope)})
     bb = Blackboard(env)
     root = build_tactical_tree(bb)
-    guard = BoundaryConstraints(config=guard_config, env_cfg=env.cfg)
+    guard = build_guard(env, guard_config)
     guide = GuideInterface(max_guide_steps=int(max_steps))
-    rec = EpisodeRecorder(meta={"lat0_deg": GEO_LAT0_DEG, "lon0_deg": GEO_LON0_DEG})
+    rec = make_recorder()
 
     obs, info = env.reset(seed=int(seed))
     rec.capture_env(env)
@@ -166,9 +164,8 @@ def _run_one(seed: int, args, out_dir: Path) -> dict:
     rec.save_csv(csv_path)
     acmi_path = None
     if not args.no_acmi:
-        acmi_path = export_acmi(
+        acmi_path = export_episode_acmi(
             rec.frames, out_dir / f"guidance_seed{seed}.acmi",
-            lat0_deg=GEO_LAT0_DEG, lon0_deg=GEO_LON0_DEG,
             title=f"Guidance BT 1v1 (seed {seed})")
     events_path = out_dir / f"guidance_seed{seed}.events.json"
     events_path.write_text(json.dumps(events, ensure_ascii=False, indent=2),
@@ -198,7 +195,7 @@ def main(argv=None):
     ap.add_argument("--quiet", action="store_true", help="只打印汇总行")
     args = ap.parse_args(argv)
 
-    seeds = [int(s) for s in args.seeds.split(",") if s.strip()]
+    seeds = parse_seeds(args.seeds)
     out_dir = Path(args.out_dir) if args.out_dir else _HERE / "outputs" / "guidance"
     out_dir.mkdir(parents=True, exist_ok=True)
 

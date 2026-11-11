@@ -42,9 +42,7 @@ for _p in (_HERE, _REPO_ROOT / "多任务智能体", _REPO_ROOT / "可视化工�
 import numpy as np
 
 from common.bvr_combat_env import BVRCombatEnv                      # noqa: E402
-from common.constants import (FT2M, GEO_LAT0_DEG, GEO_LON0_DEG,     # noqa: E402
-                              wrap_deg180)
-from llm_bt.boundary_constraints import BoundaryConstraints         # noqa: E402
+from common.constants import FT2M, wrap_deg180                      # noqa: E402
 from llm_bt.executor import Blackboard, build_tree, tick_once       # noqa: E402
 from llm_bt.guide_interface import GuideInterface                   # noqa: E402
 from llm_bt.maneuvers import ManeuverRegistry                       # noqa: E402
@@ -52,9 +50,9 @@ from llm_bt.schema import (ACTIONS, CONDITIONS, OODA_ALL,            # noqa: E40
                            ooda_coverage, validate_tree_json)
 from llm_bt.tactical_execution_tree import (tactical_tree_80_120_json,
                                             tactical_tree_json)     # noqa: E402
+from llm_bt.sim_common import (build_guard, export_episode_acmi,    # noqa: E402
+                               make_recorder, parse_seeds)
 from llm_bt.tester import is_safety_violation                       # noqa: E402
-from visualization.acmi import export_acmi                          # noqa: E402
-from visualization.recorder import EpisodeRecorder                  # noqa: E402
 
 LLM_TREE_DEFAULT = _REPO_ROOT / "docs" / "assets" / "2.5_online_r2" / "bt_final.json"
 LEGAL_NODES = set(ACTIONS) | set(CONDITIONS)
@@ -68,20 +66,6 @@ SCENES = {
 # ----------------------------------------------------------------------
 # 参数/树/种子
 # ----------------------------------------------------------------------
-def parse_seeds(spec: str) -> list:
-    seeds = []
-    for part in spec.split(","):
-        part = part.strip()
-        if not part:
-            continue
-        if "-" in part:
-            a, b = part.split("-", 1)
-            seeds.extend(range(int(a), int(b) + 1))
-        else:
-            seeds.append(int(part))
-    return sorted(set(seeds))
-
-
 def load_tree(tree: str, tree_json: str | None, tree_label: str | None):
     path = tree_json or (str(LLM_TREE_DEFAULT) if tree == "llm" else None)
     if path:
@@ -174,9 +158,9 @@ def run_episode(tree: dict, seed: int, max_steps: int = 240,
     env = BVRCombatEnv(config=env_cfg)
     bb = Blackboard(env)
     root = build_tree(tree, bb)
-    guard = BoundaryConstraints(env_cfg=env.cfg)
+    guard = build_guard(env)
     guide = GuideInterface(max_guide_steps=int(max_steps))
-    rec = EpisodeRecorder(meta={"lat0_deg": GEO_LAT0_DEG, "lon0_deg": GEO_LON0_DEG})
+    rec = make_recorder()
 
     obs, info = env.reset(seed=int(seed))
     situation = _initial_situation(env, obs)
@@ -341,9 +325,9 @@ def run_tree(tree: dict, label: str, source: str, seeds: list, max_steps: int,
         rec.save_csv(csv_path)
         acmi = None
         if not no_acmi:
-            acmi = export_acmi(rec.frames, out_dir / f"ep_seed{seed}.acmi",
-                               lat0_deg=GEO_LAT0_DEG, lon0_deg=GEO_LON0_DEG,
-                               title=f"{label} 1v1 (seed {seed})")
+            acmi = export_episode_acmi(
+                rec.frames, out_dir / f"ep_seed{seed}.acmi",
+                title=f"{label} 1v1 (seed {seed})")
         (out_dir / f"ep_seed{seed}.node_trace.json").write_text(
             json.dumps(result["trace"], ensure_ascii=False, indent=2), encoding="utf-8")
         all_events[str(seed)] = result["events"]

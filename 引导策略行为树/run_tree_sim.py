@@ -47,17 +47,16 @@ for _p in (_HERE, _REPO_ROOT / "多任务智能体", _REPO_ROOT / "可视化工�
 import numpy as np
 
 from common.bvr_combat_env import BVRCombatEnv                      # noqa: E402
-from common.constants import GEO_LAT0_DEG, GEO_LON0_DEG             # noqa: E402
 from common.contracts import (EpisodeResult,                        # noqa: E402
                               ensure_within, sanitize_tag)
 from common.errors import (BT_SCHEMA_INVALID, ProjectError, ValidationError,  # noqa: E402
                            exit_code_for)
 from llm_bt.executor import Blackboard, build_tree, tick_once       # noqa: E402
 from llm_bt.schema import validate_tree_json                        # noqa: E402
+from llm_bt.sim_common import (export_episode_acmi, make_recorder,   # noqa: E402
+                               parse_seeds)
 from llm_bt.tester import is_safety_violation                       # noqa: E402
 from llm_bt.tree_io import text_tree                                # noqa: E402
-from visualization.acmi import export_acmi                          # noqa: E402
-from visualization.recorder import EpisodeRecorder                  # noqa: E402
 
 
 def default_tree_path() -> Path | None:
@@ -84,7 +83,7 @@ def run_episode(tree: dict, seed: int, max_steps: int = 240,
     env = BVRCombatEnv(config={"compute_envelope": bool(compute_envelope)})
     bb = Blackboard(env)
     root = build_tree(tree, bb)
-    rec = EpisodeRecorder(meta={"lat0_deg": GEO_LAT0_DEG, "lon0_deg": GEO_LON0_DEG})
+    rec = make_recorder()
     obs, info = env.reset(seed=int(seed))
     rec.capture_env(env)                 # t=0 初始态势（TacView 首帧）
 
@@ -136,9 +135,8 @@ def _run_one(tree: dict, seed: int, args, out_dir: Path, multi: bool = False) ->
     rec.save_csv(csv_path)
     acmi_path = None
     if not args.no_acmi:
-        acmi_path = export_acmi(
+        acmi_path = export_episode_acmi(
             rec.frames, ensure_within(out_dir / f"bt_ep_{tag}.acmi", out_dir),
-            lat0_deg=GEO_LAT0_DEG, lon0_deg=GEO_LON0_DEG,
             title=f"BT {tree.get('bt_id', 'bt')} 1v1 (seed {seed})")
     record = EpisodeResult(**summary, tree_id=str(tree.get("bt_id", "")), tag=tag,
                            csv=str(csv_path),
@@ -180,9 +178,10 @@ def main(argv=None):
     out_dir = Path(args.out_dir) if args.out_dir else _HERE / "outputs" / "sim"
     out_dir.mkdir(parents=True, exist_ok=True)
     try:
-        seeds = ([int(s) for s in args.seeds.split(",")] if args.seeds else [args.seed])
+        seeds = parse_seeds(args.seeds) if args.seeds else [args.seed]
     except ValueError:
-        print(f"[错误] --seeds 需为逗号分隔整数，实际 {args.seeds!r}", file=sys.stderr)
+        print(f"[错误] --seeds 需为逗号分隔整数或范围，实际 {args.seeds!r}",
+              file=sys.stderr)
         return 2
     multi = len(seeds) > 1
 

@@ -242,6 +242,8 @@ Prompt 生成或人工追加——离线默认判据不构成对树战术优劣�
 - 中期指标：solo default 100/86、bvr80-120 98/86；h2h vs 手写 default
   19-21-60（combat Pk 12.4%）、bvr80-120 42-14-44（combat Pk 10.7%，其中
   31 场为对手逃逸胜）。评估必须区分 `combat_wins` 与 `non_combat_wins`；
+- 入口共享工具：`llm_bt/sim_common.py` 统一种子解析、EpisodeRecorder、边界守卫与
+  ACMI 导出；各入口 CLI 和产物格式不变。测试路径由各 `tests/conftest.py` 统一引导；
 - 复现：
 
 ```powershell

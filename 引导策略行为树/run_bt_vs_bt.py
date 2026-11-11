@@ -46,6 +46,7 @@ from llm_bt.boundary_constraints import BoundaryConstraints
 from llm_bt.executor import Blackboard, build_tree, tick_once
 from llm_bt.maneuvers import ManeuverRegistry
 from llm_bt.schema import validate_tree_json
+from llm_bt.sim_common import parse_seeds
 from llm_bt.tactical_execution_tree import tactical_tree_json
 from llm_bt.tester import is_safety_violation
 
@@ -304,20 +305,6 @@ class BTVersusBTEnv(BVRCombatEnv):
 # ----------------------------------------------------------------------
 # 单局 / 批量
 # ----------------------------------------------------------------------
-def parse_seeds(spec: str) -> list[int]:
-    out = []
-    for part in spec.split(","):
-        part = part.strip()
-        if not part:
-            continue
-        if "-" in part:
-            a, b = part.split("-", 1)
-            out.extend(range(int(a), int(b) + 1))
-        else:
-            out.append(int(part))
-    return sorted(set(out))
-
-
 def _launch_geometry(env, frame: dict, side: str, step: int,
                      closure_mps: float | None,
                      target_turn_rate_deg_s: float | None,
