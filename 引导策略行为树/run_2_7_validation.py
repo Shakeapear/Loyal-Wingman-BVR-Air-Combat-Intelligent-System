@@ -46,6 +46,8 @@ from common.constants import FT2M, wrap_deg180                      # noqa: E402
 from llm_bt.executor import Blackboard, build_tree, tick_once       # noqa: E402
 from llm_bt.guide_interface import GuideInterface                   # noqa: E402
 from llm_bt.maneuvers import ManeuverRegistry                       # noqa: E402
+from llm_bt.scenes import (SCENES, env_config as scene_env_config,   # noqa: E402
+                            scene_max_steps)
 from llm_bt.schema import (ACTIONS, CONDITIONS, OODA_ALL,            # noqa: E402
                            ooda_coverage, validate_tree_json)
 from llm_bt.tactical_execution_tree import (tactical_tree_80_120_json,
@@ -56,11 +58,6 @@ from llm_bt.tester import is_safety_violation                       # noqa: E402
 
 LLM_TREE_DEFAULT = _REPO_ROOT / "docs" / "assets" / "2.5_online_r2" / "bt_final.json"
 LEGAL_NODES = set(ACTIONS) | set(CONDITIONS)
-SCENES = {
-    "default": {"max_steps": 240},
-    "bvr80-120": {"scene_dist_min_m": 80000.0,
-                  "scene_dist_max_m": 120000.0, "max_steps": 600},
-}
 
 
 # ----------------------------------------------------------------------
@@ -151,10 +148,9 @@ def validate_node_trace(log: list, steps: int, tick_counts: dict) -> dict:
 def run_episode(tree: dict, seed: int, max_steps: int = 240,
                 compute_envelope: bool = True,
                 scene: str = "default") -> dict:
-    env_cfg = {"compute_envelope": bool(compute_envelope),
-               "max_steps": int(max_steps)}
-    env_cfg.update({k: v for k, v in SCENES.get(scene, {}).items()
-                    if k != "max_steps"})
+    env_cfg = scene_env_config(
+        scene, compute_envelope=bool(compute_envelope),
+        max_steps=int(max_steps))
     env = BVRCombatEnv(config=env_cfg)
     bb = Blackboard(env)
     root = build_tree(tree, bb)
@@ -275,7 +271,7 @@ def _write_metrics(rows: list, out_dir: Path):
 
 
 def aggregate(rows: list, tree_label: str, tree_id: str, tree_source: str,
-              seeds: list, max_steps: int) -> dict:
+              seeds: list, max_steps: int, tree: dict | None = None) -> dict:
     n = len(rows)
 
     def rate(key):
@@ -296,7 +292,8 @@ def aggregate(rows: list, tree_label: str, tree_id: str, tree_source: str,
         "launch_commands": launches, "invalid_launches": invalid,
         "safety_violations": sum(r["safety_violations"] for r in rows),
         "logic_errors": sum(r["logic_errors"] for r in rows),
-        "ooda_static_coverage": 1.0,
+        "ooda_static_coverage": (round(ooda_coverage(tree)[0], 4)
+                                 if tree is not None else 0.0),
         "avg_ooda_executed": round(sum(r["ooda_executed_coverage"] for r in rows) / n, 4) if n else 0.0,
         "full_ooda_episodes": sum(1 for r in rows if r["ooda_executed_coverage"] >= 1.0),
         "trace_ok_episodes": sum(1 for r in rows if r["node_trace_ok"]),
@@ -345,7 +342,8 @@ def run_tree(tree: dict, label: str, source: str, seeds: list, max_steps: int,
               f"trace={'OK' if s['node_trace_ok'] else 'FAIL'} "
               f"发射={s['launch_commands']}(非法{s['invalid_launches']})", flush=True)
     _write_metrics(rows, out_dir)
-    agg = aggregate(rows, label, str(tree.get("bt_id", "")), source, seeds, max_steps)
+    agg = aggregate(rows, label, str(tree.get("bt_id", "")), source, seeds,
+                    max_steps, tree)
     (out_dir / "aggregate.json").write_text(
         json.dumps(agg, ensure_ascii=False, indent=2), encoding="utf-8")
     (out_dir / "events_all.json").write_text(
@@ -507,7 +505,7 @@ def main(argv=None):
         print(f"[错误] {e}", file=sys.stderr)
         return 2
     seeds = parse_seeds(args.seeds)
-    max_steps = int(args.max_steps or SCENES.get(args.scene, {}).get("max_steps", 240))
+    max_steps = int(args.max_steps or scene_max_steps(args.scene))
     out = Path(args.out_dir) if args.out_dir else _HERE / "outputs" / "validation_2_7" / label
     print(f"[树] {label} ({source}) 静态 OODA={ooda_coverage(tree)[0]:.0%}  "
           f"scene={args.scene} steps={max_steps} seeds={seeds}")

@@ -52,7 +52,7 @@
       "problemMatcher": []
     },
     {
-      "label": "演示6a · 测试：多任务智能体（112项）",
+      "label": "演示6a · 测试：多任务智能体（114项）",
       "type": "shell",
       "command": "& \"${command:python.interpreterPath}\" -m pytest tests -q",
       "options": { "cwd": "${workspaceFolder}\\多任务智能体" },
@@ -68,7 +68,7 @@
       "problemMatcher": []
     },
     {
-      "label": "演示6c · 测试：行为树框架（86项）",
+      "label": "演示6c · 测试：行为树框架（90项）",
       "type": "shell",
       "command": "& \"${command:python.interpreterPath}\" -m pytest tests -q",
       "options": { "cwd": "${workspaceFolder}\\引导策略行为树" },
@@ -76,7 +76,7 @@
       "problemMatcher": []
     },
     {
-      "label": "演示6d · 全量测试（221项）",
+      "label": "演示6d · 全量测试（227项）",
       "type": "shell",
       "command": "& \"${command:python.interpreterPath}\" -m pytest -q",
       "options": { "cwd": "${workspaceFolder}" },

@@ -143,13 +143,14 @@ class BTVersusBTEnv(BVRCombatEnv):
              for i, m in enumerate(self.own_missiles)],
             enemy_abs, s_e["v_enu_mps"])
 
+        enemy_psi = wrap_pi(s_e["psi_rad"])
         tgt = ((rel[0], rel[1], rel[2], dist,
-                wrap_pi(np.arctan2(rel[0], rel[1]) - s_e["psi_rad"]),
-                s_o["vtrue_mps"], s_o["psi_rad"])
+                wrap_pi(np.arctan2(rel[0], rel[1]) - enemy_psi),
+                s_o["vtrue_mps"], wrap_pi(s_o["psi_rad"]))
                if detected else (0.0,) * 7)
         obs = np.array([
             s_e["h_sl_m"], s_e["vtrue_mps"], s_e["mach"],
-            s_e["phi_rad"], s_e["theta_rad"], s_e["psi_rad"],
+            s_e["phi_rad"], s_e["theta_rad"], enemy_psi,
             s_e["alpha_rad"], s_e["beta_rad"], s_e["nz_g"],
             s_e["throttle"], s_e["fuel_frac"], s_e["vd_mps"],
             self.enemy_n_left, 1.0 if self.enemy_ecm_on else 0.0,

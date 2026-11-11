@@ -71,6 +71,14 @@ class TestBoundaryConstraints:
         assert entry["value"] == 300.0 and entry["threshold"] == 500.0
         assert entry["action_override"] == "pull_up"
 
+    def test_min_altitude_assisted_pulls_up(self):
+        guard = _guard()
+        bb = _bb(_obs(o0=300.0))
+        bb.control_mode = "assisted"
+        action = guard.apply(bb.action, bb)
+        assert guard.active["min_altitude"] is True
+        assert action["flight"][2] > 0.0              # assisted 正俯仰 = 爬升
+
     def test_min_speed_accelerate(self):
         guard = _guard()
         bb = _bb(_obs(o1=80.0))
@@ -86,6 +94,22 @@ class TestBoundaryConstraints:
         assert guard.active["max_speed"] is True
         assert action["flight"][0] == 0.0
         assert action["flight"][2] <= -0.04
+
+    def test_min_speed_assisted_holds_altitude(self):
+        guard = _guard()
+        bb = _bb(_obs(o1=80.0))
+        bb.control_mode = "assisted"
+        action = guard.apply(bb.action, bb)
+        assert guard.active["min_speed"] is True
+        assert action["flight"][2] == 0.0              # 不误触发爬升/下降
+
+    def test_max_speed_assisted_climbs_to_slow(self):
+        guard = _guard()
+        bb = _bb(_obs(o2=1.8))
+        bb.control_mode = "assisted"
+        action = guard.apply(bb.action, bb)
+        assert guard.active["max_speed"] is True
+        assert action["flight"][2] > 0.0
 
     def test_over_g_limits_rates(self):
         guard = _guard()

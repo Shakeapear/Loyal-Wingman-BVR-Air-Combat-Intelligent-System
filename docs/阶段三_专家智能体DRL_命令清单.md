@@ -47,6 +47,7 @@ Pillow、imageio-ffmpeg）；Jupyter/LLM 相关依赖不在训练必需范围内
 - 保存/加载推理一致；
 - 报告：`多任务智能体\validation\results\stage3\stage3_expert_validation.{json,txt}`；
 - 模型：`多任务智能体\models\task_{strike,patrol,defense,ew}_ppo.zip`（不入库）。
+- 默认拒绝覆盖已存在的模型；确认要替换时加 `--overwrite`。验证脚本写入的是小规模冒烟模型，不要用它覆盖正式训练模型。
 
 可选更小规模冒烟（约 3 s）：
 

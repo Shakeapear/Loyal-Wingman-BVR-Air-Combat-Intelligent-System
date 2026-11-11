@@ -135,9 +135,12 @@ def _crank(bb, params, elapsed):
 
 
 def _notch(bb, params, elapsed):
-    if bb.read(_h().IDX_TGT_DETECTED) < 0.5:
-        return _status().FAILURE
-    _turn_target(bb, float(params.get("offset_deg", 90.0)))
+    offset = float(params.get("offset_deg", 90.0))
+    if bb.read(_h().IDX_TGT_DETECTED) > 0.5:
+        _turn_target(bb, offset)
+    else:
+        # 无目标信息时按固定切向偏转，保证规避动作仍可执行。
+        _turn_relative(bb, offset, 60.0)
     _alt(bb, bb.read(_h().IDX_H) - 100.0)
     _speed(bb, float(params.get("speed_mps", 250.0)))
     return (_status().SUCCESS if _timeout(bb, params, 8.0)

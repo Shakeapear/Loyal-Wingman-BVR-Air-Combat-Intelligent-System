@@ -372,22 +372,11 @@ def _act_evade(bb: Blackboard, args: dict):
         return STATUS.SUCCESS
     _ecm_ensure_on(bb)
     evade_type = str(args.get("maneuver_type", "")).lower()
-    if evade_type == "notch":
-        # 多普勒 notch：切向目标视线，保持速度/高度，破坏雷达/导弹速度门。
-        psi = math.degrees(bb.read(IDX_PSI))
-        brg = math.degrees(bb.read(IDX_TGT_BRG)) if bb.read(IDX_TGT_DETECTED) > 0.5 else 90.0
-        _bank_to_heading(bb, psi + brg + 90.0)
-        _hold_altitude(bb, bb.read(IDX_H))
-        _hold_speed(bb, 250.0)
-        return STATUS.RUNNING
-    if evade_type in ("spiral", "defensive_spiral"):
-        # 防御螺旋：大坡度持续下降，尽快消耗来袭弹能量。
-        psi = math.degrees(bb.read(IDX_PSI))
-        sign = -1.0 if bb.read(IDX_TGT_BRG) >= 0.0 else 1.0
-        _bank_to_heading(bb, psi + sign * 70.0, max_bank_cmd=70.0)
-        _hold_altitude(bb, max(2500.0, bb.read(IDX_H) - 500.0))
-        _hold_speed(bb, 250.0)
-        return STATUS.RUNNING
+    if evade_type in ("notch", "break_turn", "spiral", "defensive_spiral"):
+        # 与 execute_maneuver 共用同一套招式控制器，避免同名招式两套语义。
+        from .maneuver_actions import run_maneuver
+        name = "defensive_spiral" if evade_type == "spiral" else evade_type
+        return run_maneuver(bb, name, dict(args.get("parameters") or {}))
     if not bb._evade_active:
         bb._evade_active = True
         if bb.read(IDX_TGT_DETECTED) > 0.5:

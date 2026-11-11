@@ -271,9 +271,12 @@ def main(argv=None):
             f"{r['h_min_m']:.1f} | {r['v_min_mps']:.1f}~{r['v_max_mps']:.1f} | "
             f"{r['max_abs_theta_rad']:.3f} | {r['max_abs_phi_rad']:.3f} | "
             f"{r['terminated_reason']} | {r['own_crash']} | {r['pass']}")
-    lines += ["", f"汇总: {summary['passed']}/{summary['total']} 通过，"
-                  f"总耗时 {summary['wall_s']}s",
-              f"JSON: {out_dir / 'stability_summary.json'}"]
+    if summary["total"] > 0:
+        lines += ["", f"汇总: {summary['passed']}/{summary['total']} 通过，"
+                      f"总耗时 {summary['wall_s']}s"]
+    else:
+        lines += ["", "汇总: 无有效 episode（模型缺失或策略被跳过，判定失败）"]
+    lines.append(f"JSON: {out_dir / 'stability_summary.json'}")
     if combat_results:
         lines += ["", "正常战斗配置（仅记录）:"]
         for r in combat_results:
@@ -282,6 +285,10 @@ def main(argv=None):
     report = "\n".join(lines) + "\n"
     (out_dir / "stability_report.txt").write_text(report, encoding="utf-8")
     print("\n" + report)
+    if summary["total"] <= 0:
+        print("[失败] 没有任何可评估 episode（模型缺失或策略被跳过）",
+              file=sys.stderr)
+        return 1
     return 0 if summary["passed"] == summary["total"] else 1
 
 

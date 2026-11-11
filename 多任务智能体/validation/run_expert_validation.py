@@ -53,7 +53,15 @@ def _check_action(action, task_id):
 
 
 def validate_one(task_id: str, timesteps: int, eval_steps: int, seed: int,
-                 env_config: dict, model_dir: Path) -> dict:
+                 env_config: dict, model_dir: Path,
+                 overwrite: bool = False) -> dict:
+    target = Path(model_dir) / f"task_{task_id}_ppo.zip"
+    if target.exists() and not overwrite:
+        return {
+            "task_id": task_id, "ok": False,
+            "error": (f"模型已存在：{target}；验证默认不覆盖正式模型，"
+                      "如需覆盖请显式加 --overwrite"),
+        }
     cls = TASK_AGENTS[task_id]
     t0 = time.time()
     agent = cls(env_config=dict(env_config),
@@ -129,6 +137,8 @@ def main(argv=None):
     ap.add_argument("--envelope", action="store_true",
                     help="启用攻击区解算（默认关闭以加速验证）")
     ap.add_argument("--model-dir", default=str(MODEL_DIR))
+    ap.add_argument("--overwrite", action="store_true",
+                    help="允许覆盖已存在的 task_<id>_ppo.zip（默认拒绝）")
     ap.add_argument("--out-dir", default=str(RESULTS_DIR))
     args = ap.parse_args(argv)
 
@@ -153,7 +163,7 @@ def main(argv=None):
         print(f"\n== {task_id} ==")
         try:
             row = validate_one(task_id, args.timesteps, args.eval_steps, args.seed,
-                               env_config, model_dir)
+                               env_config, model_dir, overwrite=args.overwrite)
         except Exception as exc:  # 报告失败但继续其他智能体
             import traceback
             traceback.print_exc()

@@ -32,7 +32,7 @@ C:\Users\36266\.conda\envs\DC\python.exe
 ```powershell
 $py = "C:\Users\36266\.conda\envs\DC\python.exe"
 
-# 全量测试（221 项）
+# 全量测试（227 项）
 & $py -X utf8 -m pytest "多任务智能体/tests" "引导策略行为树/tests" "可视化工具/tests" -q
 
 # 行为树 1v1 对抗（固定 seeds）

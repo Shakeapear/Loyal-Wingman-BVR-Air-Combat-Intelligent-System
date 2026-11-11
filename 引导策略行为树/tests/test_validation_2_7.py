@@ -61,8 +61,10 @@ class TestRunnerBasics:
             assert result["trace"]["first_step"] == 0
             assert result["trace"]["last_step"] == 2
             assert set(result["trace"]["ooda_executed_missing"]) <= set(OODA_ALL)
-        agg = v27.aggregate(rows, label, tree["bt_id"], source, [1, 2], 3)
+        agg = v27.aggregate(rows, label, tree["bt_id"], source, [1, 2], 3,
+                            tree)
         assert agg["n_episodes"] == 2
+        assert agg["ooda_static_coverage"] == 1.0
         assert agg["survival_rate"] == 1.0
         assert agg["safety_violations"] == 0
         assert agg["trace_ok_episodes"] == 2

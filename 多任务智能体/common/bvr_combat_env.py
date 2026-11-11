@@ -232,7 +232,7 @@ DEFAULT_CONFIG = {
     "assisted_speed_min_mps": 180.0,
     "assisted_speed_max_mps": 280.0,
     "assisted_roll_limit_rad": 0.90,
-    "assisted_alt_per_pitch_m": 50.0,
+    "assisted_alt_per_pitch_m": 500.0,
     "assisted_alt_min_m": 3000.0,
     "assisted_alt_max_m": 8000.0,
 }

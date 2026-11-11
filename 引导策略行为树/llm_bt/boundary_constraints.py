@@ -236,23 +236,37 @@ class BoundaryConstraints:
     # ------------------------------------------------------------------
     def _override(self, name, action, bb):
         fl = action["flight"]
+        assisted = getattr(bb, "control_mode", "raw_fcs") == "assisted"
         if name == "min_altitude":
             fl[0] = 1.0
             fl[1] = _clip(0.5 * fl[1], -0.2, 0.2)       # 先改平机翼
-            fl[2] = min(float(fl[2]), -0.15)             # 负俯仰 = 抬头
+            if assisted:
+                fl[2] = 0.25                             # 正俯仰 = 爬升设定
+            else:
+                fl[2] = min(float(fl[2]), -0.15)         # 负俯仰 = 抬头
         elif name == "min_speed":
             fl[0] = 1.0
             fl[1] = _clip(0.5 * fl[1], -0.2, 0.2)
-            fl[2] = max(float(fl[2]), 0.12)               # 正俯仰 = 低头加速
-        elif name == "over_g":
-            nz = self._read(bb, OBS_NZ)
-            if nz > self.cfg["nz_max_g"]:
-                fl[2] = _clip(float(fl[2]) + 0.06, -0.3, 0.3)   # 放松拉杆
+            if assisted:
+                fl[2] = 0.0                              # 保持高度，满油门加速
             else:
-                fl[2] = _clip(float(fl[2]) - 0.06, -0.3, 0.3)   # 减轻负过载
+                fl[2] = max(float(fl[2]), 0.12)          # 正俯仰 = 低头加速
+        elif name == "over_g":
+            if assisted:
+                fl[1] = _clip(0.5 * fl[1], -0.2, 0.2)    # 减小坡度卸载
+                fl[2] = 0.0                              # 回到参考高度
+            else:
+                nz = self._read(bb, OBS_NZ)
+                if nz > self.cfg["nz_max_g"]:
+                    fl[2] = _clip(float(fl[2]) + 0.06, -0.3, 0.3)   # 放松拉杆
+                else:
+                    fl[2] = _clip(float(fl[2]) - 0.06, -0.3, 0.3)   # 减轻负过载
         elif name == "max_speed":
             fl[0] = 0.0
-            fl[2] = min(float(fl[2]), -0.04)               # 轻微抬头减速
+            if assisted:
+                fl[2] = max(float(fl[2]), 0.04)          # 正俯仰 = 爬升减速
+            else:
+                fl[2] = min(float(fl[2]), -0.04)         # 轻微抬头减速
         elif name == "no_fly_zone":
             self._escape_zone(action, bb)
         elif name == "fuel_low":

@@ -97,6 +97,22 @@ def test_to_ap_command_ranges_and_sign():
     assert np.isclose(full[0], 280.0) and np.isclose(idle[0], 180.0)
 
 
+def test_expert_validation_refuses_overwrite(tmp_path):
+    from validation.run_expert_validation import validate_one
+    (tmp_path / "task_strike_ppo.zip").write_bytes(b"existing")
+    row = validate_one("strike", 0, 1, 42,
+                       {"max_steps": 2, "compute_envelope": False},
+                       tmp_path, overwrite=False)
+    assert row["ok"] is False
+    assert "已存在" in row["error"]
+
+
+def test_assisted_alt_scale_matches_contract():
+    from common.bvr_combat_env import DEFAULT_CONFIG
+    from common.control_mode import ASSISTED_ALT_PER_PITCH_M
+    assert DEFAULT_CONFIG["assisted_alt_per_pitch_m"] == ASSISTED_ALT_PER_PITCH_M
+
+
 def test_control_mode_mapping_and_validation():
     assert validate_control_mode("assisted") == "assisted"
     with pytest.raises(ConfigError):

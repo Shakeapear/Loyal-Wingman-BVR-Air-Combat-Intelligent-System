@@ -34,17 +34,11 @@ import numpy as np
 from matplotlib.lines import Line2D
 
 from common.constants import GEO_LAT0_DEG, GEO_LON0_DEG
+from llm_bt.scenes import env_config, scene_max_steps
 from visualization.acmi import export_acmi
 from visualization.recorder import EpisodeRecorder
 
 from run_bt_vs_bt import load_named_tree, run_episode
-
-SCENES = {
-    "default": {"cfg": {}, "max_steps": 240},
-    "bvr80-120": {"cfg": {"scene_dist_min_m": 80000.0,
-                          "scene_dist_max_m": 120000.0},
-                  "max_steps": 600},
-}
 RESULT_FILES = {
     "default": _HERE / "outputs" / "bt_vs_bt" / "default_1-20" / "result.json",
     "bvr80-120": _HERE / "outputs" / "bt_vs_bt" / "bvr80-120_1-20" / "result.json",
@@ -290,8 +284,8 @@ def main(argv=None):
     for item in selected:
         scene = item["scene"]
         stored = item["row"]
-        cfg = dict(SCENES[scene]["cfg"])
-        max_steps = int(SCENES[scene]["max_steps"])
+        cfg = env_config(scene, compute_envelope=True)
+        max_steps = scene_max_steps(scene)
         own_tree, own_label = load_named_tree(stored["own_tree"])
         enemy_tree, enemy_label = load_named_tree(stored["enemy_tree"])
 

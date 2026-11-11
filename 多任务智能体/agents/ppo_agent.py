@@ -678,6 +678,7 @@ def main(argv=None) -> int:
         obs, rewards, _, _ = vec_env.step(action)
         reward_sum += float(np.sum(rewards))
         reward_n += int(np.size(rewards))
+    train_finite = bool(all(np.isfinite(v) for v in metrics.values()))
     acts = np.asarray(acts, dtype=np.float32)
     if acts.size:
         finite = bool(np.all(np.isfinite(acts)))
@@ -707,6 +708,7 @@ def main(argv=None) -> int:
         "final_eval": final_eval,
         "eval": {"steps": int(args.eval_steps), "finite": finite,
                  "in_bounds": in_bounds,
+                 "train_metrics_finite": train_finite,
                  "mean_reward": round(reward_sum / reward_n, 4) if reward_n else 0.0,
                  "action_min": acts.min(axis=0).tolist() if acts.size else [],
                  "action_max": acts.max(axis=0).tolist() if acts.size else []},
@@ -733,7 +735,7 @@ def main(argv=None) -> int:
         print(f"[模型] {model_path}")
         print(f"[摘要] {out_dir / 'train_summary.json'}")
     vec_env.close()
-    return 0 if (finite and in_bounds) else 1
+    return 0 if (finite and in_bounds and train_finite) else 1
 
 
 if __name__ == "__main__":
