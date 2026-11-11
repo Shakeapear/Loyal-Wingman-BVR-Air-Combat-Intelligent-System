@@ -1,12 +1,13 @@
 # 引导策略行为树（步骤 2.5–2.7 子系统）
 
 **定位：** 本目录承载《大创项目实施计划书》阶段二步骤 2.5–2.7 的**引导策略行为树**子系统——
-LLM 行为树生成器-测试器框架（2.5，已交付）、二级优先级引导策略子树（2.6，规划中）、
-行为树仿真验证（2.7，规划中）。子系统与 `多任务智能体/` 为**单向依赖**：只调用环境
-数据/动作接口，不含 DRL 训练代码。
+LLM 行为树生成器-测试器框架（2.5，已交付）、二级优先级引导策略子树（2.6，已交付）、
+行为树仿真验证（2.7，已交付）、教师树 v3 与 1v1 对抗评估（阶段三）。子系统与
+`多任务智能体/` 为**单向依赖**：只调用环境数据/动作接口，不含 DRL 训练代码。
 
-> 当前状态（2026-09-17）：**步骤 2.5 框架已完成并通过离线闭环验证**；真实 LLM
-> （DeepSeek/OpenAI）链路已接入，待 API Key 跑在线收敛日志。
+> 当前状态（2026-11-11）：2.5–2.7 均已交付；阶段三教师基线固定为
+> `teacher_v3_speed260`（solo default 100/86、bvr80-120 98/86，误发射 0、
+> 安全违规 0、trace 50/50）。本目录测试 86 项，三套全量 221 项通过。
 
 ## 一、步骤 2.5 交付物索引
 
@@ -229,7 +230,28 @@ Prompt 生成或人工追加——离线默认判据不构成对树战术优劣�
   `docs/阶段二_2.7_行为树仿真验证报告.md`，阶段二总结见
   `docs/阶段二_技术总结报告.md`。
 
-## 八、依赖
+## 八、教师树 v3 与 1v1 对抗评估（2026-11-11 中期基线）
+
+- 树注册：`tree_manifest.json` + `llm_bt/tree_registry.py`；场景
+  `teacher_v3_speed260_default` / `teacher_v3_speed260_bvr80-120` 指向
+  `docs/assets/3.7_teacher_v3_speed260/bt_v3_speed260.json`；
+- 构建：`llm_bt/tactical_execution_tree.py` 的 `tactical_tree_v3_json(profile)`，
+  profile 数据驱动（首发/补射动作、防御招式、搜索速度、crank 偏角）；
+- 对抗入口：`run_bt_vs_bt.py`（双树 1v1、对称燃油/逃逸终止、逐发记录）；
+  可视化：`visualize_bt_vs_bt.py`；
+- 中期指标：solo default 100/86、bvr80-120 98/86；h2h vs 手写 default
+  19-21-60（combat Pk 12.4%）、bvr80-120 42-14-44（combat Pk 10.7%，其中
+  31 场为对手逃逸胜）。评估必须区分 `combat_wins` 与 `non_combat_wins`；
+- 复现：
+
+```powershell
+$py = "C:\Users\36266\.conda\envs\DC\python.exe"
+& $py -X utf8 run_bt_vs_bt.py --scene bvr80-120 --seeds 1-50 --record-launches
+& $py -X utf8 run_2_7_validation.py --tree handwritten --scene bvr80-120 `
+  --seeds 1-50 --no-acmi
+```
+
+## 九、依赖
 
 - Python：py_trees 2.5.0（DC 环境已装）、numpy；环境侧 `多任务智能体/common`；
 - 复用：`开源项目库/03_行为树与LLM/BTGenBot/Python重写_bt_validator/bt_validator.py`

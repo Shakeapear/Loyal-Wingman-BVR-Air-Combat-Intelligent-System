@@ -2,11 +2,14 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.egg-info/
 build/
 dist/
 .venv/
 env/
+*.log
 
 # 运行/演示产物（可由脚本随时再生，不入库）
 可视化工具/results/
